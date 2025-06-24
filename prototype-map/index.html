@@ -40,7 +40,7 @@
             display: flex;
             align-items: center;
             justify-content: center;
-            z-index: 1100; /* Higher than dropdowns */
+            z-index: 1100; /* Higher than everything */
             border-radius: 0.5rem;
             pointer-events: none; /* Allows clicks to pass through when hidden */
             opacity: 0;
@@ -74,9 +74,14 @@
             vertical-align: middle;
             border: 1px solid #999;
         }
-        .choices {
+        /* --- FIX: Give dropdown wrappers a high z-index to appear over the map --- */
+        .dropdown-wrapper-top {
             position: relative;
-            z-index: 1001;
+            z-index: 1002; /* Higher than map and other dropdown */
+        }
+        .dropdown-wrapper-bottom {
+            position: relative;
+            z-index: 1001; /* Higher than map */
         }
     </style>
     <link rel="preconnect" href="https://fonts.googleapis.com">
@@ -93,11 +98,12 @@
 
         <!-- Filter Controls -->
         <div class="grid grid-cols-1 md:grid-cols-2 gap-6 mb-6">
-            <div>
+            <!-- FIX: Applied new CSS classes for proper layering -->
+            <div class="dropdown-wrapper-top">
                 <label for="cbsa-select" class="block text-sm font-medium text-gray-700 mb-2">1. Select a Market (CBSA)</label>
                 <select id="cbsa-select"></select>
             </div>
-            <div>
+            <div class="dropdown-wrapper-bottom">
                 <label for="metric-select" class="block text-sm font-medium text-gray-700 mb-2">2. Select a Metric</label>
                 <select id="metric-select"></select>
             </div>
