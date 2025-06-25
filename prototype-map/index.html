@@ -131,9 +131,24 @@
 
     <script>
         // --- CONFIGURATION --- //
+        // This object is now populated with your actual column names.
+        // The key (e.g., "Potential commission pool, Y/Y") must exactly match the property name
+        // in your GeoJSON files, including spaces and punctuation.
         const metrics = {
-            "median_home_value": { label: "Median Home Value", format: (val) => `$${val.toLocaleString()}` },
-            "price_to_rent_ratio": { label: "Price-to-Rent Ratio", format: (val) => `${val.toFixed(1)}` }
+            "Potential commission pool, Y/Y": { label: "Potential commission pool, Y/Y", format: (val) => `${(val * 100).toFixed(1)}%` },
+            "Potential commission pool, vs. 2017-19": { label: "Potential commission pool, vs. 2017-19", format: (val) => `${(val * 100).toFixed(1)}%` },
+            "Weighted list price, Y/Y": { label: "Weighted list price, Y/Y", format: (val) => `${(val * 100).toFixed(1)}%` },
+            "Weighted list price, vs. 2017-19": { label: "Weighted list price, vs. 2017-19", format: (val) => `${(val * 100).toFixed(1)}%` },
+            "Listing outflow, Y/Y": { label: "Listing outflow, Y/Y", format: (val) => `${(val * 100).toFixed(1)}%` },
+            "Listing outflow, vs. 2017-19": { label: "Listing outflow, vs. 2017-19", format: (val) => `${(val * 100).toFixed(1)}%` },
+            "Outflow rate per active listing, YY": { label: "Outflow rate per active listing, Y/Y", format: (val) => val.toFixed(2) },
+            "Outflow rate per active listing, vs. 2017-19": { label: "Outflow rate per active listing, vs. 2017-19", format: (val) => `${(val * 100).toFixed(1)}%` },
+            "Active listings, Y/Y": { label: "Active listings, Y/Y", format: (val) => `${(val * 100).toFixed(1)}%` },
+            "Active listings, vs. 2017-19": { label: "Active listings, vs. 2017-19", format: (val) => `${(val * 100).toFixed(1)}%` },
+            "New listings, Y/Y": { label: "New listings, Y/Y", format: (val) => `${(val * 100).toFixed(1)}%` },
+            "New listings, vs. 2017-19": { label: "New listings, vs. 2017-19", format: (val) => `${(val * 100).toFixed(1)}%` },
+            "Median days on market, Y/Y": { label: "Median days on market, Y/Y", format: (val) => Math.round(val).toLocaleString() },
+            "Median days on market, vs. 2017-19": { label: "Median days on market, vs. 2017-19", format: (val) => Math.round(val).toLocaleString() }
         };
 
         const dataBaseUrl = 'https://dhouston890.github.io/inman-tools/data/';
@@ -144,8 +159,10 @@
         let legend;
         let cbsaChoices;
         let metricChoices;
+        let currentMarketData; // Store the currently loaded market data
         const mapLoader = document.getElementById('map-loader');
         const subtitle = document.getElementById('subtitle');
+        const colors = ['#fde0dd', '#fcc5c0', '#fa9fb5', '#f768a1', '#c51b8a', '#7a0177'];
 
         // --- INITIALIZATION --- //
         document.addEventListener('DOMContentLoaded', function() {
@@ -163,20 +180,17 @@
         
         async function initializeSelectors() {
             const metricSelect = document.getElementById('metric-select');
-            const metricOptions = Object.keys(metrics).map(key => ({
+            // Set the first metric in the list as the default
+            const metricKeys = Object.keys(metrics);
+            const metricOptions = metricKeys.map(key => ({
                 value: key,
                 label: metrics[key].label,
-                selected: key === 'median_home_value'
+                selected: key === metricKeys[0]
             }));
             metricChoices = new Choices(metricSelect, { choices: metricOptions, searchEnabled: false, itemSelectText: 'Select', shouldSort: false });
             metricSelect.addEventListener('change', () => {
-                const selectedMetric = metricChoices.getValue(true);
-                if (geoJsonLayer) {
-                    geoJsonLayer.eachLayer(layer => {
-                        const style = getStyleForFeature(selectedMetric)(layer.feature);
-                        layer.setStyle(style);
-                    });
-                    legend.update(selectedMetric);
+                if (currentMarketData) {
+                    processAndDrawData(currentMarketData);
                 }
             });
 
@@ -185,13 +199,11 @@
             
             try {
                 const response = await fetch(`${dataBaseUrl}cbsa_list.json`);
-                if (!response.ok) {
-                    throw new Error(`HTTP error! status: ${response.status}`);
-                }
+                if (!response.ok) throw new Error(`HTTP error! status: ${response.status}`);
                 const data = await response.json();
                 const cbsaOptions = [{ value: '', label: 'Select a Market...', placeholder: true }, ...data.markets];
                 cbsaChoices.setChoices(cbsaOptions, 'value', 'label', true);
-                cbsaSelect.addEventListener('change', () => updateMap());
+                cbsaSelect.addEventListener('change', () => fetchAndDrawMarket());
             } catch (error) {
                 console.error("Failed to load market list:", error);
                 subtitle.textContent = "Error: Could not load the list of markets.";
@@ -199,11 +211,9 @@
             }
         }
         
-        async function updateMap() {
+        async function fetchAndDrawMarket() {
             const selectedCbsa = cbsaChoices.getValue(true);
-            const selectedMetric = metricChoices.getValue(true);
-
-            if (!selectedMetric) return;
+            currentMarketData = null; 
 
             if (geoJsonLayer) {
                 map.removeLayer(geoJsonLayer);
@@ -213,7 +223,7 @@
             if (!selectedCbsa) {
                 subtitle.textContent = 'Please select a market to begin.';
                 map.setView([39.8283, -98.5795], 4);
-                legend.update(null);
+                legend.update(null, null);
                 return;
             }
             
@@ -221,74 +231,112 @@
             subtitle.textContent = `Loading data for ${selectedCbsa}...`;
 
             try {
-                // --- FIX: Change the file extension from .json to .geojson ---
                 const response = await fetch(`${dataBaseUrl}${encodeURIComponent(selectedCbsa)}.geojson`);
-                 if (!response.ok) {
-                    throw new Error(`HTTP error! status: ${response.status}`);
-                }
-                const geoJsonData = await response.json();
+                if (!response.ok) throw new Error(`HTTP error! status: ${response.status}`);
+                currentMarketData = await response.json();
                 
                 subtitle.textContent = `Displaying data for ${selectedCbsa}.`;
-                drawGeoJson(geoJsonData, selectedMetric);
+                processAndDrawData(currentMarketData);
 
             } catch (error) {
                 console.error("Failed to load geographic data:", error);
                 subtitle.textContent = `Error loading data for ${selectedCbsa}. Please check the data file.`;
+                legend.update(null, null);
             } finally {
                 mapLoader.classList.remove('visible');
             }
         }
         
-        function drawGeoJson(data, metricKey) {
+        function processAndDrawData(geoJsonData) {
+            const selectedMetric = metricChoices.getValue(true);
+            if (!selectedMetric) return;
+
+            const values = geoJsonData.features
+                .map(f => f.properties[selectedMetric])
+                .filter(v => v !== null && v !== undefined && !isNaN(v))
+                .sort((a, b) => a - b);
+            
+            let breaks = [0, 0, 0, 0, 0, 0];
+            if (values.length > 5) { // Ensure there are enough values to create breaks
+                 breaks = [
+                    values[0], // min
+                    values[Math.floor(values.length * 0.2)],
+                    values[Math.floor(values.length * 0.4)],
+                    values[Math.floor(values.length * 0.6)],
+                    values[Math.floor(values.length * 0.8)],
+                    values[values.length - 1] // max
+                ];
+            } else if (values.length > 0) {
+                // Handle cases with few data points by simplifying breaks
+                breaks = [values[0], values[Math.floor(values.length/2)], values[values.length - 1]];
+            }
+            
+            drawGeoJson(geoJsonData, selectedMetric, breaks);
+            legend.update(selectedMetric, breaks);
+        }
+
+        function drawGeoJson(data, metricKey, colorBreaks) {
+            if (geoJsonLayer) {
+                map.removeLayer(geoJsonLayer);
+            }
+            
             if (!data || !data.features || data.features.length === 0) {
                  map.setView([39.8283, -98.5795], 4);
-                 legend.update(null);
                  return;
             }
 
             geoJsonLayer = L.geoJSON(data, {
-                style: getStyleForFeature(metricKey),
+                style: getStyleForFeature(metricKey, colorBreaks),
                 onEachFeature: onEachFeature
             }).addTo(map);
 
             map.fitBounds(geoJsonLayer.getBounds(), { padding: [50, 50] });
-            legend.update(metricKey);
         }
 
-        // --- HELPER FUNCTIONS (Styling, Interactions, Legend) --- //
-        
         function initializeLegend() {
             legend = L.control({position: 'bottomright'});
-            legend.onAdd = function (map) { this._div = L.DomUtil.create('div', 'info-legend'); this.update(); return this._div; };
-            legend.update = function (metricKey) {
+            legend.onAdd = function (map) { this._div = L.DomUtil.create('div', 'info-legend'); return this._div; };
+            legend.update = function (metricKey, breaks) {
                 if (!this._div) return;
-                if (!metricKey) { this._div.innerHTML = ''; return; }
+                if (!metricKey || !breaks || breaks.length < 2) { 
+                    this._div.innerHTML = ''; 
+                    return; 
+                }
+
                 const metricInfo = metrics[metricKey];
-                const ranges = { median_home_value: [500000, 750000, 1000000], price_to_rent_ratio: [25, 30, 35] };
-                const thresholds = ranges[metricKey];
-                const colors = ['#feebe2', '#fbb4b9', '#f768a1', '#c51b8a', '#7a0177'];
                 let innerHTML = `<h4 class="font-bold mb-2">${metricInfo.label}</h4>`;
-                innerHTML += `<div><i class="color-box" style="background:${colors[1]}"></i> < ${metricInfo.format(thresholds[0])}</div>`;
-                innerHTML += `<div><i class="color-box" style="background:${colors[2]}"></i> ${metricInfo.format(thresholds[0])} - ${metricInfo.format(thresholds[1])}</div>`;
-                innerHTML += `<div><i class="color-box" style="background:${colors[3]}"></i> ${metricInfo.format(thresholds[1])} - ${metricInfo.format(thresholds[2])}</div>`;
-                innerHTML += `<div><i class="color-box" style="background:${colors[4]}"></i> > ${metricInfo.format(thresholds[2])}</div>`;
+                
+                for (let i = 0; i < colors.length; i++) {
+                    const from = breaks[i];
+                    const to = breaks[i + 1];
+                    if (from === undefined || to === undefined) continue;
+                    innerHTML += `<div><i class="color-box" style="background:${colors[i]}"></i> ${metricInfo.format(from)} &ndash; ${metricInfo.format(to)}</div>`;
+                }
+                
                 this._div.innerHTML = innerHTML;
             };
             legend.addTo(map);
         }
 
-        function getColor(value, metricKey) {
-            const ranges = { median_home_value: [500000, 750000, 1000000], price_to_rent_ratio: [25, 30, 35] };
-            const colors = ['#feebe2', '#fbb4b9', '#f768a1', '#c51b8a', '#7a0177'];
+        function getColor(value, breaks) {
             if (value === null || value === undefined) return '#cccccc';
-            const thresholds = ranges[metricKey];
-            return value > thresholds[2] ? colors[4] : value > thresholds[1] ? colors[3] : value > thresholds[0] ? colors[2] : colors[1];
+            
+            // Simplified logic for fewer breaks
+            if (breaks.length <= 3) {
+                return value <= breaks[1] ? colors[0] : colors[3];
+            }
+
+            return value <= breaks[1] ? colors[0] :
+                   value <= breaks[2] ? colors[1] :
+                   value <= breaks[3] ? colors[2] :
+                   value <= breaks[4] ? colors[3] :
+                   colors[4];
         }
 
-        function getStyleForFeature(metricKey) {
+        function getStyleForFeature(metricKey, colorBreaks) {
             return function(feature) {
                 return {
-                    fillColor: getColor(feature.properties[metricKey], metricKey),
+                    fillColor: getColor(feature.properties[metricKey], colorBreaks),
                     weight: 2, opacity: 1, color: 'white', dashArray: '3', fillOpacity: 0.7
                 };
             }
@@ -301,8 +349,11 @@
                 const metricInfo = metrics[selectedMetricKey];
                 const value = feature.properties[selectedMetricKey];
                 const formattedValue = (value !== null && value !== undefined) ? metricInfo.format(value) : 'N/A';
-                // The 'zip' property name needs to match your GeoJSON file
-                return `<strong class="text-base">${feature.properties.zip || feature.properties.zip_code || 'N/A'}</strong><br>${metricInfo.label}: ${formattedValue}`;
+                
+                // Use "ZIP code" as the title. Note the bracket notation for the space.
+                const title = feature.properties["ZIP code"] || 'N/A';
+
+                return `<strong class="text-base">${title}</strong><br><strong class="font-semibold">${metricInfo.label}:</strong> ${formattedValue}`;
             }, { permanent: false, direction: 'auto' });
         }
         
