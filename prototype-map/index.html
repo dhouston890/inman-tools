@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Interactive CBSA Map Prototype (On-Demand Loading)</title>
+    <title>Interactive CBSA Map (Live Data)</title>
     
     <!-- Tailwind CSS for styling -->
     <script src="https://cdn.tailwindcss.com"></script>
@@ -74,7 +74,7 @@
             vertical-align: middle;
             border: 1px solid #999;
         }
-        /* --- FIX: Give dropdown wrappers a high z-index to appear over the map --- */
+        /* Give dropdown wrappers a high z-index to appear over the map */
         .dropdown-wrapper-top {
             position: relative;
             z-index: 1002; /* Higher than map and other dropdown */
@@ -98,7 +98,6 @@
 
         <!-- Filter Controls -->
         <div class="grid grid-cols-1 md:grid-cols-2 gap-6 mb-6">
-            <!-- FIX: Applied new CSS classes for proper layering -->
             <div class="dropdown-wrapper-top">
                 <label for="cbsa-select" class="block text-sm font-medium text-gray-700 mb-2">1. Select a Market (CBSA)</label>
                 <select id="cbsa-select"></select>
@@ -131,46 +130,17 @@
     <script src="https://cdn.jsdelivr.net/npm/choices.js/public/assets/scripts/choices.min.js"></script>
 
     <script>
-        // --- SIMULATED SERVER-SIDE DATA --- //
-        // This simulates having separate files on a server. In a real app,
-        // you would fetch these from actual URLs.
-        const simulatedServer = {
-            // This file would be fetched first to populate the dropdown. It's small and fast.
-            'cbsa_list.json': {
-                markets: [
-                    { value: 'Metropolis', label: 'Metropolis' },
-                    { value: 'Gotham City', label: 'Gotham City' },
-                    { value: 'Starling City', label: 'Starling City' }
-                ]
-            },
-            // These files are only fetched when the user selects the corresponding market.
-            'Metropolis.json': { "type": "FeatureCollection", "features": [ { "type": "Feature", "properties": { "zip": "10001", "cbsa": "Metropolis", "median_home_value": 850000, "price_to_rent_ratio": 35.2 }, "geometry": { "type": "Polygon", "coordinates": [[[-74.0, 40.75], [-73.98, 40.76], [-73.97, 40.74], [-73.99, 40.73], [-74.0, 40.75]]] } }, { "type": "Feature", "properties": { "zip": "10002", "cbsa": "Metropolis", "median_home_value": 920000, "price_to_rent_ratio": 38.1 }, "geometry": { "type": "Polygon", "coordinates": [[[-73.98, 40.76], [-73.96, 40.77], [-73.95, 40.75], [-73.97, 40.74], [-73.98, 40.76]]] } }, { "type": "Feature", "properties": { "zip": "10003", "cbsa": "Metropolis", "median_home_value": 1200000, "price_to_rent_ratio": 42.5 }, "geometry": { "type": "Polygon", "coordinates": [[[-73.99, 40.73], [-73.97, 40.74], [-73.96, 40.72], [-73.98, 40.71], [-73.99, 40.73]]] } } ] },
-            'Gotham City.json': { "type": "FeatureCollection", "features": [ { "type": "Feature", "properties": { "zip": "60601", "cbsa": "Gotham City", "median_home_value": 450000, "price_to_rent_ratio": 22.8 }, "geometry": { "type": "Polygon", "coordinates": [[[-87.62, 41.88], [-87.61, 41.89], [-87.60, 41.87], [-87.62, 41.88]]] } }, { "type": "Feature", "properties": { "zip": "60602", "cbsa": "Gotham City", "median_home_value": 510000, "price_to_rent_ratio": 24.1 }, "geometry": { "type": "Polygon", "coordinates": [[[-87.63, 41.88], [-87.62, 41.88], [-87.61, 41.87], [-87.63, 41.88]]] } } ] },
-            'Starling City.json': { "type": "FeatureCollection", "features": [ { "type": "Feature", "properties": { "zip": "98101", "cbsa": "Starling City", "median_home_value": 780000, "price_to_rent_ratio": 30.5 }, "geometry": { "type": "Polygon", "coordinates": [[[-122.34, 47.61], [-122.33, 47.62], [-122.32, 47.60], [-122.34, 47.61]]] } }, { "type": "Feature", "properties": { "zip": "98104", "cbsa": "Starling City", "median_home_value": 720000, "price_to_rent_ratio": 29.0 }, "geometry": { "type": "Polygon", "coordinates": [[[-122.33, 47.60], [-122.32, 47.60], [-122.31, 47.59], [-122.33, 47.59], [-122.33, 47.60]]] } } ] }
-        };
-
-        // This function simulates a network request to fetch data.
-        function fakeFetch(url) {
-            console.log(`Fetching: ${url}`);
-            const fileName = url.split('/').pop();
-            return new Promise((resolve, reject) => {
-                setTimeout(() => { // Simulate network delay
-                    if (simulatedServer[fileName]) {
-                        resolve({
-                            ok: true,
-                            json: () => Promise.resolve(simulatedServer[fileName])
-                        });
-                    } else {
-                        reject(new Error(`File not found: ${fileName}`));
-                    }
-                }, 800); // 800ms delay to make loading visible
-            });
-        }
-        
+        // --- CONFIGURATION --- //
+        // This object defines the metrics available for selection.
+        // You can add or remove metrics here. The key (e.g., "median_home_value")
+        // must match the key in your GeoJSON file's "properties" object.
         const metrics = {
             "median_home_value": { label: "Median Home Value", format: (val) => `$${val.toLocaleString()}` },
             "price_to_rent_ratio": { label: "Price-to-Rent Ratio", format: (val) => `${val.toFixed(1)}` }
         };
+
+        // --- FIX: Use an absolute URL to the data folder on GitHub ---
+        const dataBaseUrl = 'https://dhouston890.github.io/inman-tools/data/';
 
         // --- GLOBAL VARIABLES --- //
         let map;
@@ -196,16 +166,15 @@
         }
         
         async function initializeSelectors() {
-            // Populate Metrics Dropdown (this is static)
+            // Populate Metrics Dropdown (this is static based on the 'metrics' object above)
             const metricSelect = document.getElementById('metric-select');
             const metricOptions = Object.keys(metrics).map(key => ({
                 value: key,
                 label: metrics[key].label,
-                selected: key === 'median_home_value'
+                selected: key === 'median_home_value' // Set the default metric
             }));
             metricChoices = new Choices(metricSelect, { choices: metricOptions, searchEnabled: false, itemSelectText: 'Select', shouldSort: false });
             metricSelect.addEventListener('change', () => {
-                // When metric changes, just redraw the existing data with new styles
                 const selectedMetric = metricChoices.getValue(true);
                 if (geoJsonLayer) {
                     geoJsonLayer.eachLayer(layer => {
@@ -216,18 +185,24 @@
                 }
             });
 
-            // Fetch Market List and Populate CBSA Dropdown
+            // Fetch Market List from your real data file to populate the CBSA Dropdown
             const cbsaSelect = document.getElementById('cbsa-select');
             cbsaChoices = new Choices(cbsaSelect, { searchEnabled: true, itemSelectText: 'Select', shouldSort: false, placeholder: true, placeholderValue: 'Loading markets...' });
             
             try {
-                const response = await fakeFetch('./data/cbsa_list.json');
+                // The 'fetch' API is the standard way to get data from a URL.
+                // FIX: Use the absolute base URL
+                const response = await fetch(`${dataBaseUrl}cbsa_list.json`);
+                if (!response.ok) {
+                    throw new Error(`HTTP error! status: ${response.status}`);
+                }
                 const data = await response.json();
                 const cbsaOptions = [{ value: '', label: 'Select a Market...', placeholder: true }, ...data.markets];
                 cbsaChoices.setChoices(cbsaOptions, 'value', 'label', true);
-                cbsaSelect.addEventListener('change', () => updateMap()); // Re-fetch data on change
+                cbsaSelect.addEventListener('change', () => updateMap());
             } catch (error) {
                 console.error("Failed to load market list:", error);
+                subtitle.textContent = "Error: Could not load the list of markets.";
                 cbsaChoices.setChoices([{ value: '', label: 'Error loading markets', disabled: true }], 'value', 'label', true);
             }
         }
@@ -238,13 +213,11 @@
 
             if (!selectedMetric) return;
 
-            // Clear existing layers
             if (geoJsonLayer) {
                 map.removeLayer(geoJsonLayer);
                 geoJsonLayer = null;
             }
 
-            // If no CBSA is selected, reset the view
             if (!selectedCbsa) {
                 subtitle.textContent = 'Please select a market to begin.';
                 map.setView([39.8283, -98.5795], 4);
@@ -256,7 +229,12 @@
             subtitle.textContent = `Loading data for ${selectedCbsa}...`;
 
             try {
-                const response = await fakeFetch(`./data/${selectedCbsa}.json`);
+                // Fetch the specific market's GeoJSON file.
+                // FIX: Use the absolute base URL and encode the filename component
+                const response = await fetch(`${dataBaseUrl}${encodeURIComponent(selectedCbsa)}.json`);
+                 if (!response.ok) {
+                    throw new Error(`HTTP error! status: ${response.status}`);
+                }
                 const geoJsonData = await response.json();
                 
                 subtitle.textContent = `Displaying data for ${selectedCbsa}.`;
@@ -264,7 +242,7 @@
 
             } catch (error) {
                 console.error("Failed to load geographic data:", error);
-                subtitle.textContent = `Error loading data for ${selectedCbsa}. Please try again.`;
+                subtitle.textContent = `Error loading data for ${selectedCbsa}. Please check the data file.`;
             } finally {
                 mapLoader.classList.remove('visible');
             }
@@ -293,7 +271,7 @@
             legend.onAdd = function (map) { this._div = L.DomUtil.create('div', 'info-legend'); this.update(); return this._div; };
             legend.update = function (metricKey) {
                 if (!this._div) return;
-                if (!metricKey) { this._div.innerHTML = '<h4>Select a Metric</h4>'; return; }
+                if (!metricKey) { this._div.innerHTML = ''; return; }
                 const metricInfo = metrics[metricKey];
                 const ranges = { median_home_value: [500000, 750000, 1000000], price_to_rent_ratio: [25, 30, 35] };
                 const thresholds = ranges[metricKey];
@@ -327,13 +305,13 @@
         
         function onEachFeature(feature, layer) {
             layer.on({ mouseover: highlightFeature, mouseout: resetHighlight });
-            // This needs to be dynamic since the metric can change after the layer is drawn
             layer.bindTooltip(() => {
                 const selectedMetricKey = metricChoices.getValue(true);
                 const metricInfo = metrics[selectedMetricKey];
                 const value = feature.properties[selectedMetricKey];
                 const formattedValue = (value !== null && value !== undefined) ? metricInfo.format(value) : 'N/A';
-                return `<strong class="text-base">${feature.properties.zip}</strong><br>${metricInfo.label}: ${formattedValue}`;
+                // The 'zip' property name needs to match your GeoJSON file
+                return `<strong class="text-base">${feature.properties.zip || feature.properties.zip_code || 'N/A'}</strong><br>${metricInfo.label}: ${formattedValue}`;
             }, { permanent: false, direction: 'auto' });
         }
         
@@ -348,7 +326,6 @@
                 geoJsonLayer.resetStyle(e.target);
             }
         }
-
     </script>
 </body>
 </html>
