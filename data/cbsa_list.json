@@ -1,1368 +1,284 @@
 {
   "markets": [
     {
-      "label": "Canton-Massillon, OH",
-      "value": "Canton-Massillon, OH"
-    },
-    {
-      "label": "Atlanta-Sandy Springs-Alpharetta, GA",
-      "value": "Atlanta-Sandy Springs-Alpharetta, GA"
-    },
-    {
-      "label": "Longview, TX",
-      "value": "Longview, TX"
-    },
-    {
-      "label": "Iowa City, IA",
-      "value": "Iowa City, IA"
-    },
-    {
-      "label": "Olympia-Lacey-Tumwater, WA",
-      "value": "Olympia-Lacey-Tumwater, WA"
-    },
-    {
-      "label": "Washington-Arlington-Alexandria, DC-VA-MD-WV",
-      "value": "Washington-Arlington-Alexandria, DC-VA-MD-WV"
-    },
-    {
-      "label": "Houston-The Woodlands-Sugar Land, TX",
-      "value": "Houston-The Woodlands-Sugar Land, TX"
-    },
-    {
-      "label": "Zanesville, OH",
-      "value": "Zanesville, OH"
-    },
-    {
-      "label": "Athens-Clarke County, GA",
-      "value": "Athens-Clarke County, GA"
-    },
-    {
-      "label": "Detroit-Warren-Dearborn, MI",
-      "value": "Detroit-Warren-Dearborn, MI"
-    },
-    {
-      "label": "Jacksonville, NC",
-      "value": "Jacksonville, NC"
-    },
-    {
-      "label": "Russellville, AR",
-      "value": "Russellville, AR"
-    },
-    {
       "label": "New York-Newark-Jersey City, NY-NJ-PA",
       "value": "New York-Newark-Jersey City, NY-NJ-PA"
-    },
-    {
-      "label": "Santa Maria-Santa Barbara, CA",
-      "value": "Santa Maria-Santa Barbara, CA"
-    },
-    {
-      "label": "Bloomington, IL",
-      "value": "Bloomington, IL"
-    },
-    {
-      "label": "Elizabethtown-Fort Knox, KY",
-      "value": "Elizabethtown-Fort Knox, KY"
-    },
-    {
-      "label": "Beckley, WV",
-      "value": "Beckley, WV"
-    },
-    {
-      "label": "Knoxville, TN",
-      "value": "Knoxville, TN"
-    },
-    {
-      "label": "Portland-South Portland, ME",
-      "value": "Portland-South Portland, ME"
-    },
-    {
-      "label": "Burlington, NC",
-      "value": "Burlington, NC"
-    },
-    {
-      "label": "Albany-Schenectady-Troy, NY",
-      "value": "Albany-Schenectady-Troy, NY"
     },
     {
       "label": "Los Angeles-Long Beach-Anaheim, CA",
       "value": "Los Angeles-Long Beach-Anaheim, CA"
     },
     {
-      "label": "Wilmington, NC",
-      "value": "Wilmington, NC"
-    },
-    {
-      "label": "Lake Havasu City-Kingman, AZ",
-      "value": "Lake Havasu City-Kingman, AZ"
-    },
-    {
-      "label": "Idaho Falls, ID",
-      "value": "Idaho Falls, ID"
-    },
-    {
-      "label": "Phoenix-Mesa-Chandler, AZ",
-      "value": "Phoenix-Mesa-Chandler, AZ"
-    },
-    {
-      "label": "Staunton, VA",
-      "value": "Staunton, VA"
-    },
-    {
-      "label": "Statesboro, GA",
-      "value": "Statesboro, GA"
-    },
-    {
-      "label": "Ithaca, NY",
-      "value": "Ithaca, NY"
-    },
-    {
-      "label": "Dayton-Kettering, OH",
-      "value": "Dayton-Kettering, OH"
-    },
-    {
-      "label": "Tucson, AZ",
-      "value": "Tucson, AZ"
-    },
-    {
-      "label": "Providence-Warwick, RI-MA",
-      "value": "Providence-Warwick, RI-MA"
-    },
-    {
-      "label": "Gainesville, FL",
-      "value": "Gainesville, FL"
-    },
-    {
-      "label": "Laurel, MS",
-      "value": "Laurel, MS"
-    },
-    {
-      "label": "Santa Fe, NM",
-      "value": "Santa Fe, NM"
-    },
-    {
-      "label": "El Centro, CA",
-      "value": "El Centro, CA"
-    },
-    {
-      "label": "Boston-Cambridge-Newton, MA-NH",
-      "value": "Boston-Cambridge-Newton, MA-NH"
-    },
-    {
-      "label": "Pueblo, CO",
-      "value": "Pueblo, CO"
+      "label": "Chicago-Naperville-Elgin, IL-IN-WI",
+      "value": "Chicago-Naperville-Elgin, IL-IN-WI"
     },
     {
       "label": "Dallas-Fort Worth-Arlington, TX",
       "value": "Dallas-Fort Worth-Arlington, TX"
     },
     {
-      "label": "Lima, OH",
-      "value": "Lima, OH"
-    },
-    {
-      "label": "Bluefield, WV-VA",
-      "value": "Bluefield, WV-VA"
-    },
-    {
-      "label": "Denver-Aurora-Lakewood, CO",
-      "value": "Denver-Aurora-Lakewood, CO"
-    },
-    {
-      "label": "Oshkosh-Neenah, WI",
-      "value": "Oshkosh-Neenah, WI"
-    },
-    {
-      "label": "Deltona-Daytona Beach-Ormond Beach, FL",
-      "value": "Deltona-Daytona Beach-Ormond Beach, FL"
-    },
-    {
-      "label": "Greenville-Anderson, SC",
-      "value": "Greenville-Anderson, SC"
-    },
-    {
-      "label": "Nashville-Davidson--Murfreesboro--Franklin, TN",
-      "value": "Nashville-Davidson--Murfreesboro--Franklin, TN"
-    },
-    {
-      "label": "Little Rock-North Little Rock-Conway, AR",
-      "value": "Little Rock-North Little Rock-Conway, AR"
-    },
-    {
-      "label": "Erie, PA",
-      "value": "Erie, PA"
-    },
-    {
-      "label": "Pittsburgh, PA",
-      "value": "Pittsburgh, PA"
-    },
-    {
-      "label": "Sumter, SC",
-      "value": "Sumter, SC"
-    },
-    {
-      "label": "Ocala, FL",
-      "value": "Ocala, FL"
-    },
-    {
-      "label": "Gulfport-Biloxi, MS",
-      "value": "Gulfport-Biloxi, MS"
+      "label": "Houston-The Woodlands-Sugar Land, TX",
+      "value": "Houston-The Woodlands-Sugar Land, TX"
     },
     {
       "label": "Philadelphia-Camden-Wilmington, PA-NJ-DE-MD",
       "value": "Philadelphia-Camden-Wilmington, PA-NJ-DE-MD"
     },
     {
-      "label": "Lewiston-Auburn, ME",
-      "value": "Lewiston-Auburn, ME"
-    },
-    {
-      "label": "Spartanburg, SC",
-      "value": "Spartanburg, SC"
-    },
-    {
-      "label": "Twin Falls, ID",
-      "value": "Twin Falls, ID"
-    },
-    {
-      "label": "Virginia Beach-Norfolk-Newport News, VA-NC",
-      "value": "Virginia Beach-Norfolk-Newport News, VA-NC"
-    },
-    {
-      "label": "Logan, UT-ID",
-      "value": "Logan, UT-ID"
-    },
-    {
-      "label": "San Diego-Chula Vista-Carlsbad, CA",
-      "value": "San Diego-Chula Vista-Carlsbad, CA"
-    },
-    {
-      "label": "Hanford-Corcoran, CA",
-      "value": "Hanford-Corcoran, CA"
-    },
-    {
-      "label": "Louisville/Jefferson County, KY-IN",
-      "value": "Louisville - Jefferson County, KY-IN"
-    },
-    {
-      "label": "Brunswick, GA",
-      "value": "Brunswick, GA"
-    },
-    {
-      "label": "Youngstown-Warren-Boardman, OH-PA",
-      "value": "Youngstown-Warren-Boardman, OH-PA"
-    },
-    {
-      "label": "Orlando-Kissimmee-Sanford, FL",
-      "value": "Orlando-Kissimmee-Sanford, FL"
-    },
-    {
-      "label": "Gainesville, GA",
-      "value": "Gainesville, GA"
-    },
-    {
-      "label": "Tampa-St. Petersburg-Clearwater, FL",
-      "value": "Tampa-St. Petersburg-Clearwater, FL"
-    },
-    {
-      "label": "Weirton-Steubenville, WV-OH",
-      "value": "Weirton-Steubenville, WV-OH"
-    },
-    {
-      "label": "Auburn-Opelika, AL",
-      "value": "Auburn-Opelika, AL"
-    },
-    {
-      "label": "Kahului-Wailuku-Lahaina, HI",
-      "value": "Kahului-Wailuku-Lahaina, HI"
-    },
-    {
-      "label": "Kansas City, MO-KS",
-      "value": "Kansas City, MO-KS"
-    },
-    {
-      "label": "Jamestown-Dunkirk-Fredonia, NY",
-      "value": "Jamestown-Dunkirk-Fredonia, NY"
-    },
-    {
-      "label": "Wheeling, WV-OH",
-      "value": "Wheeling, WV-OH"
-    },
-    {
-      "label": "El Paso, TX",
-      "value": "El Paso, TX"
-    },
-    {
-      "label": "Indianapolis-Carmel-Anderson, IN",
-      "value": "Indianapolis-Carmel-Anderson, IN"
-    },
-    {
-      "label": "Winston-Salem, NC",
-      "value": "Winston-Salem, NC"
-    },
-    {
-      "label": "Omaha-Council Bluffs, NE-IA",
-      "value": "Omaha-Council Bluffs, NE-IA"
-    },
-    {
-      "label": "Clarksville, TN-KY",
-      "value": "Clarksville, TN-KY"
-    },
-    {
-      "label": "Missoula, MT",
-      "value": "Missoula, MT"
-    },
-    {
-      "label": "Monroe, LA",
-      "value": "Monroe, LA"
-    },
-    {
-      "label": "Austin-Round Rock-Georgetown, TX",
-      "value": "Austin-Round Rock-Georgetown, TX"
-    },
-    {
-      "label": "North Port-Sarasota-Bradenton, FL",
-      "value": "North Port-Sarasota-Bradenton, FL"
+      "label": "Washington-Arlington-Alexandria, DC-VA-MD-WV",
+      "value": "Washington-Arlington-Alexandria, DC-VA-MD-WV"
     },
     {
       "label": "Miami-Fort Lauderdale-Pompano Beach, FL",
       "value": "Miami-Fort Lauderdale-Pompano Beach, FL"
     },
     {
-      "label": "Kalamazoo-Portage, MI",
-      "value": "Kalamazoo-Portage, MI"
+      "label": "Atlanta-Sandy Springs-Alpharetta, GA",
+      "value": "Atlanta-Sandy Springs-Alpharetta, GA"
     },
     {
-      "label": "Lakeland-Winter Haven, FL",
-      "value": "Lakeland-Winter Haven, FL"
+      "label": "Boston-Cambridge-Newton, MA-NH",
+      "value": "Boston-Cambridge-Newton, MA-NH"
     },
     {
-      "label": "Lake Charles, LA",
-      "value": "Lake Charles, LA"
+      "label": "Phoenix-Mesa-Chandler, AZ",
+      "value": "Phoenix-Mesa-Chandler, AZ"
     },
     {
-      "label": "Albertville, AL",
-      "value": "Albertville, AL"
-    },
-    {
-      "label": "Charleston, WV",
-      "value": "Charleston, WV"
-    },
-    {
-      "label": "Worcester, MA-CT",
-      "value": "Worcester, MA-CT"
-    },
-    {
-      "label": "Chicago-Naperville-Elgin, IL-IN-WI",
-      "value": "Chicago-Naperville-Elgin, IL-IN-WI"
-    },
-    {
-      "label": "Battle Creek, MI",
-      "value": "Battle Creek, MI"
-    },
-    {
-      "label": "Charlottesville, VA",
-      "value": "Charlottesville, VA"
-    },
-    {
-      "label": "Muskogee, OK",
-      "value": "Muskogee, OK"
-    },
-    {
-      "label": "Morgantown, WV",
-      "value": "Morgantown, WV"
-    },
-    {
-      "label": "New Orleans-Metairie, LA",
-      "value": "New Orleans-Metairie, LA"
-    },
-    {
-      "label": "Utica-Rome, NY",
-      "value": "Utica-Rome, NY"
-    },
-    {
-      "label": "Tullahoma-Manchester, TN",
-      "value": "Tullahoma-Manchester, TN"
-    },
-    {
-      "label": "Columbus, GA-AL",
-      "value": "Columbus, GA-AL"
-    },
-    {
-      "label": "Memphis, TN-MS-AR",
-      "value": "Memphis, TN-MS-AR"
-    },
-    {
-      "label": "Raleigh-Cary, NC",
-      "value": "Raleigh-Cary, NC"
-    },
-    {
-      "label": "Riverside-San Bernardino-Ontario, CA",
-      "value": "Riverside-San Bernardino-Ontario, CA"
-    },
-    {
-      "label": "Stillwater, OK",
-      "value": "Stillwater, OK"
-    },
-    {
-      "label": "Dover, DE",
-      "value": "Dover, DE"
-    },
-    {
-      "label": "Lawton, OK",
-      "value": "Lawton, OK"
-    },
-    {
-      "label": "Charlotte-Concord-Gastonia, NC-SC",
-      "value": "Charlotte-Concord-Gastonia, NC-SC"
-    },
-    {
-      "label": "Tuscaloosa, AL",
-      "value": "Tuscaloosa, AL"
-    },
-    {
-      "label": "Springfield, MA",
-      "value": "Springfield, MA"
-    },
-    {
-      "label": "Durham-Chapel Hill, NC",
-      "value": "Durham-Chapel Hill, NC"
-    },
-    {
-      "label": "Minneapolis-St. Paul-Bloomington, MN-WI",
-      "value": "Minneapolis-St. Paul-Bloomington, MN-WI"
-    },
-    {
-      "label": "Cape Coral-Fort Myers, FL",
-      "value": "Cape Coral-Fort Myers, FL"
-    },
-    {
-      "label": "Searcy, AR",
-      "value": "Searcy, AR"
-    },
-    {
-      "label": "Goldsboro, NC",
-      "value": "Goldsboro, NC"
-    },
-    {
-      "label": "Mankato, MN",
-      "value": "Mankato, MN"
-    },
-    {
-      "label": "Watertown-Fort Drum, NY",
-      "value": "Watertown-Fort Drum, NY"
-    },
-    {
-      "label": "Chillicothe, OH",
-      "value": "Chillicothe, OH"
-    },
-    {
-      "label": "Centralia, WA",
-      "value": "Centralia, WA"
-    },
-    {
-      "label": "College Station-Bryan, TX",
-      "value": "College Station-Bryan, TX"
-    },
-    {
-      "label": "Peoria, IL",
-      "value": "Peoria, IL"
-    },
-    {
-      "label": "Flagstaff, AZ",
-      "value": "Flagstaff, AZ"
-    },
-    {
-      "label": "Colorado Springs, CO",
-      "value": "Colorado Springs, CO"
-    },
-    {
-      "label": "Evansville, IN-KY",
-      "value": "Evansville, IN-KY"
-    },
-    {
-      "label": "Fayetteville, NC",
-      "value": "Fayetteville, NC"
-    },
-    {
-      "label": "Lafayette-West Lafayette, IN",
-      "value": "Lafayette-West Lafayette, IN"
-    },
-    {
-      "label": "Lansing-East Lansing, MI",
-      "value": "Lansing-East Lansing, MI"
-    },
-    {
-      "label": "Rochester, NY",
-      "value": "Rochester, NY"
-    },
-    {
-      "label": "Lynchburg, VA",
-      "value": "Lynchburg, VA"
-    },
-    {
-      "label": "Bloomington, IN",
-      "value": "Bloomington, IN"
-    },
-    {
-      "label": "Gallup, NM",
-      "value": "Gallup, NM"
-    },
-    {
-      "label": "Midland, TX",
-      "value": "Midland, TX"
-    },
-    {
-      "label": "Las Cruces, NM",
-      "value": "Las Cruces, NM"
-    },
-    {
-      "label": "Beaumont-Port Arthur, TX",
-      "value": "Beaumont-Port Arthur, TX"
-    },
-    {
-      "label": "Sandusky, OH",
-      "value": "Sandusky, OH"
+      "label": "Detroit-Warren-Dearborn, MI",
+      "value": "Detroit-Warren-Dearborn, MI"
     },
     {
       "label": "San Francisco-Oakland-Berkeley, CA",
       "value": "San Francisco-Oakland-Berkeley, CA"
     },
     {
-      "label": "Ogden-Clearfield, UT",
-      "value": "Ogden-Clearfield, UT"
+      "label": "Seattle-Tacoma-Bellevue, WA",
+      "value": "Seattle-Tacoma-Bellevue, WA"
     },
     {
-      "label": "Paducah, KY-IL",
-      "value": "Paducah, KY-IL"
+      "label": "Minneapolis-St. Paul-Bloomington, MN-WI",
+      "value": "Minneapolis-St. Paul-Bloomington, MN-WI"
     },
     {
-      "label": "Urban Honolulu, HI",
-      "value": "Urban Honolulu, HI"
+      "label": "Riverside-San Bernardino-Ontario, CA",
+      "value": "Riverside-San Bernardino-Ontario, CA"
     },
     {
-      "label": "Burlington-South Burlington, VT",
-      "value": "Burlington-South Burlington, VT"
+      "label": "Tampa-St. Petersburg-Clearwater, FL",
+      "value": "Tampa-St. Petersburg-Clearwater, FL"
     },
     {
-      "label": "Dalton, GA",
-      "value": "Dalton, GA"
+      "label": "Denver-Aurora-Lakewood, CO",
+      "value": "Denver-Aurora-Lakewood, CO"
     },
     {
-      "label": "Jacksonville, FL",
-      "value": "Jacksonville, FL"
-    },
-    {
-      "label": "Hilton Head Island-Bluffton, SC",
-      "value": "Hilton Head Island-Bluffton, SC"
-    },
-    {
-      "label": "Montgomery, AL",
-      "value": "Montgomery, AL"
-    },
-    {
-      "label": "Flint, MI",
-      "value": "Flint, MI"
-    },
-    {
-      "label": "Allentown-Bethlehem-Easton, PA-NJ",
-      "value": "Allentown-Bethlehem-Easton, PA-NJ"
-    },
-    {
-      "label": "Palm Bay-Melbourne-Titusville, FL",
-      "value": "Palm Bay-Melbourne-Titusville, FL"
-    },
-    {
-      "label": "Trenton-Princeton, NJ",
-      "value": "Trenton-Princeton, NJ"
-    },
-    {
-      "label": "Pottsville, PA",
-      "value": "Pottsville, PA"
-    },
-    {
-      "label": "Roanoke, VA",
-      "value": "Roanoke, VA"
-    },
-    {
-      "label": "Lafayette, LA",
-      "value": "Lafayette, LA"
-    },
-    {
-      "label": "Binghamton, NY",
-      "value": "Binghamton, NY"
-    },
-    {
-      "label": "Baton Rouge, LA",
-      "value": "Baton Rouge, LA"
-    },
-    {
-      "label": "Baltimore-Columbia-Towson, MD",
-      "value": "Baltimore-Columbia-Towson, MD"
-    },
-    {
-      "label": "Fayetteville-Springdale-Rogers, AR",
-      "value": "Fayetteville-Springdale-Rogers, AR"
-    },
-    {
-      "label": "Oklahoma City, OK",
-      "value": "Oklahoma City, OK"
-    },
-    {
-      "label": "Tallahassee, FL",
-      "value": "Tallahassee, FL"
-    },
-    {
-      "label": "Mobile, AL",
-      "value": "Mobile, AL"
-    },
-    {
-      "label": "Pinehurst-Southern Pines, NC",
-      "value": "Pinehurst-Southern Pines, NC"
-    },
-    {
-      "label": "Casper, WY",
-      "value": "Casper, WY"
-    },
-    {
-      "label": "Vallejo, CA",
-      "value": "Vallejo, CA"
-    },
-    {
-      "label": "Savannah, GA",
-      "value": "Savannah, GA"
-    },
-    {
-      "label": "Bismarck, ND",
-      "value": "Bismarck, ND"
-    },
-    {
-      "label": "Sanford, NC",
-      "value": "Sanford, NC"
-    },
-    {
-      "label": "Oxnard-Thousand Oaks-Ventura, CA",
-      "value": "Oxnard-Thousand Oaks-Ventura, CA"
-    },
-    {
-      "label": "Jackson, MS",
-      "value": "Jackson, MS"
-    },
-    {
-      "label": "Amarillo, TX",
-      "value": "Amarillo, TX"
-    },
-    {
-      "label": "Fairbanks, AK",
-      "value": "Fairbanks, AK"
-    },
-    {
-      "label": "Florence, SC",
-      "value": "Florence, SC"
-    },
-    {
-      "label": "Las Vegas-Henderson-Paradise, NV",
-      "value": "Las Vegas-Henderson-Paradise, NV"
+      "label": "San Diego-Chula Vista-Carlsbad, CA",
+      "value": "San Diego-Chula Vista-Carlsbad, CA"
     },
     {
       "label": "St. Louis, MO-IL",
       "value": "St. Louis, MO-IL"
     },
     {
-      "label": "Salem, OR",
-      "value": "Salem, OR"
+      "label": "Baltimore-Columbia-Towson, MD",
+      "value": "Baltimore-Columbia-Towson, MD"
     },
     {
-      "label": "Akron, OH",
-      "value": "Akron, OH"
+      "label": "Charlotte-Concord-Gastonia, NC-SC",
+      "value": "Charlotte-Concord-Gastonia, NC-SC"
     },
     {
-      "label": "Somerset, PA",
-      "value": "Somerset, PA"
+      "label": "Orlando-Kissimmee-Sanford, FL",
+      "value": "Orlando-Kissimmee-Sanford, FL"
     },
     {
-      "label": "Santa Rosa-Petaluma, CA",
-      "value": "Santa Rosa-Petaluma, CA"
-    },
-    {
-      "label": "Stockton, CA",
-      "value": "Stockton, CA"
-    },
-    {
-      "label": "Hobbs, NM",
-      "value": "Hobbs, NM"
-    },
-    {
-      "label": "Cincinnati, OH-KY-IN",
-      "value": "Cincinnati, OH-KY-IN"
-    },
-    {
-      "label": "Grand Rapids-Kentwood, MI",
-      "value": "Grand Rapids-Kentwood, MI"
-    },
-    {
-      "label": "Augusta-Waterville, ME",
-      "value": "Augusta-Waterville, ME"
-    },
-    {
-      "label": "Cape Girardeau, MO-IL",
-      "value": "Cape Girardeau, MO-IL"
-    },
-    {
-      "label": "Columbus, IN",
-      "value": "Columbus, IN"
-    },
-    {
-      "label": "Birmingham-Hoover, AL",
-      "value": "Birmingham-Hoover, AL"
-    },
-    {
-      "label": "Bangor, ME",
-      "value": "Bangor, ME"
-    },
-    {
-      "label": "Spokane-Spokane Valley, WA",
-      "value": "Spokane-Spokane Valley, WA"
-    },
-    {
-      "label": "Hinesville, GA",
-      "value": "Hinesville, GA"
-    },
-    {
-      "label": "Rome, GA",
-      "value": "Rome, GA"
-    },
-    {
-      "label": "Danville, IL",
-      "value": "Danville, IL"
-    },
-    {
-      "label": "Seattle-Tacoma-Bellevue, WA",
-      "value": "Seattle-Tacoma-Bellevue, WA"
-    },
-    {
-      "label": "Visalia, CA",
-      "value": "Visalia, CA"
-    },
-    {
-      "label": "Columbia, SC",
-      "value": "Columbia, SC"
-    },
-    {
-      "label": "Grants Pass, OR",
-      "value": "Grants Pass, OR"
-    },
-    {
-      "label": "Hammond, LA",
-      "value": "Hammond, LA"
-    },
-    {
-      "label": "Augusta-Richmond County, GA-SC",
-      "value": "Augusta-Richmond County, GA-SC"
-    },
-    {
-      "label": "Waco, TX",
-      "value": "Waco, TX"
-    },
-    {
-      "label": "Fresno, CA",
-      "value": "Fresno, CA"
-    },
-    {
-      "label": "Milwaukee-Waukesha, WI",
-      "value": "Milwaukee-Waukesha, WI"
-    },
-    {
-      "label": "Odessa, TX",
-      "value": "Odessa, TX"
-    },
-    {
-      "label": "Myrtle Beach-Conway-North Myrtle Beach, SC-NC",
-      "value": "Myrtle Beach-Conway-North Myrtle Beach, SC-NC"
-    },
-    {
-      "label": "Lubbock, TX",
-      "value": "Lubbock, TX"
-    },
-    {
-      "label": "Asheville, NC",
-      "value": "Asheville, NC"
-    },
-    {
-      "label": "Reading, PA",
-      "value": "Reading, PA"
-    },
-    {
-      "label": "Barnstable Town, MA",
-      "value": "Barnstable Town, MA"
-    },
-    {
-      "label": "Terre Haute, IN",
-      "value": "Terre Haute, IN"
-    },
-    {
-      "label": "Macon-Bibb County, GA",
-      "value": "Macon-Bibb County, GA"
-    },
-    {
-      "label": "Indiana, PA",
-      "value": "Indiana, PA"
-    },
-    {
-      "label": "Grand Island, NE",
-      "value": "Grand Island, NE"
-    },
-    {
-      "label": "Saginaw, MI",
-      "value": "Saginaw, MI"
-    },
-    {
-      "label": "Chambersburg-Waynesboro, PA",
-      "value": "Chambersburg-Waynesboro, PA"
-    },
-    {
-      "label": "Key West, FL",
-      "value": "Key West, FL"
-    },
-    {
-      "label": "Warner Robins, GA",
-      "value": "Warner Robins, GA"
-    },
-    {
-      "label": "Albany, GA",
-      "value": "Albany, GA"
-    },
-    {
-      "label": "Alamogordo, NM",
-      "value": "Alamogordo, NM"
-    },
-    {
-      "label": "South Bend-Mishawaka, IN-MI",
-      "value": "South Bend-Mishawaka, IN-MI"
-    },
-    {
-      "label": "Salem, OH",
-      "value": "Salem, OH"
-    },
-    {
-      "label": "Hilo, HI",
-      "value": "Hilo, HI"
-    },
-    {
-      "label": "Bremerton-Silverdale-Port Orchard, WA",
-      "value": "Bremerton-Silverdale-Port Orchard, WA"
-    },
-    {
-      "label": "Holland, MI",
-      "value": "Holland, MI"
-    },
-    {
-      "label": "Salt Lake City, UT",
-      "value": "Salt Lake City, UT"
-    },
-    {
-      "label": "Hot Springs, AR",
-      "value": "Hot Springs, AR"
-    },
-    {
-      "label": "Buffalo-Cheektowaga, NY",
-      "value": "Buffalo-Cheektowaga, NY"
-    },
-    {
-      "label": "Springfield, MO",
-      "value": "Springfield, MO"
-    },
-    {
-      "label": "Corpus Christi, TX",
-      "value": "Corpus Christi, TX"
-    },
-    {
-      "label": "Jefferson City, MO",
-      "value": "Jefferson City, MO"
-    },
-    {
-      "label": "Lumberton, NC",
-      "value": "Lumberton, NC"
-    },
-    {
-      "label": "Pensacola-Ferry Pass-Brent, FL",
-      "value": "Pensacola-Ferry Pass-Brent, FL"
-    },
-    {
-      "label": "Bakersfield, CA",
-      "value": "Bakersfield, CA"
-    },
-    {
-      "label": "Tulsa, OK",
-      "value": "Tulsa, OK"
-    },
-    {
-      "label": "Tupelo, MS",
-      "value": "Tupelo, MS"
-    },
-    {
-      "label": "East Stroudsburg, PA",
-      "value": "East Stroudsburg, PA"
-    },
-    {
-      "label": "Daphne-Fairhope-Foley, AL",
-      "value": "Daphne-Fairhope-Foley, AL"
-    },
-    {
-      "label": "Harrisburg-Carlisle, PA",
-      "value": "Harrisburg-Carlisle, PA"
-    },
-    {
-      "label": "Kingsport-Bristol, TN-VA",
-      "value": "Kingsport-Bristol, TN-VA"
-    },
-    {
-      "label": "Crestview-Fort Walton Beach-Destin, FL",
-      "value": "Crestview-Fort Walton Beach-Destin, FL"
-    },
-    {
-      "label": "Cookeville, TN",
-      "value": "Cookeville, TN"
-    },
-    {
-      "label": "Richmond, VA",
-      "value": "Richmond, VA"
-    },
-    {
-      "label": "Pittsfield, MA",
-      "value": "Pittsfield, MA"
-    },
-    {
-      "label": "Syracuse, NY",
-      "value": "Syracuse, NY"
-    },
-    {
-      "label": "Manchester-Nashua, NH",
-      "value": "Manchester-Nashua, NH"
-    },
-    {
-      "label": "Wisconsin Rapids-Marshfield, WI",
-      "value": "Wisconsin Rapids-Marshfield, WI"
-    },
-    {
-      "label": "Truckee-Grass Valley, CA",
-      "value": "Truckee-Grass Valley, CA"
-    },
-    {
-      "label": "Manhattan, KS",
-      "value": "Manhattan, KS"
-    },
-    {
-      "label": "Shawnee, OK",
-      "value": "Shawnee, OK"
-    },
-    {
-      "label": "Minot, ND",
-      "value": "Minot, ND"
-    },
-    {
-      "label": "Wilson, NC",
-      "value": "Wilson, NC"
-    },
-    {
-      "label": "Cumberland, MD-WV",
-      "value": "Cumberland, MD-WV"
-    },
-    {
-      "label": "Helena, MT",
-      "value": "Helena, MT"
-    },
-    {
-      "label": "Alexandria, LA",
-      "value": "Alexandria, LA"
-    },
-    {
-      "label": "Auburn, NY",
-      "value": "Auburn, NY"
-    },
-    {
-      "label": "Texarkana, TX-AR",
-      "value": "Texarkana, TX-AR"
-    },
-    {
-      "label": "San Antonio-New Braunfels, TX",
-      "value": "San Antonio-New Braunfels, TX"
-    },
-    {
-      "label": "Johnson City, TN",
-      "value": "Johnson City, TN"
-    },
-    {
-      "label": "Homosassa Springs, FL",
-      "value": "Homosassa Springs, FL"
-    },
-    {
-      "label": "San Jose-Sunnyvale-Santa Clara, CA",
-      "value": "San Jose-Sunnyvale-Santa Clara, CA"
-    },
-    {
-      "label": "Jonesboro, AR",
-      "value": "Jonesboro, AR"
-    },
-    {
-      "label": "Columbus, OH",
-      "value": "Columbus, OH"
-    },
-    {
-      "label": "Provo-Orem, UT",
-      "value": "Provo-Orem, UT"
-    },
-    {
-      "label": "Chico, CA",
-      "value": "Chico, CA"
-    },
-    {
-      "label": "Sacramento-Roseville-Folsom, CA",
-      "value": "Sacramento-Roseville-Folsom, CA"
-    },
-    {
-      "label": "Greensboro-High Point, NC",
-      "value": "Greensboro-High Point, NC"
-    },
-    {
-      "label": "Yakima, WA",
-      "value": "Yakima, WA"
-    },
-    {
-      "label": "Charleston-North Charleston, SC",
-      "value": "Charleston-North Charleston, SC"
-    },
-    {
-      "label": "Kingston, NY",
-      "value": "Kingston, NY"
-    },
-    {
-      "label": "Quincy, IL-MO",
-      "value": "Quincy, IL-MO"
-    },
-    {
-      "label": "State College, PA",
-      "value": "State College, PA"
-    },
-    {
-      "label": "Huntington-Ashland, WV-KY-OH",
-      "value": "Huntington-Ashland, WV-KY-OH"
-    },
-    {
-      "label": "Punta Gorda, FL",
-      "value": "Punta Gorda, FL"
-    },
-    {
-      "label": "Springfield, IL",
-      "value": "Springfield, IL"
-    },
-    {
-      "label": "Hickory-Lenoir-Morganton, NC",
-      "value": "Hickory-Lenoir-Morganton, NC"
-    },
-    {
-      "label": "Lincoln, NE",
-      "value": "Lincoln, NE"
-    },
-    {
-      "label": "Brownsville-Harlingen, TX",
-      "value": "Brownsville-Harlingen, TX"
-    },
-    {
-      "label": "Sioux Falls, SD",
-      "value": "Sioux Falls, SD"
-    },
-    {
-      "label": "Ann Arbor, MI",
-      "value": "Ann Arbor, MI"
-    },
-    {
-      "label": "Richmond-Berea, KY",
-      "value": "Richmond-Berea, KY"
-    },
-    {
-      "label": "Jackson, MI",
-      "value": "Jackson, MI"
-    },
-    {
-      "label": "Kapaa, HI",
-      "value": "Kapaa, HI"
-    },
-    {
-      "label": "Johnstown, PA",
-      "value": "Johnstown, PA"
-    },
-    {
-      "label": "Olean, NY",
-      "value": "Olean, NY"
-    },
-    {
-      "label": "Lexington-Fayette, KY",
-      "value": "Lexington-Fayette, KY"
-    },
-    {
-      "label": "Sheboygan, WI",
-      "value": "Sheboygan, WI"
-    },
-    {
-      "label": "Wooster, OH",
-      "value": "Wooster, OH"
-    },
-    {
-      "label": "Clarksburg, WV",
-      "value": "Clarksburg, WV"
-    },
-    {
-      "label": "Scranton--Wilkes-Barre, PA",
-      "value": "Scranton--Wilkes-Barre, PA"
-    },
-    {
-      "label": "Lebanon, PA",
-      "value": "Lebanon, PA"
-    },
-    {
-      "label": "Anniston-Oxford, AL",
-      "value": "Anniston-Oxford, AL"
-    },
-    {
-      "label": "Davenport-Moline-Rock Island, IA-IL",
-      "value": "Davenport-Moline-Rock Island, IA-IL"
-    },
-    {
-      "label": "Albuquerque, NM",
-      "value": "Albuquerque, NM"
-    },
-    {
-      "label": "Altoona, PA",
-      "value": "Altoona, PA"
-    },
-    {
-      "label": "Keene, NH",
-      "value": "Keene, NH"
-    },
-    {
-      "label": "Tyler, TX",
-      "value": "Tyler, TX"
-    },
-    {
-      "label": "Des Moines-West Des Moines, IA",
-      "value": "Des Moines-West Des Moines, IA"
-    },
-    {
-      "label": "Naples-Marco Island, FL",
-      "value": "Naples-Marco Island, FL"
-    },
-    {
-      "label": "Glens Falls, NY",
-      "value": "Glens Falls, NY"
+      "label": "Pittsburgh, PA",
+      "value": "Pittsburgh, PA"
     },
     {
       "label": "Portland-Vancouver-Hillsboro, OR-WA",
       "value": "Portland-Vancouver-Hillsboro, OR-WA"
     },
     {
-      "label": "Sunbury, PA",
-      "value": "Sunbury, PA"
+      "label": "Austin-Round Rock-Georgetown, TX",
+      "value": "Austin-Round Rock-Georgetown, TX"
     },
     {
-      "label": "Modesto, CA",
-      "value": "Modesto, CA"
+      "label": "San Antonio-New Braunfels, TX",
+      "value": "San Antonio-New Braunfels, TX"
     },
     {
-      "label": "Cheyenne, WY",
-      "value": "Cheyenne, WY"
+      "label": "Cincinnati, OH-KY-IN",
+      "value": "Cincinnati, OH-KY-IN"
     },
     {
-      "label": "Valdosta, GA",
-      "value": "Valdosta, GA"
+      "label": "Kansas City, MO-KS",
+      "value": "Kansas City, MO-KS"
     },
     {
-      "label": "Lancaster, PA",
-      "value": "Lancaster, PA"
+      "label": "Sacramento-Roseville-Folsom, CA",
+      "value": "Sacramento-Roseville-Folsom, CA"
     },
     {
-      "label": "Sierra Vista-Douglas, AZ",
-      "value": "Sierra Vista-Douglas, AZ"
+      "label": "Columbus, OH",
+      "value": "Columbus, OH"
     },
     {
-      "label": "Reno, NV",
-      "value": "Reno, NV"
+      "label": "Las Vegas-Henderson-Paradise, NV",
+      "value": "Las Vegas-Henderson-Paradise, NV"
     },
     {
-      "label": "McAllen-Edinburg-Mission, TX",
-      "value": "McAllen-Edinburg-Mission, TX"
+      "label": "Indianapolis-Carmel-Anderson, IN",
+      "value": "Indianapolis-Carmel-Anderson, IN"
     },
     {
-      "label": "Portsmouth, OH",
-      "value": "Portsmouth, OH"
+      "label": "Nashville-Davidson--Murfreesboro--Franklin, TN",
+      "value": "Nashville-Davidson--Murfreesboro--Franklin, TN"
     },
     {
-      "label": "Carson City, NV",
-      "value": "Carson City, NV"
+      "label": "Virginia Beach-Norfolk-Newport News, VA-NC",
+      "value": "Virginia Beach-Norfolk-Newport News, VA-NC"
     },
     {
-      "label": "Decatur, IL",
-      "value": "Decatur, IL"
+      "label": "Providence-Warwick, RI-MA",
+      "value": "Providence-Warwick, RI-MA"
     },
     {
-      "label": "Morehead City, NC",
-      "value": "Morehead City, NC"
+      "label": "San Jose-Sunnyvale-Santa Clara, CA",
+      "value": "San Jose-Sunnyvale-Santa Clara, CA"
     },
     {
-      "label": "Seneca, SC",
-      "value": "Seneca, SC"
+      "label": "Jacksonville, FL",
+      "value": "Jacksonville, FL"
     },
     {
-      "label": "Hagerstown-Martinsburg, MD-WV",
-      "value": "Hagerstown-Martinsburg, MD-WV"
+      "label": "Milwaukee-Waukesha, WI",
+      "value": "Milwaukee-Waukesha, WI"
     },
     {
-      "label": "Jackson, TN",
-      "value": "Jackson, TN"
+      "label": "Oklahoma City, OK",
+      "value": "Oklahoma City, OK"
     },
     {
-      "label": "Topeka, KS",
-      "value": "Topeka, KS"
+      "label": "Raleigh-Cary, NC",
+      "value": "Raleigh-Cary, NC"
     },
     {
-      "label": "Houma-Thibodaux, LA",
-      "value": "Houma-Thibodaux, LA"
+      "label": "Richmond, VA",
+      "value": "Richmond, VA"
     },
     {
-      "label": "Green Bay, WI",
-      "value": "Green Bay, WI"
+      "label": "Louisville/Jefferson County, KY-IN",
+      "value": "Louisville - Jefferson County, KY-IN"
     },
     {
-      "label": "Rapid City, SD",
-      "value": "Rapid City, SD"
+      "label": "Memphis, TN-MS-AR",
+      "value": "Memphis, TN-MS-AR"
     },
     {
-      "label": "Ames, IA",
-      "value": "Ames, IA"
+      "label": "Buffalo-Cheektowaga, NY",
+      "value": "Buffalo-Cheektowaga, NY"
     },
     {
-      "label": "Klamath Falls, OR",
-      "value": "Klamath Falls, OR"
+      "label": "New Orleans-Metairie, LA",
+      "value": "New Orleans-Metairie, LA"
     },
     {
-      "label": "Albany-Lebanon, OR",
-      "value": "Albany-Lebanon, OR"
+      "label": "Rochester, NY",
+      "value": "Rochester, NY"
     },
     {
-      "label": "Wausau-Weston, WI",
-      "value": "Wausau-Weston, WI"
+      "label": "Salt Lake City, UT",
+      "value": "Salt Lake City, UT"
     },
     {
-      "label": "Findlay, OH",
-      "value": "Findlay, OH"
+      "label": "Birmingham-Hoover, AL",
+      "value": "Birmingham-Hoover, AL"
     },
     {
-      "label": "Kokomo, IN",
-      "value": "Kokomo, IN"
+      "label": "Tucson, AZ",
+      "value": "Tucson, AZ"
     },
     {
-      "label": "Port Angeles, WA",
-      "value": "Port Angeles, WA"
+      "label": "Grand Rapids-Kentwood, MI",
+      "value": "Grand Rapids-Kentwood, MI"
     },
     {
-      "label": "New Bern, NC",
-      "value": "New Bern, NC"
+      "label": "Tulsa, OK",
+      "value": "Tulsa, OK"
     },
     {
-      "label": "Talladega-Sylacauga, AL",
-      "value": "Talladega-Sylacauga, AL"
+      "label": "Omaha-Council Bluffs, NE-IA",
+      "value": "Omaha-Council Bluffs, NE-IA"
     },
     {
-      "label": "St. Cloud, MN",
-      "value": "St. Cloud, MN"
+      "label": "North Port-Sarasota-Bradenton, FL",
+      "value": "North Port-Sarasota-Bradenton, FL"
     },
     {
-      "label": "Fort Smith, AR-OK",
-      "value": "Fort Smith, AR-OK"
+      "label": "Greenville-Anderson, SC",
+      "value": "Greenville-Anderson, SC"
     },
     {
-      "label": "Marinette, WI-MI",
-      "value": "Marinette, WI-MI"
+      "label": "Worcester, MA-CT",
+      "value": "Worcester, MA-CT"
     },
     {
-      "label": "Ukiah, CA",
-      "value": "Ukiah, CA"
+      "label": "Albany-Schenectady-Troy, NY",
+      "value": "Albany-Schenectady-Troy, NY"
     },
     {
-      "label": "Chattanooga, TN-GA",
-      "value": "Chattanooga, TN-GA"
+      "label": "Albuquerque, NM",
+      "value": "Albuquerque, NM"
     },
     {
-      "label": "Atlantic City-Hammonton, NJ",
-      "value": "Atlantic City-Hammonton, NJ"
+      "label": "Knoxville, TN",
+      "value": "Knoxville, TN"
     },
     {
-      "label": "Fort Wayne, IN",
-      "value": "Fort Wayne, IN"
+      "label": "Dayton-Kettering, OH",
+      "value": "Dayton-Kettering, OH"
     },
     {
-      "label": "Salisbury, MD-DE",
-      "value": "Salisbury, MD-DE"
+      "label": "Columbia, SC",
+      "value": "Columbia, SC"
     },
     {
-      "label": "Cedar Rapids, IA",
-      "value": "Cedar Rapids, IA"
+      "label": "Cape Coral-Fort Myers, FL",
+      "value": "Cape Coral-Fort Myers, FL"
     },
     {
-      "label": "DuBois, PA",
-      "value": "DuBois, PA"
+      "label": "Urban Honolulu, HI",
+      "value": "Urban Honolulu, HI"
     },
     {
-      "label": "Williamsport, PA",
-      "value": "Williamsport, PA"
+      "label": "Allentown-Bethlehem-Easton, PA-NJ",
+      "value": "Allentown-Bethlehem-Easton, PA-NJ"
     },
     {
-      "label": "San Angelo, TX",
-      "value": "San Angelo, TX"
+      "label": "Charleston-North Charleston, SC",
+      "value": "Charleston-North Charleston, SC"
     },
     {
-      "label": "Longview, WA",
-      "value": "Longview, WA"
+      "label": "Baton Rouge, LA",
+      "value": "Baton Rouge, LA"
     },
     {
-      "label": "Bend, OR",
-      "value": "Bend, OR"
+      "label": "Fresno, CA",
+      "value": "Fresno, CA"
     },
     {
-      "label": "Gettysburg, PA",
-      "value": "Gettysburg, PA"
+      "label": "Greensboro-High Point, NC",
+      "value": "Greensboro-High Point, NC"
     },
     {
-      "label": "Merced, CA",
-      "value": "Merced, CA"
+      "label": "Little Rock-North Little Rock-Conway, AR",
+      "value": "Little Rock-North Little Rock-Conway, AR"
     },
     {
-      "label": "Mansfield, OH",
-      "value": "Mansfield, OH"
-    },
-    {
-      "label": "Duluth, MN-WI",
-      "value": "Duluth, MN-WI"
-    },
-    {
-      "label": "Blacksburg-Christiansburg, VA",
-      "value": "Blacksburg-Christiansburg, VA"
-    },
-    {
-      "label": "Enid, OK",
-      "value": "Enid, OK"
-    },
-    {
-      "label": "Appleton, WI",
-      "value": "Appleton, WI"
-    },
-    {
-      "label": "Rockford, IL",
-      "value": "Rockford, IL"
-    },
-    {
-      "label": "Bellingham, WA",
-      "value": "Bellingham, WA"
+      "label": "Colorado Springs, CO",
+      "value": "Colorado Springs, CO"
     },
     {
       "label": "Madison, WI",
@@ -1373,596 +289,1680 @@
       "value": "Boise City, ID"
     },
     {
-      "label": "Sioux City, IA-NE-SD",
-      "value": "Sioux City, IA-NE-SD"
+      "label": "El Paso, TX",
+      "value": "El Paso, TX"
     },
     {
-      "label": "Show Low, AZ",
-      "value": "Show Low, AZ"
+      "label": "Des Moines-West Des Moines, IA",
+      "value": "Des Moines-West Des Moines, IA"
     },
     {
-      "label": "Grand Junction, CO",
-      "value": "Grand Junction, CO"
+      "label": "Deltona-Daytona Beach-Ormond Beach, FL",
+      "value": "Deltona-Daytona Beach-Ormond Beach, FL"
     },
     {
-      "label": "Shreveport-Bossier City, LA",
-      "value": "Shreveport-Bossier City, LA"
+      "label": "Akron, OH",
+      "value": "Akron, OH"
     },
     {
-      "label": "Grand Forks, ND-MN",
-      "value": "Grand Forks, ND-MN"
+      "label": "Lakeland-Winter Haven, FL",
+      "value": "Lakeland-Winter Haven, FL"
     },
     {
-      "label": "Shelby, NC",
-      "value": "Shelby, NC"
+      "label": "Bakersfield, CA",
+      "value": "Bakersfield, CA"
     },
     {
-      "label": "Moses Lake, WA",
-      "value": "Moses Lake, WA"
+      "label": "Oxnard-Thousand Oaks-Ventura, CA",
+      "value": "Oxnard-Thousand Oaks-Ventura, CA"
     },
     {
-      "label": "Florence-Muscle Shoals, AL",
-      "value": "Florence-Muscle Shoals, AL"
+      "label": "Winston-Salem, NC",
+      "value": "Winston-Salem, NC"
     },
     {
-      "label": "Great Falls, MT",
-      "value": "Great Falls, MT"
-    },
-    {
-      "label": "Greenwood, SC",
-      "value": "Greenwood, SC"
-    },
-    {
-      "label": "Pine Bluff, AR",
-      "value": "Pine Bluff, AR"
-    },
-    {
-      "label": "Niles, MI",
-      "value": "Niles, MI"
-    },
-    {
-      "label": "Huntsville, AL",
-      "value": "Huntsville, AL"
-    },
-    {
-      "label": "Killeen-Temple, TX",
-      "value": "Killeen-Temple, TX"
-    },
-    {
-      "label": "Corning, NY",
-      "value": "Corning, NY"
-    },
-    {
-      "label": "Fargo, ND-MN",
-      "value": "Fargo, ND-MN"
-    },
-    {
-      "label": "Kankakee, IL",
-      "value": "Kankakee, IL"
-    },
-    {
-      "label": "Panama City, FL",
-      "value": "Panama City, FL"
-    },
-    {
-      "label": "Midland, MI",
-      "value": "Midland, MI"
-    },
-    {
-      "label": "Rexburg, ID",
-      "value": "Rexburg, ID"
-    },
-    {
-      "label": "Aberdeen, WA",
-      "value": "Aberdeen, WA"
-    },
-    {
-      "label": "Opelousas, LA",
-      "value": "Opelousas, LA"
-    },
-    {
-      "label": "Plattsburgh, NY",
-      "value": "Plattsburgh, NY"
-    },
-    {
-      "label": "Bozeman, MT",
-      "value": "Bozeman, MT"
-    },
-    {
-      "label": "Greenville, NC",
-      "value": "Greenville, NC"
-    },
-    {
-      "label": "Lufkin, TX",
-      "value": "Lufkin, TX"
-    },
-    {
-      "label": "Roanoke Rapids, NC",
-      "value": "Roanoke Rapids, NC"
-    },
-    {
-      "label": "Owensboro, KY",
-      "value": "Owensboro, KY"
-    },
-    {
-      "label": "Pocatello, ID",
-      "value": "Pocatello, ID"
-    },
-    {
-      "label": "York-Hanover, PA",
-      "value": "York-Hanover, PA"
-    },
-    {
-      "label": "San Luis Obispo-Paso Robles, CA",
-      "value": "San Luis Obispo-Paso Robles, CA"
+      "label": "Springfield, MA",
+      "value": "Springfield, MA"
     },
     {
       "label": "Toledo, OH",
       "value": "Toledo, OH"
     },
     {
-      "label": "Roseburg, OR",
-      "value": "Roseburg, OR"
+      "label": "Syracuse, NY",
+      "value": "Syracuse, NY"
     },
     {
-      "label": "Rio Grande City-Roma, TX",
-      "value": "Rio Grande City-Roma, TX"
+      "label": "Durham-Chapel Hill, NC",
+      "value": "Durham-Chapel Hill, NC"
     },
     {
-      "label": "Sevierville, TN",
-      "value": "Sevierville, TN"
+      "label": "McAllen-Edinburg-Mission, TX",
+      "value": "McAllen-Edinburg-Mission, TX"
     },
     {
-      "label": "Greeneville, TN",
-      "value": "Greeneville, TN"
-    },
-    {
-      "label": "Elmira, NY",
-      "value": "Elmira, NY"
-    },
-    {
-      "label": "Bloomsburg-Berwick, PA",
-      "value": "Bloomsburg-Berwick, PA"
-    },
-    {
-      "label": "Bowling Green, KY",
-      "value": "Bowling Green, KY"
-    },
-    {
-      "label": "Victoria, TX",
-      "value": "Victoria, TX"
-    },
-    {
-      "label": "Carbondale-Marion, IL",
-      "value": "Carbondale-Marion, IL"
-    },
-    {
-      "label": "Cleveland, TN",
-      "value": "Cleveland, TN"
-    },
-    {
-      "label": "Traverse City, MI",
-      "value": "Traverse City, MI"
-    },
-    {
-      "label": "Cullman, AL",
-      "value": "Cullman, AL"
-    },
-    {
-      "label": "Redding, CA",
-      "value": "Redding, CA"
-    },
-    {
-      "label": "Meadville, PA",
-      "value": "Meadville, PA"
-    },
-    {
-      "label": "Ottawa, IL",
-      "value": "Ottawa, IL"
-    },
-    {
-      "label": "Dublin, GA",
-      "value": "Dublin, GA"
-    },
-    {
-      "label": "St. Joseph, MO-KS",
-      "value": "St. Joseph, MO-KS"
-    },
-    {
-      "label": "Waterloo-Cedar Falls, IA",
-      "value": "Waterloo-Cedar Falls, IA"
-    },
-    {
-      "label": "Greeley, CO",
-      "value": "Greeley, CO"
-    },
-    {
-      "label": "Warsaw, IN",
-      "value": "Warsaw, IN"
-    },
-    {
-      "label": "Kennewick-Richland, WA",
-      "value": "Kennewick-Richland, WA"
-    },
-    {
-      "label": "Dothan, AL",
-      "value": "Dothan, AL"
-    },
-    {
-      "label": "Joplin, MO",
-      "value": "Joplin, MO"
-    },
-    {
-      "label": "Beaver Dam, WI",
-      "value": "Beaver Dam, WI"
-    },
-    {
-      "label": "Winchester, VA-WV",
-      "value": "Winchester, VA-WV"
-    },
-    {
-      "label": "Eureka-Arcata, CA",
-      "value": "Eureka-Arcata, CA"
-    },
-    {
-      "label": "Elkhart-Goshen, IN",
-      "value": "Elkhart-Goshen, IN"
-    },
-    {
-      "label": "Eugene-Springfield, OR",
-      "value": "Eugene-Springfield, OR"
-    },
-    {
-      "label": "Sebastian-Vero Beach, FL",
-      "value": "Sebastian-Vero Beach, FL"
-    },
-    {
-      "label": "Janesville-Beloit, WI",
-      "value": "Janesville-Beloit, WI"
-    },
-    {
-      "label": "Rocky Mount, NC",
-      "value": "Rocky Mount, NC"
+      "label": "Palm Bay-Melbourne-Titusville, FL",
+      "value": "Palm Bay-Melbourne-Titusville, FL"
     },
     {
       "label": "Wichita, KS",
       "value": "Wichita, KS"
     },
     {
-      "label": "Sebring-Avon Park, FL",
-      "value": "Sebring-Avon Park, FL"
+      "label": "Harrisburg-Carlisle, PA",
+      "value": "Harrisburg-Carlisle, PA"
     },
     {
-      "label": "Harrisonburg, VA",
-      "value": "Harrisonburg, VA"
+      "label": "Portland-South Portland, ME",
+      "value": "Portland-South Portland, ME"
     },
     {
-      "label": "Concord, NH",
-      "value": "Concord, NH"
+      "label": "Stockton, CA",
+      "value": "Stockton, CA"
     },
     {
-      "label": "Racine, WI",
-      "value": "Racine, WI"
+      "label": "Spokane-Spokane Valley, WA",
+      "value": "Spokane-Spokane Valley, WA"
     },
     {
-      "label": "Fond du Lac, WI",
-      "value": "Fond du Lac, WI"
+      "label": "Ogden-Clearfield, UT",
+      "value": "Ogden-Clearfield, UT"
     },
     {
-      "label": "Abilene, TX",
-      "value": "Abilene, TX"
+      "label": "Scranton--Wilkes-Barre, PA",
+      "value": "Scranton--Wilkes-Barre, PA"
     },
     {
-      "label": "Gadsden, AL",
-      "value": "Gadsden, AL"
+      "label": "Augusta-Richmond County, GA-SC",
+      "value": "Augusta-Richmond County, GA-SC"
     },
     {
-      "label": "Billings, MT",
-      "value": "Billings, MT"
+      "label": "Myrtle Beach-Conway-North Myrtle Beach, SC-NC",
+      "value": "Myrtle Beach-Conway-North Myrtle Beach, SC-NC"
     },
     {
-      "label": "Decatur, AL",
-      "value": "Decatur, AL"
+      "label": "Chattanooga, TN-GA",
+      "value": "Chattanooga, TN-GA"
     },
     {
-      "label": "Walla Walla, WA",
-      "value": "Walla Walla, WA"
+      "label": "Youngstown-Warren-Boardman, OH-PA",
+      "value": "Youngstown-Warren-Boardman, OH-PA"
     },
     {
-      "label": "Dubuque, IA",
-      "value": "Dubuque, IA"
+      "label": "Jackson, MS",
+      "value": "Jackson, MS"
     },
     {
-      "label": "Whitewater, WI",
-      "value": "Whitewater, WI"
+      "label": "Lansing-East Lansing, MI",
+      "value": "Lansing-East Lansing, MI"
     },
     {
-      "label": "New Philadelphia-Dover, OH",
-      "value": "New Philadelphia-Dover, OH"
+      "label": "Lexington-Fayette, KY",
+      "value": "Lexington-Fayette, KY"
     },
     {
-      "label": "Wenatchee, WA",
-      "value": "Wenatchee, WA"
+      "label": "Fayetteville-Springdale-Rogers, AR",
+      "value": "Fayetteville-Springdale-Rogers, AR"
     },
     {
-      "label": "Yuba City, CA",
-      "value": "Yuba City, CA"
+      "label": "Lancaster, PA",
+      "value": "Lancaster, PA"
     },
     {
-      "label": "Richmond, IN",
-      "value": "Richmond, IN"
+      "label": "Provo-Orem, UT",
+      "value": "Provo-Orem, UT"
     },
     {
-      "label": "Wichita Falls, TX",
-      "value": "Wichita Falls, TX"
+      "label": "Pensacola-Ferry Pass-Brent, FL",
+      "value": "Pensacola-Ferry Pass-Brent, FL"
     },
     {
-      "label": "Manitowoc, WI",
-      "value": "Manitowoc, WI"
+      "label": "Huntsville, AL",
+      "value": "Huntsville, AL"
     },
     {
-      "label": "Springfield, OH",
-      "value": "Springfield, OH"
-    },
-    {
-      "label": "Hermiston-Pendleton, OR",
-      "value": "Hermiston-Pendleton, OR"
-    },
-    {
-      "label": "Champaign-Urbana, IL",
-      "value": "Champaign-Urbana, IL"
-    },
-    {
-      "label": "Red Bluff, CA",
-      "value": "Red Bluff, CA"
-    },
-    {
-      "label": "Prescott Valley-Prescott, AZ",
-      "value": "Prescott Valley-Prescott, AZ"
-    },
-    {
-      "label": "Fort Collins, CO",
-      "value": "Fort Collins, CO"
-    },
-    {
-      "label": "Parkersburg-Vienna, WV",
-      "value": "Parkersburg-Vienna, WV"
-    },
-    {
-      "label": "Shelton, WA",
-      "value": "Shelton, WA"
-    },
-    {
-      "label": "Marquette, MI",
-      "value": "Marquette, MI"
-    },
-    {
-      "label": "Yuma, AZ",
-      "value": "Yuma, AZ"
-    },
-    {
-      "label": "Jefferson, GA",
-      "value": "Jefferson, GA"
-    },
-    {
-      "label": "Vineland-Bridgeton, NJ",
-      "value": "Vineland-Bridgeton, NJ"
-    },
-    {
-      "label": "Heber, UT",
-      "value": "Heber, UT"
-    },
-    {
-      "label": "Salinas, CA",
-      "value": "Salinas, CA"
-    },
-    {
-      "label": "Mount Vernon-Anacortes, WA",
-      "value": "Mount Vernon-Anacortes, WA"
-    },
-    {
-      "label": "Rochester, MN",
-      "value": "Rochester, MN"
-    },
-    {
-      "label": "Columbia, MO",
-      "value": "Columbia, MO"
-    },
-    {
-      "label": "Clearlake, CA",
-      "value": "Clearlake, CA"
-    },
-    {
-      "label": "La Crosse-Onalaska, WI-MN",
-      "value": "La Crosse-Onalaska, WI-MN"
-    },
-    {
-      "label": "Michigan City-La Porte, IN",
-      "value": "Michigan City-La Porte, IN"
-    },
-    {
-      "label": "Stevens Point, WI",
-      "value": "Stevens Point, WI"
-    },
-    {
-      "label": "Laredo, TX",
-      "value": "Laredo, TX"
-    },
-    {
-      "label": "Somerset, KY",
-      "value": "Somerset, KY"
-    },
-    {
-      "label": "Athens, TX",
-      "value": "Athens, TX"
-    },
-    {
-      "label": "Meridian, MS",
-      "value": "Meridian, MS"
-    },
-    {
-      "label": "Coeur d'Alene, ID",
-      "value": "Coeur d'Alene, ID"
-    },
-    {
-      "label": "Kalispell, MT",
-      "value": "Kalispell, MT"
-    },
-    {
-      "label": "Corvallis, OR",
-      "value": "Corvallis, OR"
+      "label": "Fayetteville, NC",
+      "value": "Fayetteville, NC"
     },
     {
       "label": "Port St. Lucie, FL",
       "value": "Port St. Lucie, FL"
     },
     {
-      "label": "Danville, VA",
-      "value": "Danville, VA"
+      "label": "Reno, NV",
+      "value": "Reno, NV"
     },
     {
-      "label": "Brainerd, MN",
-      "value": "Brainerd, MN"
+      "label": "Springfield, MO",
+      "value": "Springfield, MO"
     },
     {
-      "label": "Watertown-Fort Atkinson, WI",
-      "value": "Watertown-Fort Atkinson, WI"
+      "label": "Santa Rosa-Petaluma, CA",
+      "value": "Santa Rosa-Petaluma, CA"
     },
     {
-      "label": "St. George, UT",
-      "value": "St. George, UT"
+      "label": "Lafayette, LA",
+      "value": "Lafayette, LA"
     },
     {
-      "label": "Fort Payne, AL",
-      "value": "Fort Payne, AL"
+      "label": "Asheville, NC",
+      "value": "Asheville, NC"
+    },
+    {
+      "label": "York-Hanover, PA",
+      "value": "York-Hanover, PA"
+    },
+    {
+      "label": "Killeen-Temple, TX",
+      "value": "Killeen-Temple, TX"
+    },
+    {
+      "label": "Salisbury, MD-DE",
+      "value": "Salisbury, MD-DE"
+    },
+    {
+      "label": "Modesto, CA",
+      "value": "Modesto, CA"
+    },
+    {
+      "label": "Gulfport-Biloxi, MS",
+      "value": "Gulfport-Biloxi, MS"
+    },
+    {
+      "label": "Fort Wayne, IN",
+      "value": "Fort Wayne, IN"
+    },
+    {
+      "label": "Peoria, IL",
+      "value": "Peoria, IL"
+    },
+    {
+      "label": "Mobile, AL",
+      "value": "Mobile, AL"
+    },
+    {
+      "label": "Flint, MI",
+      "value": "Flint, MI"
+    },
+    {
+      "label": "Manchester-Nashua, NH",
+      "value": "Manchester-Nashua, NH"
+    },
+    {
+      "label": "Canton-Massillon, OH",
+      "value": "Canton-Massillon, OH"
+    },
+    {
+      "label": "Naples-Marco Island, FL",
+      "value": "Naples-Marco Island, FL"
+    },
+    {
+      "label": "Ocala, FL",
+      "value": "Ocala, FL"
+    },
+    {
+      "label": "Savannah, GA",
+      "value": "Savannah, GA"
+    },
+    {
+      "label": "Davenport-Moline-Rock Island, IA-IL",
+      "value": "Davenport-Moline-Rock Island, IA-IL"
+    },
+    {
+      "label": "Reading, PA",
+      "value": "Reading, PA"
+    },
+    {
+      "label": "Salem, OR",
+      "value": "Salem, OR"
+    },
+    {
+      "label": "Eugene-Springfield, OR",
+      "value": "Eugene-Springfield, OR"
+    },
+    {
+      "label": "Vallejo, CA",
+      "value": "Vallejo, CA"
+    },
+    {
+      "label": "Shreveport-Bossier City, LA",
+      "value": "Shreveport-Bossier City, LA"
+    },
+    {
+      "label": "Tallahassee, FL",
+      "value": "Tallahassee, FL"
+    },
+    {
+      "label": "Corpus Christi, TX",
+      "value": "Corpus Christi, TX"
+    },
+    {
+      "label": "Fort Collins, CO",
+      "value": "Fort Collins, CO"
+    },
+    {
+      "label": "Montgomery, AL",
+      "value": "Montgomery, AL"
+    },
+    {
+      "label": "Beaumont-Port Arthur, TX",
+      "value": "Beaumont-Port Arthur, TX"
+    },
+    {
+      "label": "Hickory-Lenoir-Morganton, NC",
+      "value": "Hickory-Lenoir-Morganton, NC"
+    },
+    {
+      "label": "Ann Arbor, MI",
+      "value": "Ann Arbor, MI"
+    },
+    {
+      "label": "Santa Maria-Santa Barbara, CA",
+      "value": "Santa Maria-Santa Barbara, CA"
     },
     {
       "label": "Anchorage, AK",
       "value": "Anchorage, AK"
     },
     {
-      "label": "Adrian, MI",
-      "value": "Adrian, MI"
+      "label": "Huntington-Ashland, WV-KY-OH",
+      "value": "Huntington-Ashland, WV-KY-OH"
+    },
+    {
+      "label": "Trenton-Princeton, NJ",
+      "value": "Trenton-Princeton, NJ"
+    },
+    {
+      "label": "Visalia, CA",
+      "value": "Visalia, CA"
+    },
+    {
+      "label": "Gainesville, FL",
+      "value": "Gainesville, FL"
+    },
+    {
+      "label": "Lincoln, NE",
+      "value": "Lincoln, NE"
+    },
+    {
+      "label": "Brownsville-Harlingen, TX",
+      "value": "Brownsville-Harlingen, TX"
     },
     {
       "label": "Boulder, CO",
       "value": "Boulder, CO"
     },
     {
-      "label": "Marion, IN",
-      "value": "Marion, IN"
+      "label": "Green Bay, WI",
+      "value": "Green Bay, WI"
     },
     {
-      "label": "LaGrange, GA-AL",
-      "value": "LaGrange, GA-AL"
+      "label": "Rockford, IL",
+      "value": "Rockford, IL"
     },
     {
-      "label": "Lewiston, ID-WA",
-      "value": "Lewiston, ID-WA"
+      "label": "Roanoke, VA",
+      "value": "Roanoke, VA"
     },
     {
-      "label": "Orangeburg, SC",
-      "value": "Orangeburg, SC"
+      "label": "Spartanburg, SC",
+      "value": "Spartanburg, SC"
+    },
+    {
+      "label": "Kingsport-Bristol, TN-VA",
+      "value": "Kingsport-Bristol, TN-VA"
+    },
+    {
+      "label": "Salinas, CA",
+      "value": "Salinas, CA"
+    },
+    {
+      "label": "Evansville, IN-KY",
+      "value": "Evansville, IN-KY"
+    },
+    {
+      "label": "Lubbock, TX",
+      "value": "Lubbock, TX"
+    },
+    {
+      "label": "Wilmington, NC",
+      "value": "Wilmington, NC"
+    },
+    {
+      "label": "South Bend-Mishawaka, IN-MI",
+      "value": "South Bend-Mishawaka, IN-MI"
+    },
+    {
+      "label": "Clarksville, TN-KY",
+      "value": "Clarksville, TN-KY"
+    },
+    {
+      "label": "Duluth, MN-WI",
+      "value": "Duluth, MN-WI"
+    },
+    {
+      "label": "Columbus, GA-AL",
+      "value": "Columbus, GA-AL"
+    },
+    {
+      "label": "Greeley, CO",
+      "value": "Greeley, CO"
+    },
+    {
+      "label": "Utica-Rome, NY",
+      "value": "Utica-Rome, NY"
+    },
+    {
+      "label": "Crestview-Fort Walton Beach-Destin, FL",
+      "value": "Crestview-Fort Walton Beach-Destin, FL"
+    },
+    {
+      "label": "Sioux Falls, SD",
+      "value": "Sioux Falls, SD"
+    },
+    {
+      "label": "Olympia-Lacey-Tumwater, WA",
+      "value": "Olympia-Lacey-Tumwater, WA"
+    },
+    {
+      "label": "Hagerstown-Martinsburg, MD-WV",
+      "value": "Hagerstown-Martinsburg, MD-WV"
+    },
+    {
+      "label": "Cedar Rapids, IA",
+      "value": "Cedar Rapids, IA"
+    },
+    {
+      "label": "San Luis Obispo-Paso Robles, CA",
+      "value": "San Luis Obispo-Paso Robles, CA"
+    },
+    {
+      "label": "Erie, PA",
+      "value": "Erie, PA"
+    },
+    {
+      "label": "Prescott Valley-Prescott, AZ",
+      "value": "Prescott Valley-Prescott, AZ"
+    },
+    {
+      "label": "Fargo, ND-MN",
+      "value": "Fargo, ND-MN"
+    },
+    {
+      "label": "College Station-Bryan, TX",
+      "value": "College Station-Bryan, TX"
+    },
+    {
+      "label": "Bremerton-Silverdale-Port Orchard, WA",
+      "value": "Bremerton-Silverdale-Port Orchard, WA"
+    },
+    {
+      "label": "Longview, TX",
+      "value": "Longview, TX"
+    },
+    {
+      "label": "Kennewick-Richland, WA",
+      "value": "Kennewick-Richland, WA"
+    },
+    {
+      "label": "Kalamazoo-Portage, MI",
+      "value": "Kalamazoo-Portage, MI"
+    },
+    {
+      "label": "Barnstable Town, MA",
+      "value": "Barnstable Town, MA"
+    },
+    {
+      "label": "Charleston, WV",
+      "value": "Charleston, WV"
+    },
+    {
+      "label": "Atlantic City-Hammonton, NJ",
+      "value": "Atlantic City-Hammonton, NJ"
+    },
+    {
+      "label": "Tuscaloosa, AL",
+      "value": "Tuscaloosa, AL"
+    },
+    {
+      "label": "Lynchburg, VA",
+      "value": "Lynchburg, VA"
+    },
+    {
+      "label": "Binghamton, NY",
+      "value": "Binghamton, NY"
+    },
+    {
+      "label": "Amarillo, TX",
+      "value": "Amarillo, TX"
+    },
+    {
+      "label": "Waco, TX",
+      "value": "Waco, TX"
+    },
+    {
+      "label": "Appleton, WI",
+      "value": "Appleton, WI"
+    },
+    {
+      "label": "Lake Havasu City-Kingman, AZ",
+      "value": "Lake Havasu City-Kingman, AZ"
+    },
+    {
+      "label": "Fort Smith, AR-OK",
+      "value": "Fort Smith, AR-OK"
+    },
+    {
+      "label": "Daphne-Fairhope-Foley, AL",
+      "value": "Daphne-Fairhope-Foley, AL"
+    },
+    {
+      "label": "Topeka, KS",
+      "value": "Topeka, KS"
+    },
+    {
+      "label": "Burlington-South Burlington, VT",
+      "value": "Burlington-South Burlington, VT"
     },
     {
       "label": "Santa Cruz-Watsonville, CA",
       "value": "Santa Cruz-Watsonville, CA"
     },
     {
-      "label": "Huntsville, TX",
-      "value": "Huntsville, TX"
+      "label": "Rochester, MN",
+      "value": "Rochester, MN"
     },
     {
-      "label": "Mount Airy, NC",
-      "value": "Mount Airy, NC"
+      "label": "Bellingham, WA",
+      "value": "Bellingham, WA"
     },
     {
-      "label": "Monroe, MI",
-      "value": "Monroe, MI"
-    },
-    {
-      "label": "Farmington, MO",
-      "value": "Farmington, MO"
-    },
-    {
-      "label": "Oak Harbor, WA",
-      "value": "Oak Harbor, WA"
-    },
-    {
-      "label": "Morristown, TN",
-      "value": "Morristown, TN"
-    },
-    {
-      "label": "Granbury, TX",
-      "value": "Granbury, TX"
-    },
-    {
-      "label": "Palatka, FL",
-      "value": "Palatka, FL"
-    },
-    {
-      "label": "Muskegon, MI",
-      "value": "Muskegon, MI"
-    },
-    {
-      "label": "Farmington, NM",
-      "value": "Farmington, NM"
-    },
-    {
-      "label": "Sherman-Denison, TX",
-      "value": "Sherman-Denison, TX"
-    },
-    {
-      "label": "Muncie, IN",
-      "value": "Muncie, IN"
-    },
-    {
-      "label": "Eau Claire, WI",
-      "value": "Eau Claire, WI"
-    },
-    {
-      "label": "Lawrence, KS",
-      "value": "Lawrence, KS"
-    },
-    {
-      "label": "Baraboo, WI",
-      "value": "Baraboo, WI"
-    },
-    {
-      "label": "North Wilkesboro, NC",
-      "value": "North Wilkesboro, NC"
-    },
-    {
-      "label": "Faribault-Northfield, MN",
-      "value": "Faribault-Northfield, MN"
-    },
-    {
-      "label": "Lake City, FL",
-      "value": "Lake City, FL"
+      "label": "Hilton Head Island-Bluffton, SC",
+      "value": "Hilton Head Island-Bluffton, SC"
     },
     {
       "label": "Medford, OR",
       "value": "Medford, OR"
     },
     {
-      "label": "Napa, CA",
-      "value": "Napa, CA"
+      "label": "Champaign-Urbana, IL",
+      "value": "Champaign-Urbana, IL"
     },
     {
-      "label": "Bay City, MI",
-      "value": "Bay City, MI"
+      "label": "Lafayette-West Lafayette, IN",
+      "value": "Lafayette-West Lafayette, IN"
+    },
+    {
+      "label": "Macon-Bibb County, GA",
+      "value": "Macon-Bibb County, GA"
+    },
+    {
+      "label": "Punta Gorda, FL",
+      "value": "Punta Gorda, FL"
+    },
+    {
+      "label": "Charlottesville, VA",
+      "value": "Charlottesville, VA"
+    },
+    {
+      "label": "Johnson City, TN",
+      "value": "Johnson City, TN"
+    },
+    {
+      "label": "Columbia, MO",
+      "value": "Columbia, MO"
+    },
+    {
+      "label": "Merced, CA",
+      "value": "Merced, CA"
+    },
+    {
+      "label": "Yakima, WA",
+      "value": "Yakima, WA"
+    },
+    {
+      "label": "Springfield, IL",
+      "value": "Springfield, IL"
+    },
+    {
+      "label": "Las Cruces, NM",
+      "value": "Las Cruces, NM"
+    },
+    {
+      "label": "Athens-Clarke County, GA",
+      "value": "Athens-Clarke County, GA"
+    },
+    {
+      "label": "Bend, OR",
+      "value": "Bend, OR"
+    },
+    {
+      "label": "Monroe, LA",
+      "value": "Monroe, LA"
+    },
+    {
+      "label": "Laredo, TX",
+      "value": "Laredo, TX"
+    },
+    {
+      "label": "Chico, CA",
+      "value": "Chico, CA"
+    },
+    {
+      "label": "Tyler, TX",
+      "value": "Tyler, TX"
+    },
+    {
+      "label": "Yuma, AZ",
+      "value": "Yuma, AZ"
+    },
+    {
+      "label": "Lake Charles, LA",
+      "value": "Lake Charles, LA"
+    },
+    {
+      "label": "Florence, SC",
+      "value": "Florence, SC"
+    },
+    {
+      "label": "Saginaw, MI",
+      "value": "Saginaw, MI"
+    },
+    {
+      "label": "Billings, MT",
+      "value": "Billings, MT"
+    },
+    {
+      "label": "Panama City, FL",
+      "value": "Panama City, FL"
+    },
+    {
+      "label": "St. Cloud, MN",
+      "value": "St. Cloud, MN"
+    },
+    {
+      "label": "Racine, WI",
+      "value": "Racine, WI"
+    },
+    {
+      "label": "Houma-Thibodaux, LA",
+      "value": "Houma-Thibodaux, LA"
+    },
+    {
+      "label": "Jacksonville, NC",
+      "value": "Jacksonville, NC"
+    },
+    {
+      "label": "Kingston, NY",
+      "value": "Kingston, NY"
+    },
+    {
+      "label": "Greenville, NC",
+      "value": "Greenville, NC"
+    },
+    {
+      "label": "Hilo, HI",
+      "value": "Hilo, HI"
+    },
+    {
+      "label": "Warner Robins, GA",
+      "value": "Warner Robins, GA"
+    },
+    {
+      "label": "Elkhart-Goshen, IN",
+      "value": "Elkhart-Goshen, IN"
+    },
+    {
+      "label": "Gainesville, GA",
+      "value": "Gainesville, GA"
+    },
+    {
+      "label": "Dover, DE",
+      "value": "Dover, DE"
+    },
+    {
+      "label": "Terre Haute, IN",
+      "value": "Terre Haute, IN"
+    },
+    {
+      "label": "Iowa City, IA",
+      "value": "Iowa City, IA"
+    },
+    {
+      "label": "Santa Fe, NM",
+      "value": "Santa Fe, NM"
+    },
+    {
+      "label": "Eau Claire, WI",
+      "value": "Eau Claire, WI"
+    },
+    {
+      "label": "Sebastian-Vero Beach, FL",
+      "value": "Sebastian-Vero Beach, FL"
+    },
+    {
+      "label": "Oshkosh-Neenah, WI",
+      "value": "Oshkosh-Neenah, WI"
+    },
+    {
+      "label": "Bowling Green, KY",
+      "value": "Bowling Green, KY"
+    },
+    {
+      "label": "St. George, UT",
+      "value": "St. George, UT"
+    },
+    {
+      "label": "Auburn-Opelika, AL",
+      "value": "Auburn-Opelika, AL"
+    },
+    {
+      "label": "Homosassa Springs, FL",
+      "value": "Homosassa Springs, FL"
+    },
+    {
+      "label": "Coeur d'Alene, ID",
+      "value": "Coeur d'Alene, ID"
+    },
+    {
+      "label": "Redding, CA",
+      "value": "Redding, CA"
+    },
+    {
+      "label": "Midland, TX",
+      "value": "Midland, TX"
+    },
+    {
+      "label": "Joplin, MO",
+      "value": "Joplin, MO"
+    },
+    {
+      "label": "Jackson, TN",
+      "value": "Jackson, TN"
+    },
+    {
+      "label": "Burlington, NC",
+      "value": "Burlington, NC"
+    },
+    {
+      "label": "Waterloo-Cedar Falls, IA",
+      "value": "Waterloo-Cedar Falls, IA"
+    },
+    {
+      "label": "Wausau-Weston, WI",
+      "value": "Wausau-Weston, WI"
+    },
+    {
+      "label": "Bloomington, IL",
+      "value": "Bloomington, IL"
+    },
+    {
+      "label": "Bloomington, IN",
+      "value": "Bloomington, IN"
+    },
+    {
+      "label": "Pueblo, CO",
+      "value": "Pueblo, CO"
+    },
+    {
+      "label": "Janesville-Beloit, WI",
+      "value": "Janesville-Beloit, WI"
+    },
+    {
+      "label": "Muskegon, MI",
+      "value": "Muskegon, MI"
     },
     {
       "label": "Hattiesburg, MS",
       "value": "Hattiesburg, MS"
     },
     {
+      "label": "Traverse City, MI",
+      "value": "Traverse City, MI"
+    },
+    {
+      "label": "Grand Junction, CO",
+      "value": "Grand Junction, CO"
+    },
+    {
+      "label": "Bangor, ME",
+      "value": "Bangor, ME"
+    },
+    {
+      "label": "Abilene, TX",
+      "value": "Abilene, TX"
+    },
+    {
+      "label": "Chambersburg-Waynesboro, PA",
+      "value": "Chambersburg-Waynesboro, PA"
+    },
+    {
+      "label": "Florence-Muscle Shoals, AL",
+      "value": "Florence-Muscle Shoals, AL"
+    },
+    {
+      "label": "Odessa, TX",
+      "value": "Odessa, TX"
+    },
+    {
+      "label": "Tupelo, MS",
+      "value": "Tupelo, MS"
+    },
+    {
+      "label": "Jackson, MI",
+      "value": "Jackson, MI"
+    },
+    {
+      "label": "Niles, MI",
+      "value": "Niles, MI"
+    },
+    {
+      "label": "Yuba City, CA",
+      "value": "Yuba City, CA"
+    },
+    {
+      "label": "Monroe, MI",
+      "value": "Monroe, MI"
+    },
+    {
+      "label": "Elizabethtown-Fort Knox, KY",
+      "value": "Elizabethtown-Fort Knox, KY"
+    },
+    {
+      "label": "Decatur, AL",
+      "value": "Decatur, AL"
+    },
+    {
+      "label": "Blacksburg-Christiansburg, VA",
+      "value": "Blacksburg-Christiansburg, VA"
+    },
+    {
+      "label": "Concord, NH",
+      "value": "Concord, NH"
+    },
+    {
+      "label": "Ottawa, IL",
+      "value": "Ottawa, IL"
+    },
+    {
+      "label": "State College, PA",
+      "value": "State College, PA"
+    },
+    {
+      "label": "Dothan, AL",
+      "value": "Dothan, AL"
+    },
+    {
+      "label": "Rapid City, SD",
+      "value": "Rapid City, SD"
+    },
+    {
+      "label": "Morristown, TN",
+      "value": "Morristown, TN"
+    },
+    {
+      "label": "La Crosse-Onalaska, WI-MN",
+      "value": "La Crosse-Onalaska, WI-MN"
+    },
+    {
+      "label": "Rocky Mount, NC",
+      "value": "Rocky Mount, NC"
+    },
+    {
+      "label": "Sioux City, IA-NE-SD",
+      "value": "Sioux City, IA-NE-SD"
+    },
+    {
+      "label": "Pittsfield, MA",
+      "value": "Pittsfield, MA"
+    },
+    {
+      "label": "Pottsville, PA",
+      "value": "Pottsville, PA"
+    },
+    {
+      "label": "East Stroudsburg, PA",
+      "value": "East Stroudsburg, PA"
+    },
+    {
+      "label": "Wichita Falls, TX",
+      "value": "Wichita Falls, TX"
+    },
+    {
+      "label": "Valdosta, GA",
+      "value": "Valdosta, GA"
+    },
+    {
+      "label": "Albany, GA",
+      "value": "Albany, GA"
+    },
+    {
+      "label": "Jefferson City, MO",
+      "value": "Jefferson City, MO"
+    },
+    {
+      "label": "Kahului-Wailuku-Lahaina, HI",
+      "value": "Kahului-Wailuku-Lahaina, HI"
+    },
+    {
+      "label": "Morgantown, WV",
+      "value": "Morgantown, WV"
+    },
+    {
+      "label": "Eureka-Arcata, CA",
+      "value": "Eureka-Arcata, CA"
+    },
+    {
+      "label": "Carbondale-Marion, IL",
+      "value": "Carbondale-Marion, IL"
+    },
+    {
+      "label": "Wheeling, WV-OH",
+      "value": "Wheeling, WV-OH"
+    },
+    {
+      "label": "Bismarck, ND",
+      "value": "Bismarck, ND"
+    },
+    {
+      "label": "Springfield, OH",
+      "value": "Springfield, OH"
+    },
+    {
+      "label": "Texarkana, TX-AR",
+      "value": "Texarkana, TX-AR"
+    },
+    {
+      "label": "Alexandria, LA",
+      "value": "Alexandria, LA"
+    },
+    {
+      "label": "Lebanon, PA",
+      "value": "Lebanon, PA"
+    },
+    {
+      "label": "Johnstown, PA",
+      "value": "Johnstown, PA"
+    },
+    {
+      "label": "Winchester, VA-WV",
+      "value": "Winchester, VA-WV"
+    },
+    {
+      "label": "Vineland-Bridgeton, NJ",
+      "value": "Vineland-Bridgeton, NJ"
+    },
+    {
+      "label": "Glens Falls, NY",
+      "value": "Glens Falls, NY"
+    },
+    {
+      "label": "Idaho Falls, ID",
+      "value": "Idaho Falls, ID"
+    },
+    {
+      "label": "Augusta-Waterville, ME",
+      "value": "Augusta-Waterville, ME"
+    },
+    {
+      "label": "Jamestown-Dunkirk-Fredonia, NY",
+      "value": "Jamestown-Dunkirk-Fredonia, NY"
+    },
+    {
+      "label": "Sherman-Denison, TX",
+      "value": "Sherman-Denison, TX"
+    },
+    {
+      "label": "Flagstaff, AZ",
+      "value": "Flagstaff, AZ"
+    },
+    {
+      "label": "Sumter, SC",
+      "value": "Sumter, SC"
+    },
+    {
+      "label": "Jonesboro, AR",
+      "value": "Jonesboro, AR"
+    },
+    {
+      "label": "Battle Creek, MI",
+      "value": "Battle Creek, MI"
+    },
+    {
+      "label": "Missoula, MT",
+      "value": "Missoula, MT"
+    },
+    {
+      "label": "Bozeman, MT",
+      "value": "Bozeman, MT"
+    },
+    {
+      "label": "Altoona, PA",
+      "value": "Altoona, PA"
+    },
+    {
+      "label": "Dalton, GA",
+      "value": "Dalton, GA"
+    },
+    {
+      "label": "New Bern, NC",
+      "value": "New Bern, NC"
+    },
+    {
+      "label": "Hammond, LA",
+      "value": "Hammond, LA"
+    },
+    {
+      "label": "Manhattan, KS",
+      "value": "Manhattan, KS"
+    },
+    {
+      "label": "Albany-Lebanon, OR",
+      "value": "Albany-Lebanon, OR"
+    },
+    {
+      "label": "Napa, CA",
+      "value": "Napa, CA"
+    },
+    {
+      "label": "Ames, IA",
+      "value": "Ames, IA"
+    },
+    {
+      "label": "Staunton, VA",
+      "value": "Staunton, VA"
+    },
+    {
+      "label": "Harrisonburg, VA",
+      "value": "Harrisonburg, VA"
+    },
+    {
+      "label": "El Centro, CA",
+      "value": "El Centro, CA"
+    },
+    {
+      "label": "Mount Vernon-Anacortes, WA",
+      "value": "Mount Vernon-Anacortes, WA"
+    },
+    {
+      "label": "Sheboygan, WI",
+      "value": "Sheboygan, WI"
+    },
+    {
+      "label": "Logan, UT-ID",
+      "value": "Logan, UT-ID"
+    },
+    {
+      "label": "Mansfield, OH",
+      "value": "Mansfield, OH"
+    },
+    {
+      "label": "Lawrence, KS",
+      "value": "Lawrence, KS"
+    },
+    {
+      "label": "Sierra Vista-Douglas, AZ",
+      "value": "Sierra Vista-Douglas, AZ"
+    },
+    {
+      "label": "Weirton-Steubenville, WV-OH",
+      "value": "Weirton-Steubenville, WV-OH"
+    },
+    {
+      "label": "Cleveland, TN",
+      "value": "Cleveland, TN"
+    },
+    {
+      "label": "Wenatchee, WA",
+      "value": "Wenatchee, WA"
+    },
+    {
+      "label": "Cookeville, TN",
+      "value": "Cookeville, TN"
+    },
+    {
+      "label": "San Angelo, TX",
+      "value": "San Angelo, TX"
+    },
+    {
+      "label": "Lawton, OK",
+      "value": "Lawton, OK"
+    },
+    {
+      "label": "Owensboro, KY",
+      "value": "Owensboro, KY"
+    },
+    {
+      "label": "Brunswick, GA",
+      "value": "Brunswick, GA"
+    },
+    {
+      "label": "Sebring-Avon Park, FL",
+      "value": "Sebring-Avon Park, FL"
+    },
+    {
+      "label": "Muncie, IN",
+      "value": "Muncie, IN"
+    },
+    {
+      "label": "Goldsboro, NC",
+      "value": "Goldsboro, NC"
+    },
+    {
+      "label": "Roseburg, OR",
+      "value": "Roseburg, OR"
+    },
+    {
+      "label": "St. Joseph, MO-KS",
+      "value": "St. Joseph, MO-KS"
+    },
+    {
+      "label": "Watertown-Fort Drum, NY",
+      "value": "Watertown-Fort Drum, NY"
+    },
+    {
+      "label": "Williamsport, PA",
+      "value": "Williamsport, PA"
+    },
+    {
+      "label": "Lewiston-Auburn, ME",
+      "value": "Lewiston-Auburn, ME"
+    },
+    {
+      "label": "Kalispell, MT",
+      "value": "Kalispell, MT"
+    },
+    {
+      "label": "Holland, MI",
+      "value": "Holland, MI"
+    },
+    {
+      "label": "Anniston-Oxford, AL",
+      "value": "Anniston-Oxford, AL"
+    },
+    {
+      "label": "Hot Springs, AR",
+      "value": "Hot Springs, AR"
+    },
+    {
+      "label": "Bay City, MI",
+      "value": "Bay City, MI"
+    },
+    {
+      "label": "Tullahoma-Manchester, TN",
+      "value": "Tullahoma-Manchester, TN"
+    },
+    {
+      "label": "Pinehurst-Southern Pines, NC",
+      "value": "Pinehurst-Southern Pines, NC"
+    },
+    {
+      "label": "Beckley, WV",
+      "value": "Beckley, WV"
+    },
+    {
+      "label": "Longview, WA",
+      "value": "Longview, WA"
+    },
+    {
+      "label": "Wooster, OH",
+      "value": "Wooster, OH"
+    },
+    {
+      "label": "Truckee-Grass Valley, CA",
+      "value": "Truckee-Grass Valley, CA"
+    },
+    {
+      "label": "Richmond-Berea, KY",
+      "value": "Richmond-Berea, KY"
+    },
+    {
+      "label": "Fond du Lac, WI",
+      "value": "Fond du Lac, WI"
+    },
+    {
+      "label": "Decatur, IL",
+      "value": "Decatur, IL"
+    },
+    {
+      "label": "Lumberton, NC",
+      "value": "Lumberton, NC"
+    },
+    {
+      "label": "Twin Falls, ID",
+      "value": "Twin Falls, ID"
+    },
+    {
+      "label": "Hanford-Corcoran, CA",
+      "value": "Hanford-Corcoran, CA"
+    },
+    {
+      "label": "Danville, VA",
+      "value": "Danville, VA"
+    },
+    {
+      "label": "Michigan City-La Porte, IN",
+      "value": "Michigan City-La Porte, IN"
+    },
+    {
+      "label": "Bluefield, WV-VA",
+      "value": "Bluefield, WV-VA"
+    },
+    {
+      "label": "Sevierville, TN",
+      "value": "Sevierville, TN"
+    },
+    {
+      "label": "Whitewater, WI",
+      "value": "Whitewater, WI"
+    },
+    {
+      "label": "Grand Forks, ND-MN",
+      "value": "Grand Forks, ND-MN"
+    },
+    {
+      "label": "Cheyenne, WY",
+      "value": "Cheyenne, WY"
+    },
+    {
+      "label": "Ithaca, NY",
+      "value": "Ithaca, NY"
+    },
+    {
+      "label": "Brainerd, MN",
+      "value": "Brainerd, MN"
+    },
+    {
+      "label": "Farmington, NM",
+      "value": "Farmington, NM"
+    },
+    {
+      "label": "Show Low, AZ",
+      "value": "Show Low, AZ"
+    },
+    {
+      "label": "Mankato, MN",
+      "value": "Mankato, MN"
+    },
+    {
+      "label": "Lima, OH",
+      "value": "Lima, OH"
+    },
+    {
+      "label": "LaGrange, GA-AL",
+      "value": "LaGrange, GA-AL"
+    },
+    {
+      "label": "Gettysburg, PA",
+      "value": "Gettysburg, PA"
+    },
+    {
+      "label": "Dubuque, IA",
+      "value": "Dubuque, IA"
+    },
+    {
+      "label": "Kankakee, IL",
+      "value": "Kankakee, IL"
+    },
+    {
+      "label": "Corning, NY",
+      "value": "Corning, NY"
+    },
+    {
+      "label": "Salem, OH",
+      "value": "Salem, OH"
+    },
+    {
+      "label": "Paducah, KY-IL",
+      "value": "Paducah, KY-IL"
+    },
+    {
+      "label": "Gadsden, AL",
+      "value": "Gadsden, AL"
+    },
+    {
+      "label": "Parkersburg-Vienna, WV",
+      "value": "Parkersburg-Vienna, WV"
+    },
+    {
+      "label": "Meridian, MS",
+      "value": "Meridian, MS"
+    },
+    {
+      "label": "Corvallis, OR",
+      "value": "Corvallis, OR"
+    },
+    {
+      "label": "Shelby, NC",
+      "value": "Shelby, NC"
+    },
+    {
+      "label": "Cape Girardeau, MO-IL",
+      "value": "Cape Girardeau, MO-IL"
+    },
+    {
+      "label": "New Philadelphia-Dover, OH",
+      "value": "New Philadelphia-Dover, OH"
+    },
+    {
+      "label": "Sunbury, PA",
+      "value": "Sunbury, PA"
+    },
+    {
+      "label": "Adrian, MI",
+      "value": "Adrian, MI"
+    },
+    {
+      "label": "Rome, GA",
+      "value": "Rome, GA"
+    },
+    {
+      "label": "Pocatello, ID",
+      "value": "Pocatello, ID"
+    },
+    {
+      "label": "Seneca, SC",
+      "value": "Seneca, SC"
+    },
+    {
+      "label": "Victoria, TX",
+      "value": "Victoria, TX"
+    },
+    {
+      "label": "Fairbanks, AK",
+      "value": "Fairbanks, AK"
+    },
+    {
+      "label": "Oak Harbor, WA",
+      "value": "Oak Harbor, WA"
+    },
+    {
+      "label": "Cumberland, MD-WV",
+      "value": "Cumberland, MD-WV"
+    },
+    {
+      "label": "Grants Pass, OR",
+      "value": "Grants Pass, OR"
+    },
+    {
+      "label": "Albertville, AL",
+      "value": "Albertville, AL"
+    },
+    {
+      "label": "Beaver Dam, WI",
+      "value": "Beaver Dam, WI"
+    },
+    {
+      "label": "Moses Lake, WA",
+      "value": "Moses Lake, WA"
+    },
+    {
+      "label": "Clarksburg, WV",
+      "value": "Clarksburg, WV"
+    },
+    {
+      "label": "Cullman, AL",
+      "value": "Cullman, AL"
+    },
+    {
+      "label": "Zanesville, OH",
+      "value": "Zanesville, OH"
+    },
+    {
+      "label": "Kokomo, IN",
+      "value": "Kokomo, IN"
+    },
+    {
+      "label": "Port Angeles, WA",
+      "value": "Port Angeles, WA"
+    },
+    {
+      "label": "Helena, MT",
+      "value": "Helena, MT"
+    },
+    {
+      "label": "Watertown-Fort Atkinson, WI",
+      "value": "Watertown-Fort Atkinson, WI"
+    },
+    {
+      "label": "Great Falls, MT",
+      "value": "Great Falls, MT"
+    },
+    {
+      "label": "Midland, MI",
+      "value": "Midland, MI"
+    },
+    {
+      "label": "Manitowoc, WI",
+      "value": "Manitowoc, WI"
+    },
+    {
+      "label": "Ukiah, CA",
+      "value": "Ukiah, CA"
+    },
+    {
+      "label": "Meadville, PA",
+      "value": "Meadville, PA"
+    },
+    {
+      "label": "Bloomsburg-Berwick, PA",
+      "value": "Bloomsburg-Berwick, PA"
+    },
+    {
+      "label": "Talladega-Sylacauga, AL",
+      "value": "Talladega-Sylacauga, AL"
+    },
+    {
+      "label": "Columbus, IN",
+      "value": "Columbus, IN"
+    },
+    {
+      "label": "Key West, FL",
+      "value": "Key West, FL"
+    },
+    {
+      "label": "Elmira, NY",
+      "value": "Elmira, NY"
+    },
+    {
+      "label": "Lufkin, TX",
+      "value": "Lufkin, TX"
+    },
+    {
+      "label": "Hermiston-Pendleton, OR",
+      "value": "Hermiston-Pendleton, OR"
+    },
+    {
+      "label": "Stillwater, OK",
+      "value": "Stillwater, OK"
+    },
+    {
+      "label": "Athens, TX",
+      "value": "Athens, TX"
+    },
+    {
+      "label": "Orangeburg, SC",
+      "value": "Orangeburg, SC"
+    },
+    {
+      "label": "Wilson, NC",
+      "value": "Wilson, NC"
+    },
+    {
+      "label": "Casper, WY",
+      "value": "Casper, WY"
+    },
+    {
+      "label": "Sandusky, OH",
+      "value": "Sandusky, OH"
+    },
+    {
+      "label": "Plattsburgh, NY",
+      "value": "Plattsburgh, NY"
+    },
+    {
+      "label": "Russellville, AR",
+      "value": "Russellville, AR"
+    },
+    {
+      "label": "Minot, ND",
+      "value": "Minot, ND"
+    },
+    {
+      "label": "DuBois, PA",
+      "value": "DuBois, PA"
+    },
+    {
+      "label": "Wisconsin Rapids-Marshfield, WI",
+      "value": "Wisconsin Rapids-Marshfield, WI"
+    },
+    {
       "label": "Frankfort, KY",
       "value": "Frankfort, KY"
     },
     {
+      "label": "Quincy, IL-MO",
+      "value": "Quincy, IL-MO"
+    },
+    {
+      "label": "Centralia, WA",
+      "value": "Centralia, WA"
+    },
+    {
+      "label": "Findlay, OH",
+      "value": "Findlay, OH"
+    },
+    {
+      "label": "Auburn, NY",
+      "value": "Auburn, NY"
+    },
+    {
+      "label": "Indiana, PA",
+      "value": "Indiana, PA"
+    },
+    {
+      "label": "Opelousas, LA",
+      "value": "Opelousas, LA"
+    },
+    {
+      "label": "Olean, NY",
+      "value": "Olean, NY"
+    },
+    {
+      "label": "Keene, NH",
+      "value": "Keene, NH"
+    },
+    {
+      "label": "Statesboro, GA",
+      "value": "Statesboro, GA"
+    },
+    {
+      "label": "Laurel, MS",
+      "value": "Laurel, MS"
+    },
+    {
+      "label": "Warsaw, IN",
+      "value": "Warsaw, IN"
+    },
+    {
+      "label": "Morehead City, NC",
+      "value": "Morehead City, NC"
+    },
+    {
+      "label": "Palatka, FL",
+      "value": "Palatka, FL"
+    },
+    {
+      "label": "Mount Airy, NC",
+      "value": "Mount Airy, NC"
+    },
+    {
+      "label": "Aberdeen, WA",
+      "value": "Aberdeen, WA"
+    },
+    {
+      "label": "Danville, IL",
+      "value": "Danville, IL"
+    },
+    {
+      "label": "Marinette, WI-MI",
+      "value": "Marinette, WI-MI"
+    },
+    {
+      "label": "Pine Bluff, AR",
+      "value": "Pine Bluff, AR"
+    },
+    {
+      "label": "Grand Island, NE",
+      "value": "Grand Island, NE"
+    },
+    {
+      "label": "Stevens Point, WI",
+      "value": "Stevens Point, WI"
+    },
+    {
+      "label": "Hinesville, GA",
+      "value": "Hinesville, GA"
+    },
+    {
+      "label": "Searcy, AR",
+      "value": "Searcy, AR"
+    },
+    {
+      "label": "Portsmouth, OH",
+      "value": "Portsmouth, OH"
+    },
+    {
+      "label": "Somerset, PA",
+      "value": "Somerset, PA"
+    },
+    {
+      "label": "Chillicothe, OH",
+      "value": "Chillicothe, OH"
+    },
+    {
+      "label": "Greeneville, TN",
+      "value": "Greeneville, TN"
+    },
+    {
+      "label": "Roanoke Rapids, NC",
+      "value": "Roanoke Rapids, NC"
+    },
+    {
+      "label": "Klamath Falls, OR",
+      "value": "Klamath Falls, OR"
+    },
+    {
+      "label": "Marquette, MI",
+      "value": "Marquette, MI"
+    },
+    {
+      "label": "Baraboo, WI",
+      "value": "Baraboo, WI"
+    },
+    {
+      "label": "Jefferson, GA",
+      "value": "Jefferson, GA"
+    },
+    {
+      "label": "Lewiston, ID-WA",
+      "value": "Lewiston, ID-WA"
+    },
+    {
+      "label": "Heber, UT",
+      "value": "Heber, UT"
+    },
+    {
+      "label": "Lake City, FL",
+      "value": "Lake City, FL"
+    },
+    {
+      "label": "Somerset, KY",
+      "value": "Somerset, KY"
+    },
+    {
+      "label": "Richmond, IN",
+      "value": "Richmond, IN"
+    },
+    {
+      "label": "Greenwood, SC",
+      "value": "Greenwood, SC"
+    },
+    {
+      "label": "Shelton, WA",
+      "value": "Shelton, WA"
+    },
+    {
+      "label": "Clearlake, CA",
+      "value": "Clearlake, CA"
+    },
+    {
+      "label": "North Wilkesboro, NC",
+      "value": "North Wilkesboro, NC"
+    },
+    {
+      "label": "Huntsville, TX",
+      "value": "Huntsville, TX"
+    },
+    {
+      "label": "Shawnee, OK",
+      "value": "Shawnee, OK"
+    },
+    {
+      "label": "Marion, IN",
+      "value": "Marion, IN"
+    },
+    {
+      "label": "Fort Payne, AL",
+      "value": "Fort Payne, AL"
+    },
+    {
+      "label": "Muskogee, OK",
+      "value": "Muskogee, OK"
+    },
+    {
+      "label": "Granbury, TX",
+      "value": "Granbury, TX"
+    },
+    {
+      "label": "Hobbs, NM",
+      "value": "Hobbs, NM"
+    },
+    {
+      "label": "Sanford, NC",
+      "value": "Sanford, NC"
+    },
+    {
+      "label": "Dublin, GA",
+      "value": "Dublin, GA"
+    },
+    {
+      "label": "Alamogordo, NM",
+      "value": "Alamogordo, NM"
+    },
+    {
       "label": "Marion, OH",
       "value": "Marion, OH"
+    },
+    {
+      "label": "Red Bluff, CA",
+      "value": "Red Bluff, CA"
+    },
+    {
+      "label": "Farmington, MO",
+      "value": "Farmington, MO"
+    },
+    {
+      "label": "Kapaa, HI",
+      "value": "Kapaa, HI"
+    },
+    {
+      "label": "Faribault-Northfield, MN",
+      "value": "Faribault-Northfield, MN"
+    },
+    {
+      "label": "Walla Walla, WA",
+      "value": "Walla Walla, WA"
+    },
+    {
+      "label": "Carson City, NV",
+      "value": "Carson City, NV"
+    },
+    {
+      "label": "Enid, OK",
+      "value": "Enid, OK"
+    },
+    {
+      "label": "Gallup, NM",
+      "value": "Gallup, NM"
+    },
+    {
+      "label": "Rio Grande City-Roma, TX",
+      "value": "Rio Grande City-Roma, TX"
+    },
+    {
+      "label": "Rexburg, ID",
+      "value": "Rexburg, ID"
     }
   ]
 }
