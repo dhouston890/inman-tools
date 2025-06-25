@@ -131,15 +131,11 @@
 
     <script>
         // --- CONFIGURATION --- //
-        // This object defines the metrics available for selection.
-        // You can add or remove metrics here. The key (e.g., "median_home_value")
-        // must match the key in your GeoJSON file's "properties" object.
         const metrics = {
             "median_home_value": { label: "Median Home Value", format: (val) => `$${val.toLocaleString()}` },
             "price_to_rent_ratio": { label: "Price-to-Rent Ratio", format: (val) => `${val.toFixed(1)}` }
         };
 
-        // --- FIX: Use an absolute URL to the data folder on GitHub ---
         const dataBaseUrl = 'https://dhouston890.github.io/inman-tools/data/';
 
         // --- GLOBAL VARIABLES --- //
@@ -166,12 +162,11 @@
         }
         
         async function initializeSelectors() {
-            // Populate Metrics Dropdown (this is static based on the 'metrics' object above)
             const metricSelect = document.getElementById('metric-select');
             const metricOptions = Object.keys(metrics).map(key => ({
                 value: key,
                 label: metrics[key].label,
-                selected: key === 'median_home_value' // Set the default metric
+                selected: key === 'median_home_value'
             }));
             metricChoices = new Choices(metricSelect, { choices: metricOptions, searchEnabled: false, itemSelectText: 'Select', shouldSort: false });
             metricSelect.addEventListener('change', () => {
@@ -185,13 +180,10 @@
                 }
             });
 
-            // Fetch Market List from your real data file to populate the CBSA Dropdown
             const cbsaSelect = document.getElementById('cbsa-select');
             cbsaChoices = new Choices(cbsaSelect, { searchEnabled: true, itemSelectText: 'Select', shouldSort: false, placeholder: true, placeholderValue: 'Loading markets...' });
             
             try {
-                // The 'fetch' API is the standard way to get data from a URL.
-                // FIX: Use the absolute base URL
                 const response = await fetch(`${dataBaseUrl}cbsa_list.json`);
                 if (!response.ok) {
                     throw new Error(`HTTP error! status: ${response.status}`);
@@ -229,9 +221,8 @@
             subtitle.textContent = `Loading data for ${selectedCbsa}...`;
 
             try {
-                // Fetch the specific market's GeoJSON file.
-                // FIX: Use the absolute base URL and encode the filename component
-                const response = await fetch(`${dataBaseUrl}${encodeURIComponent(selectedCbsa)}.json`);
+                // --- FIX: Change the file extension from .json to .geojson ---
+                const response = await fetch(`${dataBaseUrl}${encodeURIComponent(selectedCbsa)}.geojson`);
                  if (!response.ok) {
                     throw new Error(`HTTP error! status: ${response.status}`);
                 }
