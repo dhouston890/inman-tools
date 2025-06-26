@@ -74,14 +74,16 @@
             vertical-align: middle;
             border: 1px solid #999;
         }
-        /* Give dropdown wrappers a high z-index to appear over the map */
         .dropdown-wrapper {
            position: relative;
         }
-        /* Improve text wrapping in dropdowns */
         .choices__item, .choices__list--single .choices__item {
-            word-break: break-word; /* Prevents breaking in the middle of a word */
-            white-space: normal;   /* Allows text to wrap to the next line */
+            word-break: break-word; 
+            white-space: normal;
+        }
+        /* Disable the default blue focus outline on clicked geographies */
+        .leaflet-interactive:focus {
+            outline: none;
         }
     </style>
     <link rel="preconnect" href="https://fonts.googleapis.com">
@@ -134,87 +136,45 @@
     <script src="https://cdn.jsdelivr.net/npm/choices.js/public/assets/scripts/choices.min.js"></script>
 
     <script>
+        // --- UTILITY FUNCTIONS --- //
+        function formatLabelForWrapping(label) { return label.replace(/-/g, '-\u200B'); }
+        
+        function formatLargeDollars(num) {
+            if (num === null || isNaN(num)) return 'N/A';
+            const absNum = Math.abs(num);
+            if (absNum >= 1e9) return `$${(num / 1e9).toFixed(1)} billion`;
+            if (absNum >= 1e6) return `$${(num / 1e6).toFixed(1)} million`;
+            if (absNum >= 1000) return `$${(Math.round(num / 100) * 100).toLocaleString()}`;
+            return `$${Math.round(num).toLocaleString()}`;
+        }
+
+        const formatPercent = (val, precision, addPlus) => {
+            if (val === null || isNaN(val)) return 'N/A';
+            const num = (val * 100).toFixed(precision);
+            return addPlus && val > 0 ? `+${num}%` : `${num}%`;
+        }
+        
         // --- CONFIGURATION --- //
         const metrics = {
-            "Potential commission pool": {
-                label: "Potential commission pool",
-                periods: {
-                    raw: "Potential commission pool",
-                    yoy: "Potential commission pool, Y/Y",
-                    hist: "Potential commission pool, vs. 2017-19"
-                },
-                format: (val) => `${(val * 100).toFixed(1)}%`
-            },
-            "Weighted list price": {
-                label: "Weighted list price",
-                periods: {
-                    raw: "Weighted list price",
-                    yoy: "Weighted list price, Y/Y",
-                    hist: "Weighted list price, vs. 2017-19"
-                },
-                format: (val) => `${(val * 100).toFixed(1)}%`
-            },
-            "Listing outflow": {
-                label: "Listing outflow",
-                periods: {
-                    raw: "Listing outflow",
-                    yoy: "Listing outflow, Y/Y",
-                    hist: "Listing outflow, vs. 2017-19"
-                },
-                format: (val) => `${(val * 100).toFixed(1)}%`
-            },
-            "Outflow rate per active listing": {
-                label: "Outflow rate per active listing",
-                 periods: {
-                    raw: "Outflow rate per active listing",
-                    yoy: "Outflow rate per active listing, YY",
-                    hist: "Outflow rate per active listing, vs. 2017-19"
-                },
-                format: (val) => val.toFixed(2)
-            },
-            "Active listings": {
-                label: "Active listings",
-                periods: {
-                    raw: "Active listings",
-                    yoy: "Active listings, Y/Y",
-                    hist: "Active listings, vs. 2017-19"
-                },
-                format: (val) => `${(val * 100).toFixed(1)}%`
-            },
-            "New listings": {
-                label: "New listings",
-                periods: {
-                    raw: "New listings",
-                    yoy: "New listings, Y/Y",
-                    hist: "New listings, vs. 2017-19"
-                },
-                format: (val) => `${(val * 100).toFixed(1)}%`
-            },
-            "Median days on market": {
-                label: "Median days on market",
-                periods: {
-                    raw: "Median days on market",
-                    yoy: "Median days on market, Y/Y",
-                    hist: "Median days on market, vs. 2017-19"
-                },
-                format: (val) => Math.round(val).toLocaleString()
-            }
+            "Potential commission pool": { label: "Potential commission pool", periods: { raw: "Potential commission pool", yoy: "Potential commission pool, Y/Y", hist: "Potential commission pool, vs. 2017-19" }, formatLegend: (v, p) => p === 'raw' ? formatLargeDollars(v) : formatPercent(v, 0, true), formatTooltip: (v, p) => p === 'raw' ? formatLargeDollars(v) : formatPercent(v, 1, true) },
+            "Weighted list price": { label: "Weighted list price", periods: { raw: "Weighted list price", yoy: "Weighted list price, Y/Y", hist: "Weighted list price, vs. 2017-19" }, formatLegend: (v, p) => p === 'raw' ? formatLargeDollars(v) : formatPercent(v, 0, true), formatTooltip: (v, p) => p === 'raw' ? formatLargeDollars(v) : formatPercent(v, 1, true) },
+            "Listing outflow": { label: "Listing outflow", periods: { raw: "Listing outflow", yoy: "Listing outflow, Y/Y", hist: "Listing outflow, vs. 2017-19" }, formatLegend: (v, p) => p === 'raw' ? Math.round(v).toLocaleString() : formatPercent(v, 0, true), formatTooltip: (v, p) => p === 'raw' ? Math.round(v).toLocaleString() : formatPercent(v, 1, true) },
+            "Outflow rate per active listing": { label: "Outflow rate per active listing", periods: { raw: "Outflow rate per active listing", yoy: "Outflow rate per active listing, Y/Y", hist: "Outflow rate per active listing, vs. 2017-19" }, formatLegend: (v, p) => p === 'raw' ? v.toFixed(2) : formatPercent(v, 0, true), formatTooltip: (v, p) => p === 'raw' ? v.toFixed(2) : formatPercent(v, 1, true) },
+            "Active listings": { label: "Active listings", periods: { raw: "Active listings", yoy: "Active listings, Y/Y", hist: "Active listings, vs. 2017-19" }, formatLegend: (v, p) => p === 'raw' ? Math.round(v).toLocaleString() : formatPercent(v, 0, true), formatTooltip: (v, p) => p === 'raw' ? Math.round(v).toLocaleString() : formatPercent(v, 1, true) },
+            "New listings": { label: "New listings", periods: { raw: "New listings", yoy: "New listings, Y/Y", hist: "New listings, vs. 2017-19" }, formatLegend: (v, p) => p === 'raw' ? Math.round(v).toLocaleString() : formatPercent(v, 0, true), formatTooltip: (v, p) => p === 'raw' ? Math.round(v).toLocaleString() : formatPercent(v, 1, true) },
+            "Weighted days on market": { label: "Weighted days on market", periods: { raw: "Weighted days on market", yoy: "Weighted days on market, Y/Y", hist: "Weighted days on market, vs. 2017-19" }, formatLegend: (v, p) => p === 'raw' ? Math.round(v).toLocaleString() : formatPercent(v, 0, true), formatTooltip: (v, p) => p === 'raw' ? Math.round(v).toLocaleString() : formatPercent(v, 1, true) }
         };
 
         const dataBaseUrl = 'https://dhouston890.github.io/inman-tools/data/';
+        const sequentialScaleColors = ['#f7fcfd', '#e0ecf4', '#bfd3e6', '#9ebcda', '#8c96c6', '#8856a7', '#810f7c'];
+        const divergingScaleColors = ['#b2182b', '#d6604d', '#f4a582', '#f6f0dd', '#92c5de', '#4393c3', '#2166ac'];
 
         // --- GLOBAL VARIABLES --- //
         let map, geoJsonLayer, legend, cbsaChoices, metricChoices, periodChoices;
-        let currentMarketData;
+        let currentMarketData, lockedLayer = null;
         const mapLoader = document.getElementById('map-loader');
         const subtitle = document.getElementById('subtitle');
-        const colors = ['#fde0dd', '#fcc5c0', '#fa9fb5', '#f768a1', '#c51b8a', '#7a0177'];
-
-        // --- UTILITY FUNCTION --- //
-        function formatLabelForWrapping(label) {
-            return label.replace(/-/g, '-\u200B');
-        }
-
+        
         // --- INITIALIZATION --- //
         document.addEventListener('DOMContentLoaded', () => {
             initializeMap();
@@ -223,34 +183,26 @@
 
         function initializeMap() {
             map = L.map('map').setView([39.8283, -98.5795], 4);
-            L.tileLayer('https://{s}.basemaps.cartocdn.com/rastertiles/voyager/{z}/{x}/{y}{r}.png', {
-                attribution: '&copy; <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a> contributors &copy; <a href="https://carto.com/attributions">CARTO</a>'
-            }).addTo(map);
+            L.tileLayer('https://{s}.basemaps.cartocdn.com/rastertiles/voyager/{z}/{x}/{y}{r}.png', { attribution: '&copy; OpenStreetMap contributors &copy; CARTO' }).addTo(map);
+            map.on('click', unlockLayer); 
             initializeLegend();
         }
         
         async function initializeSelectors() {
-            // Dropdown 2: Metrics
             const metricSelect = document.getElementById('metric-select');
-            const metricOptions = Object.keys(metrics).map(key => ({
-                value: key,
-                label: formatLabelForWrapping(metrics[key].label), 
-                selected: key === "Potential commission pool"
-            }));
+            const metricOptions = Object.keys(metrics).map(key => ({ value: key, label: formatLabelForWrapping(metrics[key].label), selected: key === "Potential commission pool" }));
             metricChoices = new Choices(metricSelect, { choices: metricOptions, searchEnabled: false, itemSelectText: 'Select', shouldSort: false });
             metricSelect.addEventListener('change', () => processAndDrawData(currentMarketData));
             
-            // Dropdown 3: Time Period
             const periodSelect = document.getElementById('period-select');
             const periodOptions = [
-                { value: 'raw', label: 'Value, most recent 3 months', selected: true },
-                { value: 'yoy', label: 'Change since same period 12 months ago' },
-                { value: 'hist', label: 'Change since same period 2017-19' }
+                { value: 'raw', label: 'Value, recent 3 months', selected: true },
+                { value: 'yoy', label: 'Year-over-year change' },
+                { value: 'hist', label: 'Change since 2017-19' }
             ].map(opt => ({...opt, label: formatLabelForWrapping(opt.label)}));
             periodChoices = new Choices(periodSelect, { choices: periodOptions, searchEnabled: false, itemSelectText: 'Select', shouldSort: false });
             periodSelect.addEventListener('change', () => processAndDrawData(currentMarketData));
 
-            // Dropdown 1: CBSA Market
             const cbsaSelect = document.getElementById('cbsa-select');
             cbsaChoices = new Choices(cbsaSelect, { searchEnabled: true, itemSelectText: 'Select', shouldSort: false, placeholder: true, placeholderValue: 'Loading markets...' });
             
@@ -258,37 +210,30 @@
                 const response = await fetch(`${dataBaseUrl}cbsa_list.json`);
                 if (!response.ok) throw new Error(`HTTP error! status: ${response.status}`);
                 const data = await response.json();
-                const processedMarkets = data.markets.map(market => ({
-                    ...market,
-                    label: formatLabelForWrapping(market.label)
-                }));
-                const cbsaOptions = [{ value: '', label: 'Select a Market...', placeholder: true }, ...processedMarkets];
-                cbsaChoices.setChoices(cbsaOptions, 'value', 'label', true);
+                const processedMarkets = data.markets.map(market => ({ ...market, label: formatLabelForWrapping(market.label) }));
+                cbsaChoices.setChoices([{ value: '', label: 'Select a Market...', placeholder: true }, ...processedMarkets], 'value', 'label', true);
                 cbsaSelect.addEventListener('change', fetchAndDrawMarket);
             } catch (error) {
                 console.error("Failed to load market list:", error);
-                subtitle.textContent = "Error: Could not load the list of markets.";
+                subtitle.textContent = "Error: Could not load list of markets.";
                 cbsaChoices.setChoices([{ value: '', label: 'Error loading markets', disabled: true }], 'value', 'label', true);
             }
         }
         
         async function fetchAndDrawMarket() {
+            unlockLayer();
             const selectedCbsa = cbsaChoices.getValue(true);
             currentMarketData = null; 
-
             if (geoJsonLayer) map.removeLayer(geoJsonLayer);
             geoJsonLayer = null;
-
             if (!selectedCbsa) {
                 subtitle.textContent = 'Please select a market to begin.';
                 map.setView([39.8283, -98.5795], 4);
-                legend.update(null, null, null);
+                legend.update(null);
                 return;
             }
-            
             mapLoader.classList.add('visible');
             subtitle.textContent = `Loading data for ${selectedCbsa}...`;
-
             try {
                 const response = await fetch(`${dataBaseUrl}${encodeURIComponent(selectedCbsa)}.geojson`);
                 if (!response.ok) throw new Error(`HTTP error! status: ${response.status}`);
@@ -298,7 +243,7 @@
             } catch (error) {
                 console.error("Failed to load geographic data:", error);
                 subtitle.textContent = `Error loading data for ${selectedCbsa}. Please check the data file.`;
-                legend.update(null, null, null);
+                legend.update(null);
             } finally {
                 mapLoader.classList.remove('visible');
             }
@@ -306,71 +251,129 @@
         
         function processAndDrawData(geoJsonData) {
             if (!geoJsonData) return;
-
             const baseMetricKey = metricChoices.getValue(true);
             const periodKey = periodChoices.getValue(true);
-
             if (!baseMetricKey || !periodKey) return;
             
             const fullMetricColumn = metrics[baseMetricKey].periods[periodKey];
-
             const values = geoJsonData.features
                 .map(f => f.properties[fullMetricColumn])
-                .filter(v => v !== null && v !== undefined && !isNaN(v))
-                .sort((a, b) => a - b);
+                .filter(v => v !== null && v !== undefined && !isNaN(v));
             
-            let breaks = [0, 0, 0, 0, 0, 0];
-            if (values.length > 5) {
-                 breaks = [
-                    values[0],
-                    values[Math.floor(values.length * 0.2)],
-                    values[Math.floor(values.length * 0.4)],
-                    values[Math.floor(values.length * 0.6)],
-                    values[Math.floor(values.length * 0.8)],
-                    values[values.length - 1]
-                ];
-            } else if (values.length > 0) {
-                breaks = [values[0], values[Math.floor(values.length/2)], values[values.length - 1]];
-            }
+            const colorInfo = (periodKey === 'raw')
+                ? calculateSequentialBreaks(values)
+                : calculateDivergingBreaks(values);
             
-            drawGeoJson(geoJsonData, fullMetricColumn, breaks);
-            legend.update(baseMetricKey, periodKey, breaks);
+            drawGeoJson(geoJsonData, fullMetricColumn, colorInfo);
+            legend.update(fullMetricKey, colorInfo);
         }
 
-        function drawGeoJson(data, metricKey, colorBreaks) {
-            if (geoJsonLayer) map.removeLayer(geoJsonLayer);
+        function getQuantile(sortedArr, q) {
+            if (sortedArr.length === 0) return 0;
+            const pos = (sortedArr.length - 1) * q;
+            const base = Math.floor(pos);
+            const rest = pos - base;
+            return (sortedArr[base + 1] !== undefined) ? sortedArr[base] + rest * (sortedArr[base + 1] - sortedArr[base]) : sortedArr[base];
+        }
+
+        function calculateSequentialBreaks(values) {
+            const sorted = [...values].sort((a, b) => a - b);
+            if (sorted.length === 0) return { breaks: [], scale: sequentialScaleColors, type: 'sequential' };
+            if (sorted.length < 7) {
+                 const breaks = [...sorted];
+                 while(breaks.length < 7) breaks.push(breaks[breaks.length-1]);
+                 return { breaks, scale: sequentialScaleColors, type: 'sequential' };
+            }
+            const quantiles = [0, 1/6, 2/6, 3/6, 4/6, 5/6, 1];
+            const breaks = quantiles.map(q => getQuantile(sorted, q));
+            return { breaks, scale: sequentialScaleColors, type: 'sequential' };
+        }
+
+        function calculateDivergingBreaks(values) {
+            const positive = values.filter(v => v > 0).sort((a, b) => a - b);
+            const negative = values.filter(v => v < 0).map(v => Math.abs(v)).sort((a, b) => a - b);
+
+            let drivingThreshold;
+            const totalCount = positive.length + negative.length;
+            if (totalCount === 0) return { breaks: [], scale: divergingScaleColors, type: 'diverging' };
             
+            const negativeRatio = negative.length / totalCount;
+            const positiveRatio = positive.length / totalCount;
+
+            if (negativeRatio >= 2/3) {
+                drivingThreshold = getQuantile(negative, 0.85);
+            } else if (positiveRatio >= 2/3) {
+                drivingThreshold = getQuantile(positive, 0.85);
+            } else {
+                const p85 = getQuantile(positive, 0.85);
+                const n85 = getQuantile(negative, 0.85);
+                drivingThreshold = Math.max(p85, n85);
+            }
+            
+            let extremeBreakpoint;
+            if (drivingThreshold < 0.15) {
+                extremeBreakpoint = drivingThreshold;
+            } else {
+                extremeBreakpoint = Math.floor(drivingThreshold / 0.25) * 0.25;
+                if (drivingThreshold > 0 && extremeBreakpoint === 0) {
+                    extremeBreakpoint = 0.25;
+                }
+            }
+
+            const nextMostExtremeBreakpoint = extremeBreakpoint * (3/5);
+            const moderateBreakpoint = extremeBreakpoint * (1/5);
+            
+            return {
+                breaks: [-extremeBreakpoint, -nextMostExtremeBreakpoint, -moderateBreakpoint, moderateBreakpoint, nextMostExtremeBreakpoint, extremeBreakpoint],
+                scale: divergingScaleColors,
+                type: 'diverging'
+            };
+        }
+
+        function drawGeoJson(data, metricKey, colorInfo) {
+            if (geoJsonLayer) map.removeLayer(geoJsonLayer);
+            unlockLayer();
             if (!data || !data.features || data.features.length === 0) {
                  map.setView([39.8283, -98.5795], 4);
                  return;
             }
-
-            geoJsonLayer = L.geoJSON(data, {
-                style: getStyleForFeature(metricKey, colorBreaks),
-                onEachFeature: onEachFeature
-            }).addTo(map);
-
+            geoJsonLayer = L.geoJSON(data, { style: getStyleForFeature(metricKey, colorInfo), onEachFeature: onEachFeature }).addTo(map);
             map.fitBounds(geoJsonLayer.getBounds(), { padding: [50, 50] });
         }
 
         function initializeLegend() {
             legend = L.control({position: 'bottomright'});
             legend.onAdd = function (map) { this._div = L.DomUtil.create('div', 'info-legend'); return this._div; };
-            legend.update = function (baseMetricKey, periodKey, breaks) {
-                if (!this._div || !baseMetricKey || !breaks || breaks.length < 2) { 
+            legend.update = function (fullMetricKey, colorInfo) {
+                if (!this._div || !fullMetricKey || !colorInfo || !colorInfo.breaks || colorInfo.breaks.length === 0) { 
                     if(this._div) this._div.innerHTML = ''; 
                     return; 
                 }
-
+                const baseMetricKey = metricChoices.getValue(true);
+                const periodKey = periodChoices.getValue(true);
                 const baseMetricInfo = metrics[baseMetricKey];
-                const periodLabel = periodChoices.getChoice(periodKey).label.replace('-\u200B', '-');
-                let innerHTML = `<h4 class="font-bold mb-2">${baseMetricInfo.label}</h4><p class="text-xs mb-2 -mt-1 text-gray-600">${periodLabel}</p>`;
+                const formatter = (v) => baseMetricInfo.formatLegend(v, periodKey);
+                let innerHTML = `<h4 class="font-bold mb-2">${fullMetricKey}</h4>`;
                 
-                for (let i = 0; i < colors.length - 1; i++) {
-                    const from = breaks[i];
-                    const to = breaks[i + 1];
-                    if (from === undefined || to === undefined) continue;
-                    innerHTML += `<div><i class="color-box" style="background:${colors[i]}"></i> ${baseMetricInfo.format(from)} &ndash; ${baseMetricInfo.format(to)}</div>`;
+                if (colorInfo.type === 'sequential') {
+                    const uniqueBreaks = [...new Set(colorInfo.breaks)];
+                    if (uniqueBreaks.length === 1) {
+                         innerHTML += `<div><i class="color-box" style="background:${colorInfo.scale[3]}"></i> ${formatter(uniqueBreaks[0])}</div>`;
+                    } else {
+                         for (let i = 0; i < colorInfo.scale.length; i++) {
+                            if (colorInfo.breaks[i+1] !== undefined)
+                                innerHTML += `<div><i class="color-box" style="background:${colorInfo.scale[i]}"></i> ${formatter(colorInfo.breaks[i])} &ndash; ${formatter(colorInfo.breaks[i+1])}</div>`;
+                        }
+                    }
+                } else { // Diverging
+                    const [negExt, negNext, negMod, mod, next, ext] = colorInfo.breaks;
+                    innerHTML += `<div><i class="color-box" style="background:${colorInfo.scale[0]}"></i> Down ${formatter(negExt).replace('-', '')} or more</div>`;
+                    innerHTML += `<div><i class="color-box" style="background:${colorInfo.scale[1]}"></i> ${formatter(negExt)} to ${formatter(negNext)}</div>`;
+                    innerHTML += `<div><i class="color-box" style="background:${colorInfo.scale[2]}"></i> ${formatter(negNext)} to ${formatter(negMod)}</div>`;
+                    innerHTML += `<div><i class="color-box" style="background:${colorInfo.scale[3]}"></i> ${formatter(negMod)} to ${formatter(mod)}</div>`;
+                    innerHTML += `<div><i class="color-box" style="background:${colorInfo.scale[4]}"></i> ${formatter(mod)} to ${formatter(next)}</div>`;
+                    innerHTML += `<div><i class="color-box" style="background:${colorInfo.scale[5]}"></i> ${formatter(next)} to ${formatter(ext)}</div>`;
+                    innerHTML += `<div><i class="color-box" style="background:${colorInfo.scale[6]}"></i> Up ${formatter(ext).replace('+', '')} or more</div>`;
                 }
                 
                 this._div.innerHTML = innerHTML;
@@ -378,53 +381,84 @@
             legend.addTo(map);
         }
 
-        function getColor(value, breaks) {
+        function getColor(value, colorInfo) {
             if (value === null || value === undefined) return '#cccccc';
-            if (breaks.length <= 3) return value <= breaks[1] ? colors[0] : colors[3];
+            const { breaks, scale, type } = colorInfo;
+            if (breaks.length === 0) return '#cccccc';
 
-            return value <= breaks[1] ? colors[0] :
-                   value <= breaks[2] ? colors[1] :
-                   value <= breaks[3] ? colors[2] :
-                   value <= breaks[4] ? colors[3] :
-                   colors[4];
+            if (type === 'sequential') {
+                 if (breaks.every(b => b === breaks[0])) return scale[3];
+                 return value <= breaks[1] ? scale[0] :
+                       value <= breaks[2] ? scale[1] :
+                       value <= breaks[3] ? scale[2] :
+                       value <= breaks[4] ? scale[3] :
+                       value <= breaks[5] ? scale[4] :
+                       value <= breaks[6] ? scale[5] :
+                       scale[6];
+            } else { // Diverging
+                const [negExt, negNext, negMod, mod, next, ext] = breaks;
+                return value < negExt ? scale[0] :
+                       value < negNext ? scale[1] :
+                       value < negMod ? scale[2] :
+                       value <= mod ? scale[3] :
+                       value <= next ? scale[4] :
+                       value <= ext ? scale[5] :
+                       scale[6];
+            }
         }
 
-        function getStyleForFeature(metricKey, colorBreaks) {
+        const defaultStyle = { weight: 1, opacity: 1, color: 'white', fillOpacity: 0.65 };
+        const highlightStyle = { weight: 3, color: '#000', fillOpacity: 0.85 };
+        
+        function getStyleForFeature(metricKey, colorInfo) {
             return function(feature) {
-                return {
-                    fillColor: getColor(feature.properties[metricKey], colorBreaks),
-                    weight: 2, opacity: 1, color: 'white', dashArray: '3', fillOpacity: 0.7
-                };
+                return { ...defaultStyle, fillColor: getColor(feature.properties[metricKey], colorInfo) };
             }
         }
         
         function onEachFeature(feature, layer) {
-            layer.on({ mouseover: highlightFeature, mouseout: resetHighlight });
+            layer.on({
+                mouseover: (e) => { if (e.target !== lockedLayer) highlightFeature(e); },
+                mouseout: (e) => { if (e.target !== lockedLayer) resetHighlight(e); },
+                click: lockLayer
+            });
             layer.bindTooltip(() => {
                 const baseMetricKey = metricChoices.getValue(true);
                 const periodKey = periodChoices.getValue(true);
                 const fullMetricColumn = metrics[baseMetricKey].periods[periodKey];
                 const baseMetricInfo = metrics[baseMetricKey];
-
                 const value = feature.properties[fullMetricColumn];
-                const formattedValue = (value !== null && value !== undefined) ? baseMetricInfo.format(value) : 'N/A';
-                
+                const formattedValue = (value !== null && value !== undefined) ? baseMetricInfo.formatTooltip(value, periodKey) : 'N/A';
                 const title = feature.properties["ZIP code"] || 'N/A';
-                const fullLabel = periodChoices.getChoice(periodKey).label.replace('-\u200B', '-');
 
-                return `<strong class="text-base">${title}</strong><br><strong class="font-semibold">${baseMetricInfo.label}:</strong> ${formattedValue}<br><em class="text-xs text-gray-600">(${fullLabel})</em>`;
+                return `<strong class="text-base">${title}</strong><br><strong class="font-semibold">${fullMetricColumn}:</strong> ${formattedValue}`;
             }, { permanent: false, direction: 'auto' });
         }
         
         function highlightFeature(e) {
-            const layer = e.target;
-            layer.setStyle({ weight: 4, color: '#333', dashArray: '', fillOpacity: 0.9 });
-            if (!L.Browser.ie && !L.Browser.opera && !L.Browser.edge) { layer.bringToFront(); }
+            e.target.setStyle(highlightStyle);
+            if (!L.Browser.ie) e.target.bringToFront();
         }
 
         function resetHighlight(e) {
-            if (geoJsonLayer) {
-                geoJsonLayer.resetStyle(e.target);
+            if(e.target !== lockedLayer) {
+               geoJsonLayer.resetStyle(e.target);
+            }
+        }
+        
+        function lockLayer(e) {
+            unlockLayer(); 
+            lockedLayer = e.target;
+            lockedLayer.setStyle(highlightStyle);
+            lockedLayer.openTooltip();
+            L.DomEvent.stopPropagation(e);
+        }
+
+        function unlockLayer() {
+            if (lockedLayer) {
+                geoJsonLayer.resetStyle(lockedLayer);
+                lockedLayer.closeTooltip();
+                lockedLayer = null;
             }
         }
     </script>
