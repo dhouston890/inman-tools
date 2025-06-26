@@ -265,7 +265,7 @@
                 : calculateDivergingBreaks(values);
             
             drawGeoJson(geoJsonData, fullMetricColumn, colorInfo);
-            legend.update(fullMetricKey, colorInfo);
+            legend.update(fullMetricColumn, colorInfo);
         }
 
         function getQuantile(sortedArr, q) {
@@ -278,7 +278,13 @@
 
         function calculateSequentialBreaks(values) {
             const sorted = [...values].sort((a, b) => a - b);
-            if (sorted.length < 2) return { breaks: [], scale: sequentialScaleColors, type: 'sequential' };
+            if (sorted.length === 0) return { breaks: [], scale: sequentialScaleColors, type: 'sequential' };
+            // FIX: Handle cases with few data points to prevent empty legend
+            if (sorted.length < 7) {
+                 const breaks = [...sorted];
+                 while(breaks.length < 7) breaks.push(breaks[breaks.length-1]);
+                 return { breaks, scale: sequentialScaleColors, type: 'sequential' };
+            }
             const quantiles = [0, 1/6, 2/6, 3/6, 4/6, 5/6, 1];
             const breaks = quantiles.map(q => getQuantile(sorted, q));
             return { breaks, scale: sequentialScaleColors, type: 'sequential' };
@@ -290,6 +296,8 @@
 
             let drivingThreshold;
             const totalCount = positive.length + negative.length;
+            if (totalCount === 0) return { breaks: [], scale: divergingScaleColors, type: 'diverging' };
+            
             const negativeRatio = negative.length / totalCount;
             const positiveRatio = positive.length / totalCount;
 
@@ -349,19 +357,24 @@
                 let innerHTML = `<h4 class="font-bold mb-2">${fullMetricKey}</h4>`;
                 
                 if (colorInfo.type === 'sequential') {
-                    for (let i = 0; i < colorInfo.scale.length; i++) {
-                        if (colorInfo.breaks[i+1] !== undefined)
-                            innerHTML += `<div><i class="color-box" style="background:${colorInfo.scale[i]}"></i> ${formatter(colorInfo.breaks[i])} &ndash; ${formatter(colorInfo.breaks[i+1])}</div>`;
+                    const uniqueBreaks = [...new Set(colorInfo.breaks)];
+                    if (uniqueBreaks.length === 1) {
+                         innerHTML += `<div><i class="color-box" style="background:${colorInfo.scale[3]}"></i> ${formatter(uniqueBreaks[0])}</div>`;
+                    } else {
+                         for (let i = 0; i < colorInfo.scale.length; i++) {
+                            if (colorInfo.breaks[i+1] !== undefined)
+                                innerHTML += `<div><i class="color-box" style="background:${colorInfo.scale[i]}"></i> ${formatter(colorInfo.breaks[i])} &ndash; ${formatter(colorInfo.breaks[i+1])}</div>`;
+                        }
                     }
                 } else { // Diverging
                     const [negExt, negNext, negMod, mod, next, ext] = colorInfo.breaks;
-                    innerHTML += `<div><i class="color-box" style="background:${colorInfo.scale[0]}"></i> Down ${formatter(negExt).replace('-', '')}</div>`;
+                    innerHTML += `<div><i class="color-box" style="background:${colorInfo.scale[0]}"></i> Down ${formatter(negExt).replace('-', '')} or more</div>`;
                     innerHTML += `<div><i class="color-box" style="background:${colorInfo.scale[1]}"></i> ${formatter(negExt)} to ${formatter(negNext)}</div>`;
                     innerHTML += `<div><i class="color-box" style="background:${colorInfo.scale[2]}"></i> ${formatter(negNext)} to ${formatter(negMod)}</div>`;
                     innerHTML += `<div><i class="color-box" style="background:${colorInfo.scale[3]}"></i> ${formatter(negMod)} to ${formatter(mod)}</div>`;
                     innerHTML += `<div><i class="color-box" style="background:${colorInfo.scale[4]}"></i> ${formatter(mod)} to ${formatter(next)}</div>`;
                     innerHTML += `<div><i class="color-box" style="background:${colorInfo.scale[5]}"></i> ${formatter(next)} to ${formatter(ext)}</div>`;
-                    innerHTML += `<div><i class="color-box" style="background:${colorInfo.scale[6]}"></i> Up ${formatter(ext)}</div>`;
+                    innerHTML += `<div><i class="color-box" style="background:${colorInfo.scale[6]}"></i> Up ${formatter(ext)} or more</div>`;
                 }
                 
                 this._div.innerHTML = innerHTML;
@@ -375,7 +388,8 @@
             if (breaks.length === 0) return '#cccccc';
 
             if (type === 'sequential') {
-                return value <= breaks[1] ? scale[0] :
+                 if (breaks.every(b => b === breaks[0])) return scale[3];
+                 return value <= breaks[1] ? scale[0] :
                        value <= breaks[2] ? scale[1] :
                        value <= breaks[3] ? scale[2] :
                        value <= breaks[4] ? scale[3] :
