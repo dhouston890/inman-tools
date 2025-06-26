@@ -355,13 +355,13 @@
                     }
                 } else { // Diverging
                     const [negExt, negNext, negMod, mod, next, ext] = colorInfo.breaks;
-                    innerHTML += `<div><i class="color-box" style="background:${colorInfo.scale[0]}"></i> Less than ${formatter(negExt)}</div>`;
+                    innerHTML += `<div><i class="color-box" style="background:${colorInfo.scale[0]}"></i> Down ${formatter(negExt).replace('-', '')}</div>`;
                     innerHTML += `<div><i class="color-box" style="background:${colorInfo.scale[1]}"></i> ${formatter(negExt)} to ${formatter(negNext)}</div>`;
                     innerHTML += `<div><i class="color-box" style="background:${colorInfo.scale[2]}"></i> ${formatter(negNext)} to ${formatter(negMod)}</div>`;
                     innerHTML += `<div><i class="color-box" style="background:${colorInfo.scale[3]}"></i> ${formatter(negMod)} to ${formatter(mod)}</div>`;
                     innerHTML += `<div><i class="color-box" style="background:${colorInfo.scale[4]}"></i> ${formatter(mod)} to ${formatter(next)}</div>`;
                     innerHTML += `<div><i class="color-box" style="background:${colorInfo.scale[5]}"></i> ${formatter(next)} to ${formatter(ext)}</div>`;
-                    innerHTML += `<div><i class="color-box" style="background:${colorInfo.scale[6]}"></i> Greater than ${formatter(ext)}</div>`;
+                    innerHTML += `<div><i class="color-box" style="background:${colorInfo.scale[6]}"></i> Up ${formatter(ext)}</div>`;
                 }
                 
                 this._div.innerHTML = innerHTML;
