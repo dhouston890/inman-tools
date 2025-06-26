@@ -141,9 +141,11 @@
         
         function formatLargeDollars(num) {
             if (num === null || isNaN(num)) return 'N/A';
-            if (Math.abs(num) >= 1e9) return `$${(num / 1e9).toFixed(1)} billion`;
-            if (Math.abs(num) >= 1e6) return `$${(num / 1e6).toFixed(1)} million`;
-            if (Math.abs(num) >= 1e3) return `$${(num / 1e3).toFixed(1)} thousand`;
+            const absNum = Math.abs(num);
+            if (absNum >= 1e9) return `$${(num / 1e9).toFixed(1)} billion`;
+            if (absNum >= 1e6) return `$${(num / 1e6).toFixed(1)} million`;
+            // --- FIX: Round to nearest hundred and format with commas for values under 1 million ---
+            if (absNum >= 1000) return `$${(Math.round(num / 100) * 100).toLocaleString()}`;
             return `$${Math.round(num).toLocaleString()}`;
         }
         
