@@ -155,7 +155,7 @@
             "Outflow rate per active listing": { label: "Outflow rate per active listing", periods: { raw: "Outflow rate per active listing", yoy: "Outflow rate per active listing, YY", hist: "Outflow rate per active listing, vs. 2017-19" }, formatLegend: (v, p) => p === 'raw' ? v.toFixed(2) : `${Math.round(v*100)}%`, formatTooltip: (v, p) => p === 'raw' ? v.toFixed(2) : `${(v*100).toFixed(1)}%` },
             "Active listings": { label: "Active listings", periods: { raw: "Active listings", yoy: "Active listings, Y/Y", hist: "Active listings, vs. 2017-19" }, formatLegend: (v, p) => p === 'raw' ? Math.round(v).toLocaleString() : `${Math.round(v*100)}%`, formatTooltip: (v, p) => p === 'raw' ? Math.round(v).toLocaleString() : `${(v*100).toFixed(1)}%` },
             "New listings": { label: "New listings", periods: { raw: "New listings", yoy: "New listings, Y/Y", hist: "New listings, vs. 2017-19" }, formatLegend: (v, p) => p === 'raw' ? Math.round(v).toLocaleString() : `${Math.round(v*100)}%`, formatTooltip: (v, p) => p === 'raw' ? Math.round(v).toLocaleString() : `${(v*100).toFixed(1)}%` },
-            "Median days on market": { label: "Median days on market", periods: { raw: "Median days on market", yoy: "Median days on market, Y/Y", hist: "Median days on market, vs. 2017-19" }, formatLegend: (v) => Math.round(v).toLocaleString(), formatTooltip: (v) => Math.round(v).toLocaleString() }
+            "Weighted days on market": { label: "Weighted days on market", periods: { raw: "Weighted days on market", yoy: "Weighted days on market, Y/Y", hist: "Weighted days on market, vs. 2017-19" }, formatLegend: (v) => Math.round(v).toLocaleString(), formatTooltip: (v) => Math.round(v).toLocaleString() }
         };
 
         const dataBaseUrl = 'https://dhouston890.github.io/inman-tools/data/';
@@ -279,7 +279,6 @@
         function calculateDivergingBreaks(values) {
             const positive = values.filter(v => v > 0).sort((a, b) => a - b);
             const negative = values.filter(v => v < 0).map(v => Math.abs(v)).sort((a, b) => a - b);
-            // --- FIX: Use 65th percentile as the driving value ---
             const p65 = getQuantile(positive, 0.65);
             const n65 = getQuantile(negative, 0.65);
             const drivingThreshold = Math.max(p65, n65);
