@@ -250,7 +250,10 @@
         }
         
         function processAndDrawData(geoJsonData) {
-            if (!geoJsonData) return;
+            if (!geoJsonData) {
+                legend.update(null); // Clear legend if no data
+                return;
+            }
             const baseMetricKey = metricChoices.getValue(true);
             const periodKey = periodChoices.getValue(true);
             if (!baseMetricKey || !periodKey) return;
@@ -265,7 +268,7 @@
                 : calculateDivergingBreaks(values);
             
             drawGeoJson(geoJsonData, fullMetricColumn, colorInfo);
-            legend.update(fullMetricKey, colorInfo);
+            legend.update(fullMetricColumn, colorInfo);
         }
 
         function getQuantile(sortedArr, q) {
@@ -279,10 +282,8 @@
         function calculateSequentialBreaks(values) {
             const sorted = [...values].sort((a, b) => a - b);
             if (sorted.length === 0) return { breaks: [], scale: sequentialScaleColors, type: 'sequential' };
-            if (sorted.length < 7) {
-                 const breaks = [...sorted];
-                 while(breaks.length < 7) breaks.push(breaks[breaks.length-1]);
-                 return { breaks, scale: sequentialScaleColors, type: 'sequential' };
+            if (sorted.length < 2) {
+                 return { breaks: [sorted[0], sorted[0], sorted[0], sorted[0], sorted[0], sorted[0], sorted[0]], scale: sequentialScaleColors, type: 'sequential' };
             }
             const quantiles = [0, 1/6, 2/6, 3/6, 4/6, 5/6, 1];
             const breaks = quantiles.map(q => getQuantile(sorted, q));
@@ -298,11 +299,10 @@
             if (totalCount === 0) return { breaks: [], scale: divergingScaleColors, type: 'diverging' };
             
             const negativeRatio = negative.length / totalCount;
-            const positiveRatio = positive.length / totalCount;
 
             if (negativeRatio >= 2/3) {
                 drivingThreshold = getQuantile(negative, 0.85);
-            } else if (positiveRatio >= 2/3) {
+            } else if ((1-negativeRatio) >= 2/3) {
                 drivingThreshold = getQuantile(positive, 0.85);
             } else {
                 const p85 = getQuantile(positive, 0.85);
@@ -345,10 +345,13 @@
             legend = L.control({position: 'bottomright'});
             legend.onAdd = function (map) { this._div = L.DomUtil.create('div', 'info-legend'); return this._div; };
             legend.update = function (fullMetricKey, colorInfo) {
-                if (!this._div || !fullMetricKey || !colorInfo || !colorInfo.breaks || colorInfo.breaks.length === 0) { 
-                    if(this._div) this._div.innerHTML = ''; 
+                if (!this._div) return;
+                
+                if (!fullMetricKey || !colorInfo || !colorInfo.breaks || colorInfo.breaks.length === 0) { 
+                    this._div.innerHTML = '<p class="text-sm text-gray-600">No data available for this view.</p>'; 
                     return; 
                 }
+                
                 const baseMetricKey = metricChoices.getValue(true);
                 const periodKey = periodChoices.getValue(true);
                 const baseMetricInfo = metrics[baseMetricKey];
@@ -356,14 +359,9 @@
                 let innerHTML = `<h4 class="font-bold mb-2">${fullMetricKey}</h4>`;
                 
                 if (colorInfo.type === 'sequential') {
-                    const uniqueBreaks = [...new Set(colorInfo.breaks)];
-                    if (uniqueBreaks.length === 1) {
-                         innerHTML += `<div><i class="color-box" style="background:${colorInfo.scale[3]}"></i> ${formatter(uniqueBreaks[0])}</div>`;
-                    } else {
-                         for (let i = 0; i < colorInfo.scale.length; i++) {
-                            if (colorInfo.breaks[i+1] !== undefined)
-                                innerHTML += `<div><i class="color-box" style="background:${colorInfo.scale[i]}"></i> ${formatter(colorInfo.breaks[i])} &ndash; ${formatter(colorInfo.breaks[i+1])}</div>`;
-                        }
+                    for (let i = 0; i < colorInfo.scale.length; i++) {
+                        if (colorInfo.breaks[i+1] !== undefined)
+                            innerHTML += `<div><i class="color-box" style="background:${colorInfo.scale[i]}"></i> ${formatter(colorInfo.breaks[i])} &ndash; ${formatter(colorInfo.breaks[i+1])}</div>`;
                     }
                 } else { // Diverging
                     const [negExt, negNext, negMod, mod, next, ext] = colorInfo.breaks;
