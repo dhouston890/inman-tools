@@ -284,10 +284,14 @@
             const n65 = getQuantile(negative, 0.65);
             const drivingThreshold = Math.max(p65, n65);
             
-            // --- FIX: Round to nearest multiple of 0.15 for clean thresholds ---
-            let extremeBreakpoint = Math.round(drivingThreshold / 0.15) * 0.15;
-            if (drivingThreshold > 0 && extremeBreakpoint === 0) {
-                extremeBreakpoint = 0.15; // Ensure we always have a scale if data exists
+            let extremeBreakpoint;
+            if (drivingThreshold < 0.075) {
+                extremeBreakpoint = drivingThreshold;
+            } else {
+                extremeBreakpoint = Math.round(drivingThreshold / 0.15) * 0.15;
+                if (drivingThreshold > 0 && extremeBreakpoint === 0) {
+                    extremeBreakpoint = 0.15;
+                }
             }
 
             const moderateBreakpoint = extremeBreakpoint / 3;
