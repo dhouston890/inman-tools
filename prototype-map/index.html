@@ -141,9 +141,9 @@
         
         function formatLargeDollars(num) {
             if (num === null || isNaN(num)) return 'N/A';
-            if (num >= 1e9) return `$${(num / 1e9).toFixed(1)} billion`;
-            if (num >= 1e6) return `$${(num / 1e6).toFixed(1)} million`;
-            if (num >= 1e3) return `$${(num / 1e3).toFixed(1)} thousand`;
+            if (Math.abs(num) >= 1e9) return `$${(num / 1e9).toFixed(1)} billion`;
+            if (Math.abs(num) >= 1e6) return `$${(num / 1e6).toFixed(1)} million`;
+            if (Math.abs(num) >= 1e3) return `$${(num / 1e3).toFixed(1)} thousand`;
             return `$${Math.round(num).toLocaleString()}`;
         }
         
@@ -152,7 +152,7 @@
             "Potential commission pool": { label: "Potential commission pool", periods: { raw: "Potential commission pool", yoy: "Potential commission pool, Y/Y", hist: "Potential commission pool, vs. 2017-19" }, formatLegend: (v, p) => p === 'raw' ? formatLargeDollars(v) : `${Math.round(v*100)}%`, formatTooltip: (v, p) => p === 'raw' ? formatLargeDollars(v) : `${(v*100).toFixed(1)}%` },
             "Weighted list price": { label: "Weighted list price", periods: { raw: "Weighted list price", yoy: "Weighted list price, Y/Y", hist: "Weighted list price, vs. 2017-19" }, formatLegend: (v, p) => p === 'raw' ? formatLargeDollars(v) : `${Math.round(v*100)}%`, formatTooltip: (v, p) => p === 'raw' ? formatLargeDollars(v) : `${(v*100).toFixed(1)}%` },
             "Listing outflow": { label: "Listing outflow", periods: { raw: "Listing outflow", yoy: "Listing outflow, Y/Y", hist: "Listing outflow, vs. 2017-19" }, formatLegend: (v, p) => `${Math.round(v*100)}%`, formatTooltip: (v, p) => `${(v*100).toFixed(1)}%` },
-            "Outflow rate per active listing": { label: "Outflow rate per active listing", periods: { raw: "Outflow rate per active listing", yoy: "Outflow rate per active listing, YY", hist: "Outflow rate per active listing, vs. 2017-19" }, formatLegend: (v, p) => p === 'raw' ? v.toString() : `${Math.round(v*100)}%`, formatTooltip: (v, p) => p === 'raw' ? v.toString() : `${(v*100).toFixed(1)}%` },
+            "Outflow rate per active listing": { label: "Outflow rate per active listing", periods: { raw: "Outflow rate per active listing", yoy: "Outflow rate per active listing, YY", hist: "Outflow rate per active listing, vs. 2017-19" }, formatLegend: (v, p) => p === 'raw' ? v.toFixed(2) : `${Math.round(v*100)}%`, formatTooltip: (v, p) => p === 'raw' ? v.toFixed(2) : `${(v*100).toFixed(1)}%` },
             "Active listings": { label: "Active listings", periods: { raw: "Active listings", yoy: "Active listings, Y/Y", hist: "Active listings, vs. 2017-19" }, formatLegend: (v, p) => p === 'raw' ? Math.round(v).toLocaleString() : `${Math.round(v*100)}%`, formatTooltip: (v, p) => p === 'raw' ? Math.round(v).toLocaleString() : `${(v*100).toFixed(1)}%` },
             "New listings": { label: "New listings", periods: { raw: "New listings", yoy: "New listings, Y/Y", hist: "New listings, vs. 2017-19" }, formatLegend: (v, p) => p === 'raw' ? Math.round(v).toLocaleString() : `${Math.round(v*100)}%`, formatTooltip: (v, p) => p === 'raw' ? Math.round(v).toLocaleString() : `${(v*100).toFixed(1)}%` },
             "Median days on market": { label: "Median days on market", periods: { raw: "Median days on market", yoy: "Median days on market, Y/Y", hist: "Median days on market, vs. 2017-19" }, formatLegend: (v) => Math.round(v).toLocaleString(), formatTooltip: (v) => Math.round(v).toLocaleString() }
@@ -279,9 +279,10 @@
         function calculateDivergingBreaks(values) {
             const positive = values.filter(v => v > 0).sort((a, b) => a - b);
             const negative = values.filter(v => v < 0).map(v => Math.abs(v)).sort((a, b) => a - b);
-            const p80 = getQuantile(positive, 0.8);
-            const n80 = getQuantile(negative, 0.8);
-            const drivingThreshold = Math.max(p80, n80);
+            // --- FIX: Use 65th percentile as the driving value ---
+            const p65 = getQuantile(positive, 0.65);
+            const n65 = getQuantile(negative, 0.65);
+            const drivingThreshold = Math.max(p65, n65);
             const extremeBreakpoint = Math.ceil(drivingThreshold * 10) / 10;
             const moderateBreakpoint = extremeBreakpoint / 3;
             return {
