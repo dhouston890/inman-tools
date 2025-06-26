@@ -265,7 +265,7 @@
                 : calculateDivergingBreaks(values);
             
             drawGeoJson(geoJsonData, fullMetricColumn, colorInfo);
-            legend.update(fullMetricColumn, colorInfo);
+            legend.update(fullMetricKey, colorInfo);
         }
 
         function getQuantile(sortedArr, q) {
@@ -279,7 +279,6 @@
         function calculateSequentialBreaks(values) {
             const sorted = [...values].sort((a, b) => a - b);
             if (sorted.length === 0) return { breaks: [], scale: sequentialScaleColors, type: 'sequential' };
-            // FIX: Handle cases with few data points to prevent empty legend
             if (sorted.length < 7) {
                  const breaks = [...sorted];
                  while(breaks.length < 7) breaks.push(breaks[breaks.length-1]);
@@ -374,7 +373,7 @@
                     innerHTML += `<div><i class="color-box" style="background:${colorInfo.scale[3]}"></i> ${formatter(negMod)} to ${formatter(mod)}</div>`;
                     innerHTML += `<div><i class="color-box" style="background:${colorInfo.scale[4]}"></i> ${formatter(mod)} to ${formatter(next)}</div>`;
                     innerHTML += `<div><i class="color-box" style="background:${colorInfo.scale[5]}"></i> ${formatter(next)} to ${formatter(ext)}</div>`;
-                    innerHTML += `<div><i class="color-box" style="background:${colorInfo.scale[6]}"></i> Up ${formatter(ext)} or more</div>`;
+                    innerHTML += `<div><i class="color-box" style="background:${colorInfo.scale[6]}"></i> Up ${formatter(ext).replace('+', '')} or more</div>`;
                 }
                 
                 this._div.innerHTML = innerHTML;
