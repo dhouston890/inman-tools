@@ -144,7 +144,6 @@
             const absNum = Math.abs(num);
             if (absNum >= 1e9) return `$${(num / 1e9).toFixed(1)} billion`;
             if (absNum >= 1e6) return `$${(num / 1e6).toFixed(1)} million`;
-            // --- FIX: Round to nearest hundred and format with commas for values under 1 million ---
             if (absNum >= 1000) return `$${(Math.round(num / 100) * 100).toLocaleString()}`;
             return `$${Math.round(num).toLocaleString()}`;
         }
@@ -284,8 +283,15 @@
             const p65 = getQuantile(positive, 0.65);
             const n65 = getQuantile(negative, 0.65);
             const drivingThreshold = Math.max(p65, n65);
-            const extremeBreakpoint = Math.ceil(drivingThreshold * 10) / 10;
+            
+            // --- FIX: Round to nearest multiple of 0.15 for clean thresholds ---
+            let extremeBreakpoint = Math.round(drivingThreshold / 0.15) * 0.15;
+            if (drivingThreshold > 0 && extremeBreakpoint === 0) {
+                extremeBreakpoint = 0.15; // Ensure we always have a scale if data exists
+            }
+
             const moderateBreakpoint = extremeBreakpoint / 3;
+            
             return {
                 breaks: [-extremeBreakpoint, -moderateBreakpoint, moderateBreakpoint, extremeBreakpoint],
                 scale: divergingScaleColors,
