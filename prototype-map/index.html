@@ -166,8 +166,8 @@
         };
 
         const dataBaseUrl = 'https://dhouston890.github.io/inman-tools/data/';
-        const sequentialScaleColors = ['#edf8fb', '#b3cde3', '#8c96c6', '#8856a7', '#810f7c'];
-        const divergingScaleColors = ['#b2182b', '#f4a582', '#f6e8c3', '#92c5de', '#2166ac'];
+        const sequentialScaleColors = ['#f7fcfd', '#e0ecf4', '#bfd3e6', '#9ebcda', '#8c96c6', '#8856a7', '#810f7c'];
+        const divergingScaleColors = ['#a50026', '#d73027', '#f46d43', '#fee090', '#abd9e9', '#74add1', '#4575b4'];
 
         // --- GLOBAL VARIABLES --- //
         let map, geoJsonLayer, legend, cbsaChoices, metricChoices, periodChoices;
@@ -279,31 +279,33 @@
         function calculateSequentialBreaks(values) {
             const sorted = [...values].sort((a, b) => a - b);
             if (sorted.length < 2) return { breaks: [], scale: sequentialScaleColors, type: 'sequential' };
-            const breaks = [0, 0.2, 0.4, 0.6, 0.8, 1].map(q => getQuantile(sorted, q));
+            const quantiles = [0, 1/6, 2/6, 3/6, 4/6, 5/6, 1];
+            const breaks = quantiles.map(q => getQuantile(sorted, q));
             return { breaks, scale: sequentialScaleColors, type: 'sequential' };
         }
 
         function calculateDivergingBreaks(values) {
             const positive = values.filter(v => v > 0).sort((a, b) => a - b);
             const negative = values.filter(v => v < 0).map(v => Math.abs(v)).sort((a, b) => a - b);
-            const p65 = getQuantile(positive, 0.65);
-            const n65 = getQuantile(negative, 0.65);
-            const drivingThreshold = Math.max(p65, n65);
+            const p80 = getQuantile(positive, 0.80);
+            const n80 = getQuantile(negative, 0.80);
+            const drivingThreshold = Math.max(p80, n80);
             
             let extremeBreakpoint;
-            if (drivingThreshold < 0.075) {
+            if (drivingThreshold < 0.15) {
                 extremeBreakpoint = drivingThreshold;
             } else {
-                extremeBreakpoint = Math.round(drivingThreshold / 0.15) * 0.15;
+                extremeBreakpoint = Math.round(drivingThreshold / 0.25) * 0.25;
                 if (drivingThreshold > 0 && extremeBreakpoint === 0) {
-                    extremeBreakpoint = 0.15;
+                    extremeBreakpoint = 0.25;
                 }
             }
 
-            const moderateBreakpoint = extremeBreakpoint / 3;
+            const nextMostExtremeBreakpoint = extremeBreakpoint * (3/5);
+            const moderateBreakpoint = extremeBreakpoint * (1/5);
             
             return {
-                breaks: [-extremeBreakpoint, -moderateBreakpoint, moderateBreakpoint, extremeBreakpoint],
+                breaks: [-extremeBreakpoint, -nextMostExtremeBreakpoint, -moderateBreakpoint, moderateBreakpoint, nextMostExtremeBreakpoint, extremeBreakpoint],
                 scale: divergingScaleColors,
                 type: 'diverging'
             };
@@ -340,12 +342,14 @@
                             innerHTML += `<div><i class="color-box" style="background:${colorInfo.scale[i]}"></i> ${formatter(colorInfo.breaks[i])} &ndash; ${formatter(colorInfo.breaks[i+1])}</div>`;
                     }
                 } else { // Diverging
-                    const [negExt, negMod, mod, ext] = colorInfo.breaks;
+                    const [negExt, negNext, negMod, mod, next, ext] = colorInfo.breaks;
                     innerHTML += `<div><i class="color-box" style="background:${colorInfo.scale[0]}"></i> Less than ${formatter(negExt)}</div>`;
-                    innerHTML += `<div><i class="color-box" style="background:${colorInfo.scale[1]}"></i> ${formatter(negExt)} to ${formatter(negMod)}</div>`;
-                    innerHTML += `<div><i class="color-box" style="background:${colorInfo.scale[2]}"></i> ${formatter(negMod)} to ${formatter(mod)}</div>`;
-                    innerHTML += `<div><i class="color-box" style="background:${colorInfo.scale[3]}"></i> ${formatter(mod)} to ${formatter(ext)}</div>`;
-                    innerHTML += `<div><i class="color-box" style="background:${colorInfo.scale[4]}"></i> Greater than ${formatter(ext)}</div>`;
+                    innerHTML += `<div><i class="color-box" style="background:${colorInfo.scale[1]}"></i> ${formatter(negExt)} to ${formatter(negNext)}</div>`;
+                    innerHTML += `<div><i class="color-box" style="background:${colorInfo.scale[2]}"></i> ${formatter(negNext)} to ${formatter(negMod)}</div>`;
+                    innerHTML += `<div><i class="color-box" style="background:${colorInfo.scale[3]}"></i> ${formatter(negMod)} to ${formatter(mod)}</div>`;
+                    innerHTML += `<div><i class="color-box" style="background:${colorInfo.scale[4]}"></i> ${formatter(mod)} to ${formatter(next)}</div>`;
+                    innerHTML += `<div><i class="color-box" style="background:${colorInfo.scale[5]}"></i> ${formatter(next)} to ${formatter(ext)}</div>`;
+                    innerHTML += `<div><i class="color-box" style="background:${colorInfo.scale[6]}"></i> Greater than ${formatter(ext)}</div>`;
                 }
                 
                 this._div.innerHTML = innerHTML;
@@ -363,14 +367,18 @@
                        value <= breaks[2] ? scale[1] :
                        value <= breaks[3] ? scale[2] :
                        value <= breaks[4] ? scale[3] :
-                       scale[4];
+                       value <= breaks[5] ? scale[4] :
+                       value <= breaks[6] ? scale[5] :
+                       scale[6];
             } else { // Diverging
-                const [negExt, negMod, mod, ext] = breaks;
+                const [negExt, negNext, negMod, mod, next, ext] = breaks;
                 return value < negExt ? scale[0] :
-                       value < negMod ? scale[1] :
-                       value <= mod ? scale[2] :
-                       value <= ext ? scale[3] :
-                       scale[4];
+                       value < negNext ? scale[1] :
+                       value < negMod ? scale[2] :
+                       value <= mod ? scale[3] :
+                       value <= next ? scale[4] :
+                       value <= ext ? scale[5] :
+                       scale[6];
             }
         }
 
