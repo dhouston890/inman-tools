@@ -251,7 +251,7 @@
         
         function processAndDrawData(geoJsonData) {
             if (!geoJsonData) {
-                legend.update(null); // Clear legend if no data
+                legend.update(null);
                 return;
             }
             const baseMetricKey = metricChoices.getValue(true);
@@ -359,19 +359,50 @@
                 let innerHTML = `<h4 class="font-bold mb-2">${fullMetricKey}</h4>`;
                 
                 if (colorInfo.type === 'sequential') {
-                    for (let i = 0; i < colorInfo.scale.length; i++) {
-                        if (colorInfo.breaks[i+1] !== undefined)
-                            innerHTML += `<div><i class="color-box" style="background:${colorInfo.scale[i]}"></i> ${formatter(colorInfo.breaks[i])} &ndash; ${formatter(colorInfo.breaks[i+1])}</div>`;
+                    const uniqueBreaks = [...new Set(colorInfo.breaks)];
+                    if (uniqueBreaks.length === 1) {
+                         innerHTML += `<div><i class="color-box" style="background:${colorInfo.scale[3]}"></i> ${formatter(uniqueBreaks[0])}</div>`;
+                    } else {
+                         for (let i = 0; i < colorInfo.scale.length; i++) {
+                            if (colorInfo.breaks[i+1] !== undefined)
+                                innerHTML += `<div><i class="color-box" style="background:${colorInfo.scale[i]}"></i> ${formatter(colorInfo.breaks[i])} &ndash; ${formatter(colorInfo.breaks[i+1])}</div>`;
+                        }
                     }
                 } else { // Diverging
-                    const [negExt, negNext, negMod, mod, next, ext] = colorInfo.breaks;
-                    innerHTML += `<div><i class="color-box" style="background:${colorInfo.scale[0]}"></i> Down ${formatter(negExt).replace('-', '')} or more</div>`;
-                    innerHTML += `<div><i class="color-box" style="background:${colorInfo.scale[1]}"></i> ${formatter(negExt)} to ${formatter(negNext)}</div>`;
-                    innerHTML += `<div><i class="color-box" style="background:${colorInfo.scale[2]}"></i> ${formatter(negNext)} to ${formatter(negMod)}</div>`;
-                    innerHTML += `<div><i class="color-box" style="background:${colorInfo.scale[3]}"></i> ${formatter(negMod)} to ${formatter(mod)}</div>`;
-                    innerHTML += `<div><i class="color-box" style="background:${colorInfo.scale[4]}"></i> ${formatter(mod)} to ${formatter(next)}</div>`;
-                    innerHTML += `<div><i class="color-box" style="background:${colorInfo.scale[5]}"></i> ${formatter(next)} to ${formatter(ext)}</div>`;
-                    innerHTML += `<div><i class="color-box" style="background:${colorInfo.scale[6]}"></i> Up ${formatter(ext).replace('+', '')} or more</div>`;
+                    const allTiers = [
+                        { color: colorInfo.scale[0], range: [-Infinity, colorInfo.breaks[0]] },
+                        { color: colorInfo.scale[1], range: [colorInfo.breaks[0], colorInfo.breaks[1]] },
+                        { color: colorInfo.scale[2], range: [colorInfo.breaks[1], colorInfo.breaks[2]] },
+                        { color: colorInfo.scale[3], range: [colorInfo.breaks[2], colorInfo.breaks[3]] },
+                        { color: colorInfo.scale[4], range: [colorInfo.breaks[3], colorInfo.breaks[4]] },
+                        { color: colorInfo.scale[5], range: [colorInfo.breaks[4], colorInfo.breaks[5]] },
+                        { color: colorInfo.scale[6], range: [colorInfo.breaks[5], Infinity] }
+                    ];
+
+                    let visibleTiers = allTiers.filter(tier => tier.range[1] > -1);
+                    if (visibleTiers.length > 0) {
+                        for(let i = 0; i < visibleTiers.length; i++){
+                            const tier = visibleTiers[i];
+                            let label;
+
+                            if (i === 0) { // First visible tier
+                                if (tier.range[1] > 0) {
+                                    label = `Up ${formatter(tier.range[1])} or less`;
+                                } else {
+                                    label = `Down ${formatter(tier.range[1]).replace('-', '')} or more`;
+                                }
+                            } else if (i === visibleTiers.length - 1) { // Last visible tier
+                                if (tier.range[0] < 0) {
+                                    label = `Down ${formatter(tier.range[0]).replace('-', '')} or less`;
+                                } else {
+                                    label = `Up ${formatter(tier.range[0]).replace('+', '')} or more`;
+                                }
+                            } else { // Middle tiers
+                                label = `${formatter(tier.range[0])} to ${formatter(tier.range[1])}`;
+                            }
+                            innerHTML += `<div><i class="color-box" style="background:${tier.color}"></i> ${label}</div>`;
+                        }
+                    }
                 }
                 
                 this._div.innerHTML = innerHTML;
