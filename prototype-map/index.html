@@ -85,6 +85,10 @@
         .leaflet-interactive:focus {
             outline: none;
         }
+        /* Ensure labels pane is not interactive */
+        .leaflet-labels-pane {
+            pointer-events: none;
+        }
     </style>
     <link rel="preconnect" href="https://fonts.googleapis.com">
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
@@ -183,7 +187,19 @@
 
         function initializeMap() {
             map = L.map('map').setView([39.8283, -98.5795], 4);
-            L.tileLayer('https://{s}.basemaps.cartocdn.com/rastertiles/voyager/{z}/{x}/{y}{r}.png', { attribution: '&copy; OpenStreetMap contributors &copy; CARTO' }).addTo(map);
+            
+            L.tileLayer('https://{s}.basemaps.cartocdn.com/rastertiles/voyager_nolabels/{z}/{x}/{y}{r}.png', {
+                attribution: '&copy; OpenStreetMap contributors &copy; CARTO'
+            }).addTo(map);
+
+            map.createPane('labels');
+            map.getPane('labels').style.zIndex = 650;
+            map.getPane('labels').style.pointerEvents = 'none';
+
+            L.tileLayer('https://{s}.basemaps.cartocdn.com/rastertiles/voyager_only_labels/{z}/{x}/{y}{r}.png', {
+                pane: 'labels'
+            }).addTo(map);
+
             map.on('click', unlockLayer); 
             initializeLegend();
         }
@@ -369,40 +385,29 @@
                         }
                     }
                 } else { // Diverging
-                    const allTiers = [
-                        { color: colorInfo.scale[0], range: [-Infinity, colorInfo.breaks[0]] },
-                        { color: colorInfo.scale[1], range: [colorInfo.breaks[0], colorInfo.breaks[1]] },
-                        { color: colorInfo.scale[2], range: [colorInfo.breaks[1], colorInfo.breaks[2]] },
-                        { color: colorInfo.scale[3], range: [colorInfo.breaks[2], colorInfo.breaks[3]] },
-                        { color: colorInfo.scale[4], range: [colorInfo.breaks[3], colorInfo.breaks[4]] },
-                        { color: colorInfo.scale[5], range: [colorInfo.breaks[4], colorInfo.breaks[5]] },
-                        { color: colorInfo.scale[6], range: [colorInfo.breaks[5], Infinity] }
+                    const [negExt, negNext, negMod, mod, next, ext] = colorInfo.breaks;
+                    let tiers = [
+                        { label: `Down ${formatter(negExt).replace('-', '')} or more`, color: colorInfo.scale[0], upper: negExt },
+                        { label: `${formatter(negExt)} to ${formatter(negNext)}`, color: colorInfo.scale[1], upper: negNext },
+                        { label: `${formatter(negNext)} to ${formatter(negMod)}`, color: colorInfo.scale[2], upper: negMod },
+                        { label: `${formatter(negMod)} to ${formatter(mod)}`, color: colorInfo.scale[3], upper: mod },
+                        { label: `${formatter(mod)} to ${formatter(next)}`, color: colorInfo.scale[4], upper: next },
+                        { label: `${formatter(next)} to ${formatter(ext)}`, color: colorInfo.scale[5], upper: ext },
+                        { label: `Up ${formatter(ext).replace('+', '')} or more`, color: colorInfo.scale[6], upper: Infinity }
                     ];
 
-                    let visibleTiers = allTiers.filter(tier => tier.range[1] > -1);
+                    let visibleTiers = tiers.filter(tier => tier.upper > -1);
                     if (visibleTiers.length > 0) {
-                        for(let i = 0; i < visibleTiers.length; i++){
-                            const tier = visibleTiers[i];
-                            let label;
-
-                            if (i === 0) { // First visible tier
-                                if (tier.range[1] > 0) {
-                                    label = `Up ${formatter(tier.range[1])} or less`;
-                                } else {
-                                    label = `Down ${formatter(tier.range[1]).replace('-', '')} or more`;
-                                }
-                            } else if (i === visibleTiers.length - 1) { // Last visible tier
-                                if (tier.range[0] < 0) {
-                                    label = `Down ${formatter(tier.range[0]).replace('-', '')} or less`;
-                                } else {
-                                    label = `Up ${formatter(tier.range[0]).replace('+', '')} or more`;
-                                }
-                            } else { // Middle tiers
-                                label = `${formatter(tier.range[0])} to ${formatter(tier.range[1])}`;
-                            }
-                            innerHTML += `<div><i class="color-box" style="background:${tier.color}"></i> ${label}</div>`;
+                        if (visibleTiers.length < tiers.length) { // If some tiers were truncated
+                             const firstVisible = visibleTiers[0];
+                             if (firstVisible.upper > 0) {
+                                firstVisible.label = `Up ${formatter(firstVisible.upper)} or less`;
+                             } else {
+                                firstVisible.label = `Down ${formatter(firstVisible.upper).replace('-', '')} or more`;
+                             }
                         }
                     }
+                    innerHTML += visibleTiers.map(tier => `<div><i class="color-box" style="background:${tier.color}"></i> ${tier.label}</div>`).join('');
                 }
                 
                 this._div.innerHTML = innerHTML;
@@ -436,8 +441,8 @@
             }
         }
 
-        const defaultStyle = { weight: 1, opacity: 1, color: 'white', fillOpacity: 0.65 };
-        const highlightStyle = { weight: 3, color: '#000', fillOpacity: 0.85 };
+        const defaultStyle = { weight: 1, opacity: 1, color: 'white', fillOpacity: 0.55 };
+        const highlightStyle = { weight: 3, color: '#000', fillOpacity: 0.55 };
         
         function getStyleForFeature(metricKey, colorInfo) {
             return function(feature) {
