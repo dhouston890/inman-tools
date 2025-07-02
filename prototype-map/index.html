@@ -171,7 +171,7 @@
 
         const dataBaseUrl = 'https://dhouston890.github.io/inman-tools/data/';
         const sequentialScaleColors = ['#f7fcfd', '#e0ecf4', '#bfd3e6', '#9ebcda', '#8c96c6', '#8856a7', '#810f7c'];
-        const divergingScaleColors = ['#b2182b', '#d6604d', '#f4a582', '#f6f0dd', '#92c5de', '#4393c3', '#2166ac'];
+        const divergingScaleColors = ['#b2182b', '#d6604d', '#f4a582', '#e8e1c3', '#92c5de', '#4393c3', '#2166ac'];
 
         // --- GLOBAL VARIABLES --- //
         let map, geoJsonLayer, legend, cbsaChoices, metricChoices, periodChoices;
@@ -364,7 +364,7 @@
                 if (!this._div) return;
                 
                 if (!fullMetricKey || !colorInfo || !colorInfo.breaks || colorInfo.breaks.length === 0) { 
-                    this._div.innerHTML = '<p class="text-sm text-gray-600">No data available for this view.</p>'; 
+                    this._div.innerHTML = '<p class="text-sm text-gray-600">Error displaying the legend.</p>'; 
                     return; 
                 }
                 
@@ -397,14 +397,12 @@
                     ];
 
                     let visibleTiers = tiers.filter(tier => tier.upper > -1);
-                    if (visibleTiers.length > 0) {
-                        if (visibleTiers.length < tiers.length) { // If some tiers were truncated
-                             const firstVisible = visibleTiers[0];
-                             if (firstVisible.upper > 0) {
-                                firstVisible.label = `Up ${formatter(firstVisible.upper)} or less`;
-                             } else {
-                                firstVisible.label = `Down ${formatter(firstVisible.upper).replace('-', '')} or more`;
-                             }
+                    if (visibleTiers.length > 0 && visibleTiers.length < tiers.length) {
+                        const firstVisible = visibleTiers[0];
+                        if (firstVisible.upper > 0) {
+                            firstVisible.label = `Up ${formatter(firstVisible.upper)} or less`;
+                        } else {
+                            firstVisible.label = `Down ${formatter(firstVisible.upper).replace('-', '')} or more`;
                         }
                     }
                     innerHTML += visibleTiers.map(tier => `<div><i class="color-box" style="background:${tier.color}"></i> ${tier.label}</div>`).join('');
