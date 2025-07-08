@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Interactive CBSA Map (Live Data)</title>
+    <title>Inman Market Explorer</title>
     
     <!-- Tailwind CSS for styling -->
     <script src="https://cdn.tailwindcss.com"></script>
@@ -98,8 +98,9 @@
 
     <div class="max-w-7xl mx-auto bg-white p-6 rounded-lg shadow-lg">
         <header class="mb-6 border-b pb-4">
-            <h1 class="text-3xl font-bold text-gray-800">Real Estate Market Explorer</h1>
-            <p id="subtitle" class="text-gray-600 mt-1">Please select a market to begin.</p>
+            <h1 class="text-3xl font-bold text-gray-800">Inman Market Explorer</h1>
+            <p id="desc-line-1" class="text-gray-600 mt-2">Please select a market to begin.</p>
+            <p id="desc-line-2" class="text-gray-600 mt-1"></p>
         </header>
 
         <!-- Filter Controls -->
@@ -160,13 +161,61 @@
         
         // --- CONFIGURATION --- //
         const metrics = {
-            "Potential commission pool": { label: "Potential commission pool", periods: { raw: "Potential commission pool", yoy: "Potential commission pool, Y/Y", hist: "Potential commission pool, vs. 2017-19" }, formatLegend: (v, p) => p === 'raw' ? formatLargeDollars(v) : formatPercent(v, 0, true), formatTooltip: (v, p) => p === 'raw' ? formatLargeDollars(v) : formatPercent(v, 1, true) },
-            "Weighted list price": { label: "Weighted list price", periods: { raw: "Weighted list price", yoy: "Weighted list price, Y/Y", hist: "Weighted list price, vs. 2017-19" }, formatLegend: (v, p) => p === 'raw' ? formatLargeDollars(v) : formatPercent(v, 0, true), formatTooltip: (v, p) => p === 'raw' ? formatLargeDollars(v) : formatPercent(v, 1, true) },
-            "Listing outflow": { label: "Listing outflow", periods: { raw: "Listing outflow", yoy: "Listing outflow, Y/Y", hist: "Listing outflow, vs. 2017-19" }, formatLegend: (v, p) => p === 'raw' ? Math.round(v).toLocaleString() : formatPercent(v, 0, true), formatTooltip: (v, p) => p === 'raw' ? Math.round(v).toLocaleString() : formatPercent(v, 1, true) },
-            "Outflow rate per active listing": { label: "Outflow rate per active listing", periods: { raw: "Outflow rate per active listing", yoy: "Outflow rate per active listing, Y/Y", hist: "Outflow rate per active listing, vs. 2017-19" }, formatLegend: (v, p) => p === 'raw' ? v.toFixed(2) : formatPercent(v, 0, true), formatTooltip: (v, p) => p === 'raw' ? v.toFixed(2) : formatPercent(v, 1, true) },
-            "Active listings": { label: "Active listings", periods: { raw: "Active listings", yoy: "Active listings, Y/Y", hist: "Active listings, vs. 2017-19" }, formatLegend: (v, p) => p === 'raw' ? Math.round(v).toLocaleString() : formatPercent(v, 0, true), formatTooltip: (v, p) => p === 'raw' ? Math.round(v).toLocaleString() : formatPercent(v, 1, true) },
-            "New listings": { label: "New listings", periods: { raw: "New listings", yoy: "New listings, Y/Y", hist: "New listings, vs. 2017-19" }, formatLegend: (v, p) => p === 'raw' ? Math.round(v).toLocaleString() : formatPercent(v, 0, true), formatTooltip: (v, p) => p === 'raw' ? Math.round(v).toLocaleString() : formatPercent(v, 1, true) },
-            "Weighted days on market": { label: "Weighted days on market", periods: { raw: "Weighted days on market", yoy: "Weighted days on market, Y/Y", hist: "Weighted days on market, vs. 2017-19" }, formatLegend: (v, p) => p === 'raw' ? Math.round(v).toLocaleString() : formatPercent(v, 0, true), formatTooltip: (v, p) => p === 'raw' ? Math.round(v).toLocaleString() : formatPercent(v, 1, true) }
+            "List price": { 
+                label: "List price", 
+                description: "This view shows the monthly median list price weighted by outflow volume",
+                periods: { raw: "List price", yoy: "List price, Y/Y", hist: "List price, vs. 2017-19" }, 
+                formatLegend: (v, p) => p === 'raw' ? formatLargeDollars(v) : formatPercent(v, 0, true), 
+                formatTooltip: (v, p) => p === 'raw' ? formatLargeDollars(v) : formatPercent(v, 1, true) 
+            },
+            "Active listings": { 
+                label: "Active listings", 
+                description: "This view shows the monthly number of active listings on the market at a given point in time",
+                periods: { raw: "Active listings", yoy: "Active listings, Y/Y", hist: "Active listings, vs. 2017-19" }, 
+                formatLegend: (v, p) => p === 'raw' ? Math.round(v).toLocaleString() : formatPercent(v, 0, true), 
+                formatTooltip: (v, p) => p === 'raw' ? Math.round(v).toLocaleString() : formatPercent(v, 1, true) 
+            },
+            "New listings": { 
+                label: "New listings", 
+                description: "This view shows the monthly number of newly listed properties that came online",
+                periods: { raw: "New listings", yoy: "New listings, Y/Y", hist: "New listings, vs. 2017-19" }, 
+                formatLegend: (v, p) => p === 'raw' ? Math.round(v).toLocaleString() : formatPercent(v, 0, true), 
+                formatTooltip: (v, p) => p === 'raw' ? Math.round(v).toLocaleString() : formatPercent(v, 1, true) 
+            },
+            "Listing outflow": { 
+                label: "Listing outflow", 
+                description: "This view shows the monthly number of properties that left the market due to a pending sale or delisting",
+                periods: { raw: "Listing outflow", yoy: "Listing outflow, Y/Y", hist: "Listing outflow, vs. 2017-19" }, 
+                formatLegend: (v, p) => p === 'raw' ? Math.round(v).toLocaleString() : formatPercent(v, 0, true), 
+                formatTooltip: (v, p) => p === 'raw' ? Math.round(v).toLocaleString() : formatPercent(v, 1, true) 
+            },
+            "Outflow volume per active listing": { 
+                label: "Outflow volume per active listing", 
+                description: "This view — in which higher values indicate heavier demand for the typical listing — shows the rate of properties that left the market due to a sale or delisting as a share of available inventory",
+                periods: { raw: "Outflow volume per active listing", yoy: "Outflow volume per active listing, Y/Y", hist: "Outflow volume per active listing, vs. 2017-19" }, 
+                formatLegend: (v, p) => p === 'raw' ? v.toFixed(2) : formatPercent(v, 0, true), 
+                formatTooltip: (v, p) => p === 'raw' ? v.toFixed(2) : formatPercent(v, 1, true) 
+            },
+            "Days on market": { 
+                label: "Days on market", 
+                description: "This view shows the monthly median days on market weighted by outflow volume",
+                periods: { raw: "Days on market", yoy: "Days on market, Y/Y", hist: "Days on market, vs. 2017-19" }, 
+                formatLegend: (v, p) => p === 'raw' ? Math.round(v).toLocaleString() : formatPercent(v, 0, true), 
+                formatTooltip: (v, p) => p === 'raw' ? Math.round(v).toLocaleString() : formatPercent(v, 1, true) 
+            },
+            "Potential commission pool": { 
+                label: "Potential commission pool", 
+                description: "This view shows a rough estimate of the monthly brokerage revenue pool. The estimate treats all properties that left the active listing pool as pending sales that will each produce a commission of 5.5% of the prevailing list price. The map below reflects this monthly level",
+                periods: { raw: "Potential commission pool", yoy: "Potential commission pool, Y/Y", hist: "Potential commission pool, vs. 2017-19" }, 
+                formatLegend: (v, p) => p === 'raw' ? formatLargeDollars(v) : formatPercent(v, 0, true), 
+                formatTooltip: (v, p) => p === 'raw' ? formatLargeDollars(v) : formatPercent(v, 1, true) 
+            }
+        };
+
+        const periodDescriptions = {
+            raw: " over a recent three-month period.",
+            yoy: " over a recent three-month period, compared to the same period the year before.",
+            hist: " over a recent three-month period, compared to a pre-pandemic baseline."
         };
 
         const dataBaseUrl = 'https://dhouston890.github.io/inman-tools/data/';
@@ -177,7 +226,8 @@
         let map, geoJsonLayer, legend, cbsaChoices, metricChoices, periodChoices;
         let currentMarketData, lockedLayer = null;
         const mapLoader = document.getElementById('map-loader');
-        const subtitle = document.getElementById('subtitle');
+        const descLine1 = document.getElementById('desc-line-1');
+        const descLine2 = document.getElementById('desc-line-2');
         
         // --- INITIALIZATION --- //
         document.addEventListener('DOMContentLoaded', () => {
@@ -206,13 +256,13 @@
         
         async function initializeSelectors() {
             const metricSelect = document.getElementById('metric-select');
-            const metricOptions = Object.keys(metrics).map(key => ({ value: key, label: formatLabelForWrapping(metrics[key].label), selected: key === "Potential commission pool" }));
+            const metricOptions = Object.keys(metrics).map(key => ({ value: key, label: formatLabelForWrapping(metrics[key].label), selected: key === "List price" }));
             metricChoices = new Choices(metricSelect, { choices: metricOptions, searchEnabled: false, itemSelectText: 'Select', shouldSort: false });
             metricSelect.addEventListener('change', () => processAndDrawData(currentMarketData));
             
             const periodSelect = document.getElementById('period-select');
             const periodOptions = [
-                { value: 'raw', label: 'Value, recent 3 months', selected: true },
+                { value: 'raw', label: 'Recent value', selected: true },
                 { value: 'yoy', label: 'Year-over-year change' },
                 { value: 'hist', label: 'Change since 2017-19' }
             ].map(opt => ({...opt, label: formatLabelForWrapping(opt.label)}));
@@ -231,7 +281,7 @@
                 cbsaSelect.addEventListener('change', fetchAndDrawMarket);
             } catch (error) {
                 console.error("Failed to load market list:", error);
-                subtitle.textContent = "Error: Could not load list of markets.";
+                descLine1.textContent = "Error: Could not load list of markets.";
                 cbsaChoices.setChoices([{ value: '', label: 'Error loading markets', disabled: true }], 'value', 'label', true);
             }
         }
@@ -243,22 +293,23 @@
             if (geoJsonLayer) map.removeLayer(geoJsonLayer);
             geoJsonLayer = null;
             if (!selectedCbsa) {
-                subtitle.textContent = 'Please select a market to begin.';
+                descLine1.textContent = 'Please select a market to begin.';
+                descLine2.textContent = '';
                 map.setView([39.8283, -98.5795], 4);
                 legend.update(null);
                 return;
             }
             mapLoader.classList.add('visible');
-            subtitle.textContent = `Loading data for ${selectedCbsa}...`;
+            updateDescription(); // Update description early
             try {
                 const response = await fetch(`${dataBaseUrl}${encodeURIComponent(selectedCbsa)}.geojson`);
                 if (!response.ok) throw new Error(`HTTP error! status: ${response.status}`);
                 currentMarketData = await response.json();
-                subtitle.textContent = `Displaying data for ${selectedCbsa}.`;
                 processAndDrawData(currentMarketData);
             } catch (error) {
                 console.error("Failed to load geographic data:", error);
-                subtitle.textContent = `Error loading data for ${selectedCbsa}. Please check the data file.`;
+                descLine1.textContent = `Error loading data for ${selectedCbsa}. Please check the data file.`;
+                descLine2.textContent = '';
                 legend.update(null);
             } finally {
                 mapLoader.classList.remove('visible');
@@ -274,6 +325,8 @@
             const periodKey = periodChoices.getValue(true);
             if (!baseMetricKey || !periodKey) return;
             
+            updateDescription();
+
             const fullMetricColumn = metrics[baseMetricKey].periods[periodKey];
             const values = geoJsonData.features
                 .map(f => f.properties[fullMetricColumn])
@@ -284,7 +337,23 @@
                 : calculateDivergingBreaks(values);
             
             drawGeoJson(geoJsonData, fullMetricColumn, colorInfo);
-            legend.update(fullMetricKey, colorInfo);
+            legend.update(fullMetricColumn, colorInfo);
+        }
+        
+        function updateDescription() {
+            const marketChoice = cbsaChoices.getValue();
+            if (!marketChoice) {
+                 descLine1.textContent = 'Please select a market to begin.';
+                 descLine2.textContent = '';
+                 return;
+            }
+            const marketLabel = marketChoice.label.replace('-\u200B', '-');
+            const marketArea = marketLabel.split(',')[0];
+            descLine1.textContent = `Displaying data for the greater ${marketArea} area.`;
+
+            const baseMetricKey = metricChoices.getValue(true);
+            const periodKey = periodChoices.getValue(true);
+            descLine2.textContent = metrics[baseMetricKey].description + periodDescriptions[periodKey];
         }
 
         function getQuantile(sortedArr, q) {
