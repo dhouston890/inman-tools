@@ -16,19 +16,26 @@
     
     <style>
         /* Custom styles to ensure map and controls are well-laid out */
-        body {
+        html, body {
+            height: 100%;
+            margin: 0;
+            padding: 0;
+            overflow: hidden; /* Prevent scrolling on the body */
             font-family: 'Inter', sans-serif;
-            overflow-x: hidden; /* Prevent horizontal scroll */
+        }
+        .full-height-container {
+            display: flex;
+            flex-direction: column;
+            height: 100vh; /* Full viewport height */
         }
         #map-container {
+            flex-grow: 1; /* Allows the map to take up remaining vertical space */
             position: relative;
         }
         #map { 
-            height: 70vh;
+            height: 100%; /* Fill the container */
             width: 100%;
             background-color: #f9f9f9;
-            border-radius: 0.5rem;
-            box-shadow: 0 4px 6px -1px rgb(0 0 0 / 0.1), 0 2px 4px -2px rgb(0 0 0 / 0.1);
         }
         #map-loader {
             position: absolute;
@@ -99,17 +106,17 @@
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
     <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
 </head>
-<body class="bg-gray-100 p-4 md:p-8">
+<body class="bg-white">
 
-    <div class="max-w-7xl mx-auto bg-white p-6 rounded-lg shadow-lg">
-        <header class="mb-6 border-b pb-4 text-center">
+    <div class="full-height-container p-4 md:p-6">
+        <header class="mb-4 border-b pb-4 text-center flex-shrink-0">
             <h1 class="text-3xl font-bold text-gray-800">Inman Market Explorer</h1>
             <p id="desc-line-1" class="text-gray-600 mt-2">Please select a market to begin.</p>
             <p id="desc-line-2" class="text-gray-600 mt-1 text-xs"></p>
         </header>
 
         <!-- Filter Controls -->
-        <div class="grid grid-cols-1 md:grid-cols-3 gap-6 mb-6">
+        <div class="grid grid-cols-1 md:grid-cols-3 gap-6 mb-4 flex-shrink-0">
             <div class="dropdown-wrapper" style="z-index: 1003;">
                 <label for="cbsa-select" class="block text-sm font-medium text-gray-700 mb-2 text-center">1. Select a Market</label>
                 <select id="cbsa-select"></select>
