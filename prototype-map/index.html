@@ -246,6 +246,10 @@
             map.getPane('labels').style.zIndex = 650;
             map.getPane('labels').style.pointerEvents = 'none';
 
+            // --- FIX: Create a dedicated pane for tooltips ---
+            map.createPane('tooltips');
+            map.getPane('tooltips').style.zIndex = 660; // Higher than labels, lower than controls
+
             L.tileLayer('https://{s}.basemaps.cartocdn.com/rastertiles/voyager_only_labels/{z}/{x}/{y}{r}.png', {
                 pane: 'labels'
             }).addTo(map);
@@ -533,7 +537,7 @@
                 const title = feature.properties["ZIP code"] || 'N/A';
 
                 return `<strong class="text-base">${title}</strong><br><strong class="font-semibold">${fullMetricColumn}:</strong> ${formattedValue}`;
-            }, { permanent: false, direction: 'auto' });
+            }, { permanent: false, direction: 'auto', pane: 'tooltips' });
         }
         
         function highlightFeature(e) {
