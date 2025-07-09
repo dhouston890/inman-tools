@@ -57,6 +57,7 @@
             padding: 6px 10px;
             font-weight: 600;
             box-shadow: 0 1px 3px rgba(0,0,0,0.2);
+            text-align: center; /* Center align tooltip text */
         }
         .info-legend {
             padding: 8px 12px;
@@ -81,6 +82,10 @@
             word-break: break-word; 
             white-space: normal;
         }
+        /* Center align selected item in dropdown */
+        .choices__list--single .choices__item {
+            text-align: center;
+        }
         /* Disable the default blue focus outline on clicked geographies */
         .leaflet-interactive:focus {
             outline: none;
@@ -97,24 +102,24 @@
 <body class="bg-gray-100 p-4 md:p-8">
 
     <div class="max-w-7xl mx-auto bg-white p-6 rounded-lg shadow-lg">
-        <header class="mb-6 border-b pb-4">
+        <header class="mb-6 border-b pb-4 text-center">
             <h1 class="text-3xl font-bold text-gray-800">Inman Market Explorer</h1>
             <p id="desc-line-1" class="text-gray-600 mt-2">Please select a market to begin.</p>
-            <p id="desc-line-2" class="text-gray-600 mt-1"></p>
+            <p id="desc-line-2" class="text-gray-600 mt-1 text-xs"></p>
         </header>
 
         <!-- Filter Controls -->
         <div class="grid grid-cols-1 md:grid-cols-3 gap-6 mb-6">
             <div class="dropdown-wrapper" style="z-index: 1003;">
-                <label for="cbsa-select" class="block text-sm font-medium text-gray-700 mb-2">1. Select a Market</label>
+                <label for="cbsa-select" class="block text-sm font-medium text-gray-700 mb-2 text-center">1. Select a Market</label>
                 <select id="cbsa-select"></select>
             </div>
             <div class="dropdown-wrapper" style="z-index: 1002;">
-                <label for="metric-select" class="block text-sm font-medium text-gray-700 mb-2">2. Select a Metric</label>
+                <label for="metric-select" class="block text-sm font-medium text-gray-700 mb-2 text-center">2. Select a Metric</label>
                 <select id="metric-select"></select>
             </div>
              <div class="dropdown-wrapper" style="z-index: 1001;">
-                <label for="period-select" class="block text-sm font-medium text-gray-700 mb-2">3. Select a Time Period</label>
+                <label for="period-select" class="block text-sm font-medium text-gray-700 mb-2 text-center">3. Select a Time Period</label>
                 <select id="period-select"></select>
             </div>
         </div>
@@ -205,7 +210,7 @@
             },
             "Potential commission pool": { 
                 label: "Potential commission pool", 
-                description: "This view shows a rough estimate of the monthly brokerage revenue pool. The estimate treats all properties that left the active listing pool as pending sales that will each produce a commission of 5.5% of the prevailing list price. The map below reflects this monthly level",
+                description: "This view shows a rough estimate of the monthly brokerage revenue pool. This naive estimate asks how much money brokerages would make if all properties that left the active listing pool produced commission revenue at 5.5% of the prevailing list price. The map below reflects this monthly level",
                 periods: { raw: "Potential commission pool", yoy: "Potential commission pool, Y/Y", hist: "Potential commission pool, vs. 2017-19" }, 
                 formatLegend: (v, p) => p === 'raw' ? formatLargeDollars(v) : formatPercent(v, 0, true), 
                 formatTooltip: (v, p) => p === 'raw' ? formatLargeDollars(v) : formatPercent(v, 1, true) 
@@ -224,7 +229,7 @@
 
         // --- GLOBAL VARIABLES --- //
         let map, geoJsonLayer, legend, cbsaChoices, metricChoices, periodChoices;
-        let currentMarketData, lockedLayer = null;
+        let currentMarketData;
         const mapLoader = document.getElementById('map-loader');
         const descLine1 = document.getElementById('desc-line-1');
         const descLine2 = document.getElementById('desc-line-2');
@@ -246,15 +251,13 @@
             map.getPane('labels').style.zIndex = 650;
             map.getPane('labels').style.pointerEvents = 'none';
 
-            // --- FIX: Create a dedicated pane for tooltips ---
             map.createPane('tooltips');
-            map.getPane('tooltips').style.zIndex = 660; // Higher than labels, lower than controls
+            map.getPane('tooltips').style.zIndex = 660; 
 
             L.tileLayer('https://{s}.basemaps.cartocdn.com/rastertiles/voyager_only_labels/{z}/{x}/{y}{r}.png', {
                 pane: 'labels'
             }).addTo(map);
 
-            map.on('click', unlockLayer); 
             initializeLegend();
         }
         
@@ -291,7 +294,6 @@
         }
         
         async function fetchAndDrawMarket() {
-            unlockLayer();
             const selectedCbsa = cbsaChoices.getValue(true);
             currentMarketData = null; 
             if (geoJsonLayer) map.removeLayer(geoJsonLayer);
@@ -304,7 +306,7 @@
                 return;
             }
             mapLoader.classList.add('visible');
-            updateDescription(); // Update description early
+            updateDescription(); 
             try {
                 const response = await fetch(`${dataBaseUrl}${encodeURIComponent(selectedCbsa)}.geojson`);
                 if (!response.ok) throw new Error(`HTTP error! status: ${response.status}`);
@@ -421,7 +423,6 @@
 
         function drawGeoJson(data, metricKey, colorInfo) {
             if (geoJsonLayer) map.removeLayer(geoJsonLayer);
-            unlockLayer();
             if (!data || !data.features || data.features.length === 0) {
                  map.setView([39.8283, -98.5795], 4);
                  return;
@@ -523,9 +524,8 @@
         
         function onEachFeature(feature, layer) {
             layer.on({
-                mouseover: (e) => { if (e.target !== lockedLayer) highlightFeature(e); },
-                mouseout: (e) => { if (e.target !== lockedLayer) resetHighlight(e); },
-                click: lockLayer
+                mouseover: (e) => highlightFeature(e.target),
+                mouseout: (e) => resetHighlight(e.target)
             });
             layer.bindTooltip(() => {
                 const baseMetricKey = metricChoices.getValue(true);
@@ -536,35 +536,17 @@
                 const formattedValue = (value !== null && value !== undefined) ? baseMetricInfo.formatTooltip(value, periodKey) : 'N/A';
                 const title = feature.properties["ZIP code"] || 'N/A';
 
-                return `<strong class="text-base">${title}</strong><br><strong class="font-semibold">${fullMetricColumn}:</strong> ${formattedValue}`;
+                return `<strong class="text-base">${title}</strong><br>${fullMetricColumn}: <strong class="font-semibold">${formattedValue}</strong>`;
             }, { permanent: false, direction: 'auto', pane: 'tooltips' });
         }
         
-        function highlightFeature(e) {
-            e.target.setStyle(highlightStyle);
-            if (!L.Browser.ie) e.target.bringToFront();
+        function highlightFeature(layer) {
+            layer.setStyle(highlightStyle);
+            layer.bringToFront();
         }
 
-        function resetHighlight(e) {
-            if(e.target !== lockedLayer) {
-               geoJsonLayer.resetStyle(e.target);
-            }
-        }
-        
-        function lockLayer(e) {
-            unlockLayer(); 
-            lockedLayer = e.target;
-            lockedLayer.setStyle(highlightStyle);
-            lockedLayer.openTooltip();
-            L.DomEvent.stopPropagation(e);
-        }
-
-        function unlockLayer() {
-            if (lockedLayer) {
-                geoJsonLayer.resetStyle(lockedLayer);
-                lockedLayer.closeTooltip();
-                lockedLayer = null;
-            }
+        function resetHighlight(layer) {
+           geoJsonLayer.resetStyle(layer);
         }
     </script>
 </body>
