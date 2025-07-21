@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Interactive CBSA Map (Live Data)</title>
+    <title>Inman Market Explorer</title>
     
     <!-- Tailwind CSS for styling -->
     <script src="https://cdn.tailwindcss.com"></script>
@@ -16,19 +16,27 @@
     
     <style>
         /* Custom styles to ensure map and controls are well-laid out */
-        body {
+        html, body {
+            height: 100%;
+            margin: 0;
+            padding: 0;
             font-family: 'Inter', sans-serif;
-            overflow-x: hidden; /* Prevent horizontal scroll */
+        }
+        .full-height-container {
+            display: flex;
+            flex-direction: column;
+            height: 100%; /* Full viewport height */
+            overflow-y: auto; /* Allow scrolling on the whole container if needed */
         }
         #map-container {
+            flex-grow: 1; /* Allows the map to take up remaining vertical space */
             position: relative;
+            min-height: 350px; /* Ensures map is always usable */
         }
         #map { 
-            height: 70vh;
+            height: 100%; /* Fill the container */
             width: 100%;
             background-color: #f9f9f9;
-            border-radius: 0.5rem;
-            box-shadow: 0 4px 6px -1px rgb(0 0 0 / 0.1), 0 2px 4px -2px rgb(0 0 0 / 0.1);
         }
         #map-loader {
             position: absolute;
@@ -57,6 +65,7 @@
             padding: 6px 10px;
             font-weight: 600;
             box-shadow: 0 1px 3px rgba(0,0,0,0.2);
+            text-align: center; /* Center align tooltip text */
         }
         .info-legend {
             padding: 8px 12px;
@@ -81,6 +90,16 @@
             word-break: break-word; 
             white-space: normal;
         }
+        /* Center align selected item in dropdown */
+        .choices__list--single .choices__item {
+            text-align: center;
+        }
+        /* Reduce padding inside dropdowns for a more compact look */
+        .choices__inner {
+            padding-top: 4px !important;
+            padding-bottom: 3px !important;
+            min-height: auto !important;
+        }
         /* Disable the default blue focus outline on clicked geographies */
         .leaflet-interactive:focus {
             outline: none;
@@ -94,26 +113,27 @@
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
     <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
 </head>
-<body class="bg-gray-100 p-4 md:p-8">
+<body class="bg-white">
 
-    <div class="max-w-7xl mx-auto bg-white p-6 rounded-lg shadow-lg">
-        <header class="mb-6 border-b pb-4">
-            <h1 class="text-3xl font-bold text-gray-800">Real Estate Market Explorer</h1>
-            <p id="subtitle" class="text-gray-600 mt-1">Please select a market to begin.</p>
+    <div class="full-height-container p-4 md:p-6">
+        <header class="mb-2 border-b pb-2 text-center flex-shrink-0">
+            <h1 class="text-2xl font-bold text-gray-800">Inman Market Explorer</h1>
+            <p id="desc-line-1" class="text-gray-600 mt-1 text-sm">Please select a market to begin.</p>
+            <p id="desc-line-2" class="text-gray-600 text-xs"></p>
         </header>
 
         <!-- Filter Controls -->
-        <div class="grid grid-cols-1 md:grid-cols-3 gap-6 mb-6">
+        <div class="grid grid-cols-1 md:grid-cols-3 gap-4 mb-3 flex-shrink-0">
             <div class="dropdown-wrapper" style="z-index: 1003;">
-                <label for="cbsa-select" class="block text-sm font-medium text-gray-700 mb-2">1. Select a Market</label>
+                <label for="cbsa-select" class="block text-sm font-medium text-gray-700 mb-1 text-center">1. Select a Market</label>
                 <select id="cbsa-select"></select>
             </div>
             <div class="dropdown-wrapper" style="z-index: 1002;">
-                <label for="metric-select" class="block text-sm font-medium text-gray-700 mb-2">2. Select a Metric</label>
+                <label for="metric-select" class="block text-sm font-medium text-gray-700 mb-1 text-center">2. Select a Metric</label>
                 <select id="metric-select"></select>
             </div>
              <div class="dropdown-wrapper" style="z-index: 1001;">
-                <label for="period-select" class="block text-sm font-medium text-gray-700 mb-2">3. Select a Time Period</label>
+                <label for="period-select" class="block text-sm font-medium text-gray-700 mb-1 text-center">3. Select a Time Period</label>
                 <select id="period-select"></select>
             </div>
         </div>
@@ -131,6 +151,9 @@
                 </div>
             </div>
         </div>
+        <footer class="flex-shrink-0 text-center py-2">
+             <p class="text-xs text-gray-500">&copy; OpenStreetMap contributors &copy; CARTO | Data from <a href="https://www.realtor.com/research/data/" target="_blank" rel="noopener noreferrer" class="underline hover:text-gray-700">Realtor.com</a> | Visualized by Inman with Gemini</p>
+        </footer>
     </div>
 
     <!-- Leaflet JS -->
@@ -160,13 +183,61 @@
         
         // --- CONFIGURATION --- //
         const metrics = {
-            "Potential commission pool": { label: "Potential commission pool", periods: { raw: "Potential commission pool", yoy: "Potential commission pool, Y/Y", hist: "Potential commission pool, vs. 2017-19" }, formatLegend: (v, p) => p === 'raw' ? formatLargeDollars(v) : formatPercent(v, 0, true), formatTooltip: (v, p) => p === 'raw' ? formatLargeDollars(v) : formatPercent(v, 1, true) },
-            "Weighted list price": { label: "Weighted list price", periods: { raw: "Weighted list price", yoy: "Weighted list price, Y/Y", hist: "Weighted list price, vs. 2017-19" }, formatLegend: (v, p) => p === 'raw' ? formatLargeDollars(v) : formatPercent(v, 0, true), formatTooltip: (v, p) => p === 'raw' ? formatLargeDollars(v) : formatPercent(v, 1, true) },
-            "Listing outflow": { label: "Listing outflow", periods: { raw: "Listing outflow", yoy: "Listing outflow, Y/Y", hist: "Listing outflow, vs. 2017-19" }, formatLegend: (v, p) => p === 'raw' ? Math.round(v).toLocaleString() : formatPercent(v, 0, true), formatTooltip: (v, p) => p === 'raw' ? Math.round(v).toLocaleString() : formatPercent(v, 1, true) },
-            "Outflow rate per active listing": { label: "Outflow rate per active listing", periods: { raw: "Outflow rate per active listing", yoy: "Outflow rate per active listing, Y/Y", hist: "Outflow rate per active listing, vs. 2017-19" }, formatLegend: (v, p) => p === 'raw' ? v.toFixed(2) : formatPercent(v, 0, true), formatTooltip: (v, p) => p === 'raw' ? v.toFixed(2) : formatPercent(v, 1, true) },
-            "Active listings": { label: "Active listings", periods: { raw: "Active listings", yoy: "Active listings, Y/Y", hist: "Active listings, vs. 2017-19" }, formatLegend: (v, p) => p === 'raw' ? Math.round(v).toLocaleString() : formatPercent(v, 0, true), formatTooltip: (v, p) => p === 'raw' ? Math.round(v).toLocaleString() : formatPercent(v, 1, true) },
-            "New listings": { label: "New listings", periods: { raw: "New listings", yoy: "New listings, Y/Y", hist: "New listings, vs. 2017-19" }, formatLegend: (v, p) => p === 'raw' ? Math.round(v).toLocaleString() : formatPercent(v, 0, true), formatTooltip: (v, p) => p === 'raw' ? Math.round(v).toLocaleString() : formatPercent(v, 1, true) },
-            "Weighted days on market": { label: "Weighted days on market", periods: { raw: "Weighted days on market", yoy: "Weighted days on market, Y/Y", hist: "Weighted days on market, vs. 2017-19" }, formatLegend: (v, p) => p === 'raw' ? Math.round(v).toLocaleString() : formatPercent(v, 0, true), formatTooltip: (v, p) => p === 'raw' ? Math.round(v).toLocaleString() : formatPercent(v, 1, true) }
+            "List price": { 
+                label: "List price", 
+                description: "This view shows the monthly median list price weighted by outflow volume",
+                periods: { raw: "List price", yoy: "List price, Y/Y", hist: "List price, vs. 2017-19" }, 
+                formatLegend: (v, p) => p === 'raw' ? formatLargeDollars(v) : formatPercent(v, 0, true), 
+                formatTooltip: (v, p) => p === 'raw' ? formatLargeDollars(v) : formatPercent(v, 1, true) 
+            },
+            "Active listings": { 
+                label: "Active listings", 
+                description: "This view shows the monthly number of active listings on the market at a given point in time",
+                periods: { raw: "Active listings", yoy: "Active listings, Y/Y", hist: "Active listings, vs. 2017-19" }, 
+                formatLegend: (v, p) => p === 'raw' ? Math.round(v).toLocaleString() : formatPercent(v, 0, true), 
+                formatTooltip: (v, p) => p === 'raw' ? Math.round(v).toLocaleString() : formatPercent(v, 1, true) 
+            },
+            "New listings": { 
+                label: "New listings", 
+                description: "This view shows the monthly number of newly listed properties that came online",
+                periods: { raw: "New listings", yoy: "New listings, Y/Y", hist: "New listings, vs. 2017-19" }, 
+                formatLegend: (v, p) => p === 'raw' ? Math.round(v).toLocaleString() : formatPercent(v, 0, true), 
+                formatTooltip: (v, p) => p === 'raw' ? Math.round(v).toLocaleString() : formatPercent(v, 1, true) 
+            },
+            "Listing outflow": { 
+                label: "Listing outflow", 
+                description: "This view shows the monthly number of properties that left the market due to a pending sale or delisting",
+                periods: { raw: "Listing outflow", yoy: "Listing outflow, Y/Y", hist: "Listing outflow, vs. 2017-19" }, 
+                formatLegend: (v, p) => p === 'raw' ? Math.round(v).toLocaleString() : formatPercent(v, 0, true), 
+                formatTooltip: (v, p) => p === 'raw' ? Math.round(v).toLocaleString() : formatPercent(v, 1, true) 
+            },
+            "Outflow volume per active listing": { 
+                label: "Outflow volume per active listing", 
+                description: "This view — in which higher values indicate heavier demand for the typical listing — shows the rate of properties that left the market due to a sale or delisting as a share of available inventory",
+                periods: { raw: "Outflow volume per active listing", yoy: "Outflow volume per active listing, Y/Y", hist: "Outflow volume per active listing, vs. 2017-19" }, 
+                formatLegend: (v, p) => p === 'raw' ? v.toFixed(2) : formatPercent(v, 0, true), 
+                formatTooltip: (v, p) => p === 'raw' ? v.toFixed(2) : formatPercent(v, 1, true) 
+            },
+            "Days on market": { 
+                label: "Days on market", 
+                description: "This view shows the monthly median days on market weighted by outflow volume",
+                periods: { raw: "Days on market", yoy: "Days on market, Y/Y", hist: "Days on market, vs. 2017-19" }, 
+                formatLegend: (v, p) => p === 'raw' ? Math.round(v).toLocaleString() : formatPercent(v, 0, true), 
+                formatTooltip: (v, p) => p === 'raw' ? Math.round(v).toLocaleString() : formatPercent(v, 1, true) 
+            },
+            "Potential commission pool": { 
+                label: "Potential commission pool", 
+                description: "This view shows a rough estimate of the monthly brokerage revenue pool. This naive estimate asks how much money brokerages would make if all properties that left the active listing pool produced commission revenue at 5.5% of the prevailing list price. The map below reflects this monthly level",
+                periods: { raw: "Potential commission pool", yoy: "Potential commission pool, Y/Y", hist: "Potential commission pool, vs. 2017-19" }, 
+                formatLegend: (v, p) => p === 'raw' ? formatLargeDollars(v) : formatPercent(v, 0, true), 
+                formatTooltip: (v, p) => p === 'raw' ? formatLargeDollars(v) : formatPercent(v, 1, true) 
+            }
+        };
+
+        const periodDescriptions = {
+            raw: " over a recent three-month period.",
+            yoy: " over a recent three-month period, compared to the same period the year before.",
+            hist: " over a recent three-month period, compared to a pre-pandemic baseline."
         };
 
         const dataBaseUrl = 'https://dhouston890.github.io/inman-tools/data/';
@@ -175,9 +246,10 @@
 
         // --- GLOBAL VARIABLES --- //
         let map, geoJsonLayer, legend, cbsaChoices, metricChoices, periodChoices;
-        let currentMarketData, lockedLayer = null;
+        let currentMarketData;
         const mapLoader = document.getElementById('map-loader');
-        const subtitle = document.getElementById('subtitle');
+        const descLine1 = document.getElementById('desc-line-1');
+        const descLine2 = document.getElementById('desc-line-2');
         
         // --- INITIALIZATION --- //
         document.addEventListener('DOMContentLoaded', () => {
@@ -186,33 +258,34 @@
         });
 
         function initializeMap() {
-            map = L.map('map').setView([39.8283, -98.5795], 4);
+            map = L.map('map', { attributionControl: false }).setView([39.8283, -98.5795], 4);
+            L.control.attribution({ prefix: '<a href="https://leafletjs.com" title="A JS library for interactive maps">Leaflet</a>' }).addTo(map);
             
-            L.tileLayer('https://{s}.basemaps.cartocdn.com/rastertiles/voyager_nolabels/{z}/{x}/{y}{r}.png', {
-                attribution: '&copy; OpenStreetMap contributors &copy; CARTO | Data from <a href="https://www.realtor.com/research/data/" target="_blank" rel="noopener noreferrer">Realtor.com</a> | Visualized by Inman with Gemini'
-            }).addTo(map);
+            L.tileLayer('https://{s}.basemaps.cartocdn.com/rastertiles/voyager_nolabels/{z}/{x}/{y}{r}.png').addTo(map);
 
             map.createPane('labels');
             map.getPane('labels').style.zIndex = 650;
             map.getPane('labels').style.pointerEvents = 'none';
 
+            map.createPane('tooltips');
+            map.getPane('tooltips').style.zIndex = 660; 
+
             L.tileLayer('https://{s}.basemaps.cartocdn.com/rastertiles/voyager_only_labels/{z}/{x}/{y}{r}.png', {
                 pane: 'labels'
             }).addTo(map);
 
-            map.on('click', unlockLayer); 
             initializeLegend();
         }
         
         async function initializeSelectors() {
             const metricSelect = document.getElementById('metric-select');
-            const metricOptions = Object.keys(metrics).map(key => ({ value: key, label: formatLabelForWrapping(metrics[key].label), selected: key === "Potential commission pool" }));
+            const metricOptions = Object.keys(metrics).map(key => ({ value: key, label: formatLabelForWrapping(metrics[key].label), selected: key === "List price" }));
             metricChoices = new Choices(metricSelect, { choices: metricOptions, searchEnabled: false, itemSelectText: 'Select', shouldSort: false });
             metricSelect.addEventListener('change', () => processAndDrawData(currentMarketData));
             
             const periodSelect = document.getElementById('period-select');
             const periodOptions = [
-                { value: 'raw', label: 'Value, recent 3 months', selected: true },
+                { value: 'raw', label: 'Recent value', selected: true },
                 { value: 'yoy', label: 'Year-over-year change' },
                 { value: 'hist', label: 'Change since 2017-19' }
             ].map(opt => ({...opt, label: formatLabelForWrapping(opt.label)}));
@@ -231,34 +304,34 @@
                 cbsaSelect.addEventListener('change', fetchAndDrawMarket);
             } catch (error) {
                 console.error("Failed to load market list:", error);
-                subtitle.textContent = "Error: Could not load list of markets.";
+                descLine1.textContent = "Error: Could not load list of markets.";
                 cbsaChoices.setChoices([{ value: '', label: 'Error loading markets', disabled: true }], 'value', 'label', true);
             }
         }
         
         async function fetchAndDrawMarket() {
-            unlockLayer();
             const selectedCbsa = cbsaChoices.getValue(true);
             currentMarketData = null; 
             if (geoJsonLayer) map.removeLayer(geoJsonLayer);
             geoJsonLayer = null;
             if (!selectedCbsa) {
-                subtitle.textContent = 'Please select a market to begin.';
+                descLine1.textContent = 'Please select a market to begin.';
+                descLine2.textContent = '';
                 map.setView([39.8283, -98.5795], 4);
                 legend.update(null);
                 return;
             }
             mapLoader.classList.add('visible');
-            subtitle.textContent = `Loading data for ${selectedCbsa}...`;
+            updateDescription(); 
             try {
                 const response = await fetch(`${dataBaseUrl}${encodeURIComponent(selectedCbsa)}.geojson`);
                 if (!response.ok) throw new Error(`HTTP error! status: ${response.status}`);
                 currentMarketData = await response.json();
-                subtitle.textContent = `Displaying data for ${selectedCbsa}.`;
                 processAndDrawData(currentMarketData);
             } catch (error) {
                 console.error("Failed to load geographic data:", error);
-                subtitle.textContent = `Error loading data for ${selectedCbsa}. Please check the data file.`;
+                descLine1.textContent = `Error loading data for ${selectedCbsa}. Please check the data file.`;
+                descLine2.textContent = '';
                 legend.update(null);
             } finally {
                 mapLoader.classList.remove('visible');
@@ -274,6 +347,8 @@
             const periodKey = periodChoices.getValue(true);
             if (!baseMetricKey || !periodKey) return;
             
+            updateDescription();
+
             const fullMetricColumn = metrics[baseMetricKey].periods[periodKey];
             const values = geoJsonData.features
                 .map(f => f.properties[fullMetricColumn])
@@ -284,7 +359,23 @@
                 : calculateDivergingBreaks(values);
             
             drawGeoJson(geoJsonData, fullMetricColumn, colorInfo);
-            legend.update(fullMetricKey, colorInfo);
+            legend.update(fullMetricColumn, colorInfo);
+        }
+        
+        function updateDescription() {
+            const marketChoice = cbsaChoices.getValue();
+            if (!marketChoice) {
+                 descLine1.textContent = 'Please select a market to begin.';
+                 descLine2.textContent = '';
+                 return;
+            }
+            const marketLabel = marketChoice.label.replace('-\u200B', '-');
+            const marketArea = marketLabel.split(',')[0];
+            descLine1.textContent = `Displaying data for the greater ${marketArea} area.`;
+
+            const baseMetricKey = metricChoices.getValue(true);
+            const periodKey = periodChoices.getValue(true);
+            descLine2.textContent = metrics[baseMetricKey].description + periodDescriptions[periodKey];
         }
 
         function getQuantile(sortedArr, q) {
@@ -348,7 +439,6 @@
 
         function drawGeoJson(data, metricKey, colorInfo) {
             if (geoJsonLayer) map.removeLayer(geoJsonLayer);
-            unlockLayer();
             if (!data || !data.features || data.features.length === 0) {
                  map.setView([39.8283, -98.5795], 4);
                  return;
@@ -450,9 +540,8 @@
         
         function onEachFeature(feature, layer) {
             layer.on({
-                mouseover: (e) => { if (e.target !== lockedLayer) highlightFeature(e); },
-                mouseout: (e) => { if (e.target !== lockedLayer) resetHighlight(e); },
-                click: lockLayer
+                mouseover: (e) => highlightFeature(e.target),
+                mouseout: (e) => resetHighlight(e.target)
             });
             layer.bindTooltip(() => {
                 const baseMetricKey = metricChoices.getValue(true);
@@ -463,35 +552,17 @@
                 const formattedValue = (value !== null && value !== undefined) ? baseMetricInfo.formatTooltip(value, periodKey) : 'N/A';
                 const title = feature.properties["ZIP code"] || 'N/A';
 
-                return `<strong class="text-base">${title}</strong><br><strong class="font-semibold">${fullMetricColumn}:</strong> ${formattedValue}`;
-            }, { permanent: false, direction: 'auto' });
+                return `<strong class="text-base">${title}</strong><br>${fullMetricColumn}: <strong class="font-semibold">${formattedValue}</strong>`;
+            }, { permanent: false, direction: 'auto', pane: 'tooltips' });
         }
         
-        function highlightFeature(e) {
-            e.target.setStyle(highlightStyle);
-            if (!L.Browser.ie) e.target.bringToFront();
+        function highlightFeature(layer) {
+            layer.setStyle(highlightStyle);
+            layer.bringToFront();
         }
 
-        function resetHighlight(e) {
-            if(e.target !== lockedLayer) {
-               geoJsonLayer.resetStyle(e.target);
-            }
-        }
-        
-        function lockLayer(e) {
-            unlockLayer(); 
-            lockedLayer = e.target;
-            lockedLayer.setStyle(highlightStyle);
-            lockedLayer.openTooltip();
-            L.DomEvent.stopPropagation(e);
-        }
-
-        function unlockLayer() {
-            if (lockedLayer) {
-                geoJsonLayer.resetStyle(lockedLayer);
-                lockedLayer.closeTooltip();
-                lockedLayer = null;
-            }
+        function resetHighlight(layer) {
+           geoJsonLayer.resetStyle(layer);
         }
     </script>
 </body>
