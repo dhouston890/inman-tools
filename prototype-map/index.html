@@ -185,59 +185,87 @@
         const metrics = {
             "List price": { 
                 label: "List price", 
-                description: "This view shows the monthly median list price weighted by outflow volume",
-                periods: { raw: "List price", yoy: "List price, Y/Y", hist: "List price, vs. 2017-19" }, 
+                description: "This view shows a typical asking price",
+                periods: { 
+                    raw: { dataKey: "List price", legendLabel: "List price" }, 
+                    yoy: { dataKey: "List price, Y/Y", legendLabel: "List price, Y/Y" }, 
+                    hist: { dataKey: "List price, vs. 2017-19", legendLabel: "List price,<br>vs. 2017-19" } 
+                }, 
                 formatLegend: (v, p) => p === 'raw' ? formatLargeDollars(v) : formatPercent(v, 0, true), 
                 formatTooltip: (v, p) => p === 'raw' ? formatLargeDollars(v) : formatPercent(v, 1, true) 
             },
             "Active listings": { 
                 label: "Active listings", 
-                description: "This view shows the monthly number of active listings on the market at a given point in time",
-                periods: { raw: "Active listings", yoy: "Active listings, Y/Y", hist: "Active listings, vs. 2017-19" }, 
+                description: "This view shows the monthly number of active listings on the market",
+                periods: { 
+                    raw: { dataKey: "Active listings", legendLabel: "Active listings" }, 
+                    yoy: { dataKey: "Active listings, Y/Y", legendLabel: "Active listings, Y/Y" }, 
+                    hist: { dataKey: "Active listings, vs. 2017-19", legendLabel: "Active listings,<br>vs. 2017-19" } 
+                }, 
                 formatLegend: (v, p) => p === 'raw' ? Math.round(v).toLocaleString() : formatPercent(v, 0, true), 
                 formatTooltip: (v, p) => p === 'raw' ? Math.round(v).toLocaleString() : formatPercent(v, 1, true) 
             },
             "New listings": { 
                 label: "New listings", 
                 description: "This view shows the monthly number of newly listed properties that came online",
-                periods: { raw: "New listings", yoy: "New listings, Y/Y", hist: "New listings, vs. 2017-19" }, 
+                periods: { 
+                    raw: { dataKey: "New listings", legendLabel: "New listings" }, 
+                    yoy: { dataKey: "New listings, Y/Y", legendLabel: "New listings, Y/Y" }, 
+                    hist: { dataKey: "New listings, vs. 2017-19", legendLabel: "New listings,<br>vs. 2017-19" } 
+                }, 
                 formatLegend: (v, p) => p === 'raw' ? Math.round(v).toLocaleString() : formatPercent(v, 0, true), 
                 formatTooltip: (v, p) => p === 'raw' ? Math.round(v).toLocaleString() : formatPercent(v, 1, true) 
             },
             "Listing outflow": { 
                 label: "Listing outflow", 
-                description: "This view shows the monthly number of properties that left the market due to a pending sale or delisting",
-                periods: { raw: "Listing outflow", yoy: "Listing outflow, Y/Y", hist: "Listing outflow, vs. 2017-19" }, 
+                description: "This view shows the monthly number of properties that went pending or left the market",
+                periods: { 
+                    raw: { dataKey: "Listing outflow", legendLabel: "Listing outflow" }, 
+                    yoy: { dataKey: "Listing outflow, Y/Y", legendLabel: "Listing outflow, Y/Y" }, 
+                    hist: { dataKey: "Listing outflow, vs. 2017-19", legendLabel: "Listing outflow,<br>vs. 2017-19" } 
+                }, 
                 formatLegend: (v, p) => p === 'raw' ? Math.round(v).toLocaleString() : formatPercent(v, 0, true), 
                 formatTooltip: (v, p) => p === 'raw' ? Math.round(v).toLocaleString() : formatPercent(v, 1, true) 
             },
             "Outflow volume per active listing": { 
                 label: "Outflow volume per active listing", 
-                description: "This view — in which higher values indicate heavier demand for the typical listing — shows the rate of properties that left the market due to a sale or delisting as a share of available inventory",
-                periods: { raw: "Outflow volume per active listing", yoy: "Outflow volume per active listing, Y/Y", hist: "Outflow volume per active listing, vs. 2017-19" }, 
+                description: "This view of demand shows the pace of listing outflow as a share of available inventory",
+                periods: { 
+                    raw: { dataKey: "Outflow volume per active listing", legendLabel: "Outflow volume<br>per active listing" }, 
+                    yoy: { dataKey: "Outflow volume per active listing, Y/Y", legendLabel: "Outflow volume<br>per active listing, Y/Y" }, 
+                    hist: { dataKey: "Outflow volume per active listing, vs. 2017-19", legendLabel: "Outflow volume<br>per active listing,<br>vs. 2017-19" } 
+                }, 
                 formatLegend: (v, p) => p === 'raw' ? v.toFixed(2) : formatPercent(v, 0, true), 
                 formatTooltip: (v, p) => p === 'raw' ? v.toFixed(2) : formatPercent(v, 1, true) 
             },
             "Days on market": { 
                 label: "Days on market", 
-                description: "This view shows the monthly median days on market weighted by outflow volume",
-                periods: { raw: "Days on market", yoy: "Days on market, Y/Y", hist: "Days on market, vs. 2017-19" }, 
+                description: "This view shows how long a typical home took to sell",
+                periods: { 
+                    raw: { dataKey: "Days on market", legendLabel: "Days on market" }, 
+                    yoy: { dataKey: "Days on market, Y/Y", legendLabel: "Days on market, Y/Y" }, 
+                    hist: { dataKey: "Days on market, vs. 2017-19", legendLabel: "Days on market,<br>vs. 2017-19" } 
+                }, 
                 formatLegend: (v, p) => p === 'raw' ? Math.round(v).toLocaleString() : formatPercent(v, 0, true), 
                 formatTooltip: (v, p) => p === 'raw' ? Math.round(v).toLocaleString() : formatPercent(v, 1, true) 
             },
             "Potential commission pool": { 
                 label: "Potential commission pool", 
-                description: "This view shows a rough estimate of the monthly brokerage revenue pool. This naive estimate asks how much money brokerages would make if all properties that left the active listing pool produced commission revenue at 5.5% of the prevailing list price. The map below reflects this monthly level",
-                periods: { raw: "Potential commission pool", yoy: "Potential commission pool, Y/Y", hist: "Potential commission pool, vs. 2017-19" }, 
+                description: "This view shows a rough estimate of total commission revenue. This is calculated by multiplying the number of homes that left the market by the prevailing list price and a uniform 5.5% commission rate. The map below reflects this monthly level",
+                periods: { 
+                    raw: { dataKey: "Potential commission pool", legendLabel: "Potential commission pool" }, 
+                    yoy: { dataKey: "Potential commission pool, Y/Y", legendLabel: "Potential commission pool, Y/Y" }, 
+                    hist: { dataKey: "Potential commission pool, vs. 2017-19", legendLabel: "Potential commission pool,<br>vs. 2017-19" } 
+                }, 
                 formatLegend: (v, p) => p === 'raw' ? formatLargeDollars(v) : formatPercent(v, 0, true), 
                 formatTooltip: (v, p) => p === 'raw' ? formatLargeDollars(v) : formatPercent(v, 1, true) 
             }
         };
 
         const periodDescriptions = {
-            raw: " over a recent three-month period.",
-            yoy: " over a recent three-month period, compared to the same period the year before.",
-            hist: " over a recent three-month period, compared to a pre-pandemic baseline."
+            raw: " during a recent three-month period.",
+            yoy: " during a recent three-month period, compared to the same time last year.",
+            hist: " during a recent three-month period, compared to a pre-pandemic 'normal.'"
         };
 
         const dataBaseUrl = 'https://dhouston890.github.io/inman-tools/data/';
@@ -288,8 +316,8 @@
             
             const periodSelect = document.getElementById('period-select');
             const periodOptions = [
-                { value: 'raw', label: 'Recent value', selected: true },
-                { value: 'yoy', label: 'Year-over-year change' },
+                { value: 'raw', label: 'Value', selected: true },
+                { value: 'yoy', label: 'Change since last year' },
                 { value: 'hist', label: 'Change since 2017-19' }
             ].map(opt => ({...opt, label: formatLabelForWrapping(opt.label)}));
             periodChoices = new Choices(periodSelect, { choices: periodOptions, searchEnabled: false, itemSelectText: 'Select', shouldSort: false });
@@ -383,17 +411,20 @@
             
             updateDescription();
 
-            const fullMetricColumn = metrics[baseMetricKey].periods[periodKey];
+            const periodInfo = metrics[baseMetricKey].periods[periodKey];
+            const dataKey = periodInfo.dataKey;
+            const legendLabel = periodInfo.legendLabel;
+
             const values = geoJsonData.features
-                .map(f => f.properties[fullMetricColumn])
+                .map(f => f.properties[dataKey])
                 .filter(v => v !== null && v !== undefined && !isNaN(v));
             
             const colorInfo = (periodKey === 'raw')
                 ? calculateSequentialBreaks(values)
                 : calculateDivergingBreaks(values);
             
-            drawGeoJson(geoJsonData, fullMetricColumn, colorInfo);
-            legend.update(fullMetricColumn, colorInfo);
+            drawGeoJson(geoJsonData, dataKey, colorInfo);
+            legend.update(legendLabel, colorInfo);
         }
         
         function updateDescription() {
@@ -446,15 +477,7 @@
                 drivingThreshold = Math.max(p85, n85);
             }
             
-            let extremeBreakpoint;
-            if (drivingThreshold < 0.15) {
-                extremeBreakpoint = drivingThreshold;
-            } else {
-                extremeBreakpoint = Math.floor(drivingThreshold / 0.25) * 0.25;
-                if (drivingThreshold > 0 && extremeBreakpoint === 0) {
-                    extremeBreakpoint = 0.25;
-                }
-            }
+            const extremeBreakpoint = drivingThreshold;
 
             const nextMostExtremeBreakpoint = extremeBreakpoint * (3/5);
             const moderateBreakpoint = extremeBreakpoint * (1/5);
@@ -504,10 +527,10 @@
         function initializeLegend() {
             legend = L.control({position: 'bottomright'});
             legend.onAdd = function (map) { this._div = L.DomUtil.create('div', 'info-legend'); return this._div; };
-            legend.update = function (fullMetricKey, colorInfo) {
+            legend.update = function (legendLabel, colorInfo) {
                 if (!this._div) return;
                 
-                if (!fullMetricKey || !colorInfo || !colorInfo.breaks || colorInfo.breaks.length === 0) { 
+                if (!legendLabel || !colorInfo || !colorInfo.breaks || colorInfo.breaks.length === 0) { 
                     this._div.innerHTML = '<p class="text-sm text-gray-600">No data to display for this selection.</p>'; 
                     return; 
                 }
@@ -516,7 +539,7 @@
                 const periodKey = periodChoices.getValue(true);
                 const baseMetricInfo = metrics[baseMetricKey];
                 const formatter = (v) => baseMetricInfo.formatLegend(v, periodKey);
-                let innerHTML = `<h4 class="font-bold mb-2">${fullMetricKey}</h4>`;
+                let innerHTML = `<h4 class="font-bold mb-2">${legendLabel}</h4>`;
                 
                 if (colorInfo.type === 'sequential') {
                     const uniqueBreaks = [...new Set(colorInfo.breaks)];
@@ -620,12 +643,15 @@
                 layer.bindTooltip(() => {
                     const baseMetricKey = metricChoices.getValue(true);
                     const periodKey = periodChoices.getValue(true);
-                    const fullMetricColumn = metrics[baseMetricKey].periods[periodKey];
+                    const periodInfo = metrics[baseMetricKey].periods[periodKey];
+                    const dataKey = periodInfo.dataKey;
+                    const legendLabel = periodInfo.legendLabel;
                     const baseMetricInfo = metrics[baseMetricKey];
-                    const value = feature.properties[fullMetricColumn];
+                    const value = feature.properties[dataKey];
                     const formattedValue = (value !== null && value !== undefined) ? baseMetricInfo.formatTooltip(value, periodKey) : 'N/A';
                     const title = feature.properties.cbsa_display_name || 'N/A';
-                    return `<strong class="text-base">${title}</strong><br>${fullMetricColumn}: <strong class="font-semibold">${formattedValue}</strong><br><em class="text-xs">Click for detailed view</em>`;
+                    const tooltipTitle = legendLabel.replace(/<br>/g, ' ');
+                    return `<strong class="text-base">${title}</strong><br>${tooltipTitle}: <strong class="font-semibold">${formattedValue}</strong><br><em class="text-xs">Click for detailed view</em>`;
                 }, { permanent: false, direction: 'auto', pane: 'tooltips' });
             } else { // local view
                  layer.on({
@@ -635,12 +661,15 @@
                 layer.bindTooltip(() => {
                     const baseMetricKey = metricChoices.getValue(true);
                     const periodKey = periodChoices.getValue(true);
-                    const fullMetricColumn = metrics[baseMetricKey].periods[periodKey];
+                    const periodInfo = metrics[baseMetricKey].periods[periodKey];
+                    const dataKey = periodInfo.dataKey;
+                    const legendLabel = periodInfo.legendLabel;
                     const baseMetricInfo = metrics[baseMetricKey];
-                    const value = feature.properties[fullMetricColumn];
+                    const value = feature.properties[dataKey];
                     const formattedValue = (value !== null && value !== undefined) ? baseMetricInfo.formatTooltip(value, periodKey) : 'N/A';
                     const title = feature.properties["ZIP code"] || 'N/A';
-                    return `<strong class="text-base">${title}</strong><br>${fullMetricColumn}: <strong class="font-semibold">${formattedValue}</strong>`;
+                    const tooltipTitle = legendLabel.replace(/<br>/g, ' ');
+                    return `<strong class="text-base">${title}</strong><br>${tooltipTitle}: <strong class="font-semibold">${formattedValue}</strong>`;
                 }, { permanent: false, direction: 'auto', pane: 'tooltips' });
             }
         }
