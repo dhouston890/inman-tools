@@ -25,7 +25,7 @@
         .full-height-container {
             display: flex;
             flex-direction: column;
-            height: 100%; /* Full viewport height */
+            height: 100vh; /* Full viewport height */
             overflow-y: auto; /* Allow scrolling on the whole container if needed */
         }
         #map-container {
@@ -118,8 +118,7 @@
     <div class="full-height-container p-4 md:p-6">
         <header class="mb-2 border-b pb-2 text-center flex-shrink-0">
             <h1 class="text-2xl font-bold text-gray-800">Inman Market Explorer</h1>
-            <p id="desc-line-1" class="text-gray-600 mt-1 text-sm">Please select a market to begin.</p>
-            <p id="desc-line-2" class="text-gray-600 text-xs"></p>
+            <p id="desc-line-2" class="text-gray-600 text-xs mt-1"></p>
         </header>
 
         <!-- Filter Controls -->
@@ -152,7 +151,8 @@
             </div>
         </div>
         <footer class="flex-shrink-0 text-center py-2">
-             <p class="text-xs text-gray-500">&copy; OpenStreetMap contributors &copy; CARTO | Data from <a href="https://www.realtor.com/research/data/" target="_blank" rel="noopener noreferrer" class="underline hover:text-gray-700">Realtor.com</a> | Visualized by Inman with Gemini</p>
+             <button id="return-btn" class="hidden bg-blue-500 hover:bg-blue-700 text-white font-bold py-2 px-4 rounded mb-2">Return to National View</button>
+             <p class="text-xs text-gray-500">Leaflet | &copy; OpenStreetMap contributors &copy; CARTO | Data from <a href="https://www.realtor.com/research/data/" target="_blank" rel="noopener noreferrer" class="underline hover:text-gray-700">Realtor.com</a> | Visualized by Inman with Gemini</p>
         </footer>
     </div>
 
@@ -246,20 +246,23 @@
 
         // --- GLOBAL VARIABLES --- //
         let map, geoJsonLayer, legend, cbsaChoices, metricChoices, periodChoices;
-        let currentMarketData;
+        let currentData;
+        let currentView = 'national'; // 'national' or 'local'
+        let nationalDataCache = null; // Cache for the national data
         const mapLoader = document.getElementById('map-loader');
-        const descLine1 = document.getElementById('desc-line-1');
         const descLine2 = document.getElementById('desc-line-2');
+        const returnBtn = document.getElementById('return-btn');
         
         // --- INITIALIZATION --- //
         document.addEventListener('DOMContentLoaded', () => {
             initializeMap();
             initializeSelectors();
+            loadViewForMarket(null); // Load national view on start
         });
 
         function initializeMap() {
-            map = L.map('map', { attributionControl: false }).setView([39.8283, -98.5795], 4);
-            L.control.attribution({ prefix: '<a href="https://leafletjs.com" title="A JS library for interactive maps">Leaflet</a>' }).addTo(map);
+            map = L.map('map', { attributionControl: false });
+            L.control.attribution({ prefix: false }).addTo(map);
             
             L.tileLayer('https://{s}.basemaps.cartocdn.com/rastertiles/voyager_nolabels/{z}/{x}/{y}{r}.png').addTo(map);
 
@@ -281,7 +284,7 @@
             const metricSelect = document.getElementById('metric-select');
             const metricOptions = Object.keys(metrics).map(key => ({ value: key, label: formatLabelForWrapping(metrics[key].label), selected: key === "List price" }));
             metricChoices = new Choices(metricSelect, { choices: metricOptions, searchEnabled: false, itemSelectText: 'Select', shouldSort: false });
-            metricSelect.addEventListener('change', () => processAndDrawData(currentMarketData));
+            metricChoices.passedElement.element.addEventListener('change', () => processAndDrawData(currentData), false);
             
             const periodSelect = document.getElementById('period-select');
             const periodOptions = [
@@ -290,10 +293,15 @@
                 { value: 'hist', label: 'Change since 2017-19' }
             ].map(opt => ({...opt, label: formatLabelForWrapping(opt.label)}));
             periodChoices = new Choices(periodSelect, { choices: periodOptions, searchEnabled: false, itemSelectText: 'Select', shouldSort: false });
-            periodSelect.addEventListener('change', () => processAndDrawData(currentMarketData));
+            periodChoices.passedElement.element.addEventListener('change', () => processAndDrawData(currentData), false);
 
-            const cbsaSelect = document.getElementById('cbsa-select');
-            cbsaChoices = new Choices(cbsaSelect, { searchEnabled: true, itemSelectText: 'Select', shouldSort: false, placeholder: true, placeholderValue: 'Loading markets...' });
+            const cbsaSelectEl = document.getElementById('cbsa-select');
+            cbsaChoices = new Choices(cbsaSelectEl, { searchEnabled: true, itemSelectText: 'Select', shouldSort: false, placeholder: true, placeholderValue: 'Loading markets...' });
+            
+            cbsaSelectEl.addEventListener('change', () => {
+                const marketFilename = cbsaChoices.getValue(true);
+                loadViewForMarket(marketFilename);
+            });
             
             try {
                 const response = await fetch(`${dataBaseUrl}cbsa_list.json`);
@@ -301,37 +309,63 @@
                 const data = await response.json();
                 const processedMarkets = data.markets.map(market => ({ ...market, label: formatLabelForWrapping(market.label) }));
                 cbsaChoices.setChoices([{ value: '', label: 'Select a Market...', placeholder: true }, ...processedMarkets], 'value', 'label', true);
-                cbsaSelect.addEventListener('change', fetchAndDrawMarket);
             } catch (error) {
                 console.error("Failed to load market list:", error);
-                descLine1.textContent = "Error: Could not load list of markets.";
                 cbsaChoices.setChoices([{ value: '', label: 'Error loading markets', disabled: true }], 'value', 'label', true);
+            }
+            
+            returnBtn.addEventListener('click', () => {
+                cbsaChoices.setChoiceByValue(''); 
+                loadViewForMarket(null);
+            });
+        }
+
+        function loadViewForMarket(marketFilename) {
+            if (marketFilename) {
+                fetchAndDrawLocalView(marketFilename);
+            } else {
+                fetchAndDrawNationalView();
             }
         }
         
-        async function fetchAndDrawMarket() {
-            const selectedCbsa = cbsaChoices.getValue(true);
-            currentMarketData = null; 
+        async function fetchAndDrawNationalView() {
+            currentView = 'national';
+            returnBtn.classList.add('hidden');
             if (geoJsonLayer) map.removeLayer(geoJsonLayer);
-            geoJsonLayer = null;
-            if (!selectedCbsa) {
-                descLine1.textContent = 'Please select a market to begin.';
-                descLine2.textContent = '';
-                map.setView([39.8283, -98.5795], 4);
+            
+            mapLoader.classList.add('visible');
+            updateDescription();
+            try {
+                if (!nationalDataCache) {
+                    const response = await fetch(`${dataBaseUrl}cbsa_national_data.geojson`);
+                    if (!response.ok) throw new Error(`HTTP error! status: ${response.status}`);
+                    nationalDataCache = await response.json();
+                }
+                currentData = nationalDataCache;
+                processAndDrawData(currentData);
+            } catch (error) {
+                console.error("Failed to load national data:", error);
                 legend.update(null);
-                return;
+                nationalDataCache = null;
+            } finally {
+                mapLoader.classList.remove('visible');
             }
+        }
+
+        async function fetchAndDrawLocalView(marketFilename) {
+            currentView = 'local';
+            returnBtn.classList.remove('hidden');
+            if (geoJsonLayer) map.removeLayer(geoJsonLayer);
+            
             mapLoader.classList.add('visible');
             updateDescription(); 
             try {
-                const response = await fetch(`${dataBaseUrl}${encodeURIComponent(selectedCbsa)}.geojson`);
+                const response = await fetch(`${dataBaseUrl}${encodeURIComponent(marketFilename)}.geojson`);
                 if (!response.ok) throw new Error(`HTTP error! status: ${response.status}`);
-                currentMarketData = await response.json();
-                processAndDrawData(currentMarketData);
+                currentData = await response.json();
+                processAndDrawData(currentData);
             } catch (error) {
                 console.error("Failed to load geographic data:", error);
-                descLine1.textContent = `Error loading data for ${selectedCbsa}. Please check the data file.`;
-                descLine2.textContent = '';
                 legend.update(null);
             } finally {
                 mapLoader.classList.remove('visible');
@@ -363,19 +397,14 @@
         }
         
         function updateDescription() {
-            const marketChoice = cbsaChoices.getValue();
-            if (!marketChoice) {
-                 descLine1.textContent = 'Please select a market to begin.';
-                 descLine2.textContent = '';
-                 return;
-            }
-            const marketLabel = marketChoice.label.replace('-\u200B', '-');
-            const marketArea = marketLabel.split(',')[0];
-            descLine1.textContent = `Displaying data for the greater ${marketArea} area.`;
-
             const baseMetricKey = metricChoices.getValue(true);
             const periodKey = periodChoices.getValue(true);
-            descLine2.textContent = metrics[baseMetricKey].description + periodDescriptions[periodKey];
+            
+            if (baseMetricKey && periodKey) {
+                 descLine2.textContent = metrics[baseMetricKey].description + periodDescriptions[periodKey];
+            } else {
+                descLine2.textContent = '';
+            }
         }
 
         function getQuantile(sortedArr, q) {
@@ -440,11 +469,36 @@
         function drawGeoJson(data, metricKey, colorInfo) {
             if (geoJsonLayer) map.removeLayer(geoJsonLayer);
             if (!data || !data.features || data.features.length === 0) {
-                 map.setView([39.8283, -98.5795], 4);
-                 return;
+                return;
             }
-            geoJsonLayer = L.geoJSON(data, { style: getStyleForFeature(metricKey, colorInfo), onEachFeature: onEachFeature }).addTo(map);
-            map.fitBounds(geoJsonLayer.getBounds(), { padding: [50, 50] });
+
+            geoJsonLayer = L.geoJSON(data, { 
+                style: getStyleForFeature(metricKey, colorInfo), 
+                onEachFeature: onEachFeature 
+            }).addTo(map);
+            
+            if (currentView === 'local') {
+                map.fitBounds(geoJsonLayer.getBounds(), { padding: [10, 10] });
+            } else {
+                const continentalUSFeatures = data.features.filter(feature => {
+                    const lon = feature.properties.lon;
+                    return typeof lon === 'number' && lon > -125 && lon < -66;
+                });
+
+                if (continentalUSFeatures.length > 0) {
+                    const continentalData = { type: "FeatureCollection", features: continentalUSFeatures };
+                    const continentalBounds = L.geoJSON(continentalData).getBounds();
+                    if (continentalBounds.isValid()) {
+                        map.fitBounds(continentalBounds);
+                    } else {
+                        console.warn("Calculated continental bounds are invalid. Using default view.");
+                        map.setView([39.8283, -98.5795], 4);
+                    }
+                } else {
+                    console.warn("No continental US features found. Using default view.");
+                    map.setView([39.8283, -98.5795], 4);
+                }
+            }
         }
 
         function initializeLegend() {
@@ -454,7 +508,7 @@
                 if (!this._div) return;
                 
                 if (!fullMetricKey || !colorInfo || !colorInfo.breaks || colorInfo.breaks.length === 0) { 
-                    this._div.innerHTML = '<p class="text-sm text-gray-600">Error displaying the legend.</p>'; 
+                    this._div.innerHTML = '<p class="text-sm text-gray-600">No data to display for this selection.</p>'; 
                     return; 
                 }
                 
@@ -528,32 +582,67 @@
                        scale[6];
             }
         }
-
-        const defaultStyle = { weight: 1, opacity: 1, color: 'white', fillOpacity: 0.55 };
-        const highlightStyle = { weight: 3, color: '#000', fillOpacity: 0.55 };
+        
+        // --- STYLING LOGIC --- //
+        const defaultStyle = {
+            weight: 1,
+            color: '#666666',
+            opacity: 0.45,
+            fillOpacity: 0.55
+        };
+        
+        const highlightStyle = {
+            weight: 2.5,
+            color: '#333',
+            opacity: 1
+        };
         
         function getStyleForFeature(metricKey, colorInfo) {
             return function(feature) {
-                return { ...defaultStyle, fillColor: getColor(feature.properties[metricKey], colorInfo) };
+                const fillColor = getColor(feature.properties[metricKey], colorInfo);
+                return { ...defaultStyle, fillColor: fillColor };
             }
         }
         
         function onEachFeature(feature, layer) {
-            layer.on({
-                mouseover: (e) => highlightFeature(e.target),
-                mouseout: (e) => resetHighlight(e.target)
-            });
-            layer.bindTooltip(() => {
-                const baseMetricKey = metricChoices.getValue(true);
-                const periodKey = periodChoices.getValue(true);
-                const fullMetricColumn = metrics[baseMetricKey].periods[periodKey];
-                const baseMetricInfo = metrics[baseMetricKey];
-                const value = feature.properties[fullMetricColumn];
-                const formattedValue = (value !== null && value !== undefined) ? baseMetricInfo.formatTooltip(value, periodKey) : 'N/A';
-                const title = feature.properties["ZIP code"] || 'N/A';
-
-                return `<strong class="text-base">${title}</strong><br>${fullMetricColumn}: <strong class="font-semibold">${formattedValue}</strong>`;
-            }, { permanent: false, direction: 'auto', pane: 'tooltips' });
+             if (currentView === 'national') {
+                layer.on({
+                    mouseover: (e) => highlightFeature(e.target),
+                    mouseout: (e) => resetHighlight(e.target),
+                    click: (e) => {
+                        const props = e.target.feature.properties;
+                        if (props && props.cbsa_filename_value) {
+                            cbsaChoices.setChoiceByValue(props.cbsa_filename_value);
+                            loadViewForMarket(props.cbsa_filename_value);
+                        }
+                    }
+                });
+                layer.bindTooltip(() => {
+                    const baseMetricKey = metricChoices.getValue(true);
+                    const periodKey = periodChoices.getValue(true);
+                    const fullMetricColumn = metrics[baseMetricKey].periods[periodKey];
+                    const baseMetricInfo = metrics[baseMetricKey];
+                    const value = feature.properties[fullMetricColumn];
+                    const formattedValue = (value !== null && value !== undefined) ? baseMetricInfo.formatTooltip(value, periodKey) : 'N/A';
+                    const title = feature.properties.cbsa_display_name || 'N/A';
+                    return `<strong class="text-base">${title}</strong><br>${fullMetricColumn}: <strong class="font-semibold">${formattedValue}</strong><br><em class="text-xs">Click for detailed view</em>`;
+                }, { permanent: false, direction: 'auto', pane: 'tooltips' });
+            } else { // local view
+                 layer.on({
+                    mouseover: (e) => highlightFeature(e.target),
+                    mouseout: (e) => resetHighlight(e.target)
+                });
+                layer.bindTooltip(() => {
+                    const baseMetricKey = metricChoices.getValue(true);
+                    const periodKey = periodChoices.getValue(true);
+                    const fullMetricColumn = metrics[baseMetricKey].periods[periodKey];
+                    const baseMetricInfo = metrics[baseMetricKey];
+                    const value = feature.properties[fullMetricColumn];
+                    const formattedValue = (value !== null && value !== undefined) ? baseMetricInfo.formatTooltip(value, periodKey) : 'N/A';
+                    const title = feature.properties["ZIP code"] || 'N/A';
+                    return `<strong class="text-base">${title}</strong><br>${fullMetricColumn}: <strong class="font-semibold">${formattedValue}</strong>`;
+                }, { permanent: false, direction: 'auto', pane: 'tooltips' });
+            }
         }
         
         function highlightFeature(layer) {
