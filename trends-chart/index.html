@@ -1,0 +1,552 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Inman Market Trends</title>
+    
+    <!-- Tailwind CSS for styling -->
+    <script src="https://cdn.tailwindcss.com"></script>
+
+    <!-- Chart.js for line charts -->
+    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+    <!-- ADDED: Chart.js Date Adapter to handle time scales -->
+    <script src="https://cdn.jsdelivr.net/npm/date-fns@2.29.3/index.min.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/chartjs-adapter-date-fns@2.0.0/dist/chartjs-adapter-date-fns.bundle.min.js"></script>
+    
+    <!-- Choices.js CSS for searchable dropdowns -->
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/choices.js/public/assets/styles/choices.min.css"/>
+    
+    <style>
+        /* Use Inter font, consistent with the map tool */
+        html, body {
+            height: 100%;
+            margin: 0;
+            padding: 0;
+            font-family: 'Inter', sans-serif;
+            background-color: #f8fafc; /* A light gray background */
+        }
+        .main-container {
+            display: flex;
+            flex-direction: column;
+            min-height: 100vh;
+            overflow-y: auto;
+        }
+        #chart-container {
+            flex-grow: 1;
+            position: relative;
+            min-height: 450px; /* Ensure chart is always usable */
+            padding: 1rem;
+        }
+        #chart-loader {
+            position: absolute;
+            top: 0;
+            left: 0;
+            right: 0;
+            bottom: 0;
+            background: rgba(255, 255, 255, 0.85);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            z-index: 1100;
+            border-radius: 0.5rem;
+            pointer-events: none;
+            opacity: 0;
+            transition: opacity 0.3s ease-in-out;
+        }
+        #chart-loader.visible {
+            opacity: 1;
+            pointer-events: auto;
+        }
+        /* Styling for Choices.js dropdowns to match the map tool */
+        .choices__inner {
+            padding-top: 4px !important;
+            padding-bottom: 3px !important;
+            min-height: auto !important;
+            background-color: #fff;
+            border-radius: 0.375rem;
+        }
+        .choices__list--single .choices__item {
+            text-align: center;
+        }
+        .choices[data-type*="select-multiple"] .choices__button, .choices[data-type*="select-one"] .choices__button {
+            border-left: 1px solid #d1d5db;
+            margin-left: 6px;
+        }
+        /* Styling for selection tags */
+        .selection-tag {
+            display: inline-flex;
+            align-items: center;
+            background-color: #e0e7ff;
+            color: #3730a3;
+            border-radius: 9999px;
+            padding: 4px 12px;
+            font-size: 14px;
+            font-weight: 500;
+            margin: 4px;
+        }
+        .selection-tag button {
+            margin-left: 8px;
+            background: none;
+            border: none;
+            cursor: pointer;
+            color: #4f46e5;
+        }
+        .selection-tag button:hover {
+            color: #3730a3;
+        }
+    </style>
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
+</head>
+<body class="bg-gray-50">
+
+    <div class="main-container p-4 md:p-6">
+        <header class="mb-4 border-b pb-3 text-center flex-shrink-0">
+            <h1 class="text-2xl md:text-3xl font-bold text-gray-800">Inman Market Trends</h1>
+            <p id="desc-line-2" class="text-gray-600 text-sm mt-1 h-5"></p>
+        </header>
+
+        <!-- Filter Controls -->
+        <div class="grid grid-cols-1 md:grid-cols-3 gap-4 mb-2 flex-shrink-0">
+            <div style="z-index: 1003;">
+                <label for="market-select" class="block text-sm font-medium text-gray-700 mb-1 text-center">1. Select Market(s)</label>
+                <select id="market-select" multiple></select>
+            </div>
+            <div style="z-index: 1002;">
+                <label for="metric-select" class="block text-sm font-medium text-gray-700 mb-1 text-center">2. Select a Metric</label>
+                <select id="metric-select"></select>
+            </div>
+             <div style="z-index: 1001;">
+                <label for="view-select" class="block text-sm font-medium text-gray-700 mb-1 text-center">3. Select a View</label>
+                <select id="view-select"></select>
+            </div>
+        </div>
+
+        <!-- Selection Tags Container -->
+        <div id="tags-container" class="flex flex-wrap justify-center items-center mb-3 min-h-[36px]"></div>
+
+        <!-- The Chart Container -->
+        <div id="chart-container" class="bg-white rounded-lg shadow-sm">
+            <canvas id="myChart"></canvas>
+            <div id="chart-loader">
+                <div class="text-center">
+                    <svg class="animate-spin h-8 w-8 text-blue-600 mx-auto mb-2" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24">
+                        <circle class="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" stroke-width="4"></circle>
+                        <path class="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"></path>
+                    </svg>
+                    <p class="text-lg font-semibold text-gray-700">Loading data...</p>
+                </div>
+            </div>
+        </div>
+        <footer class="flex-shrink-0 text-center py-2">
+             <p class="text-xs text-gray-500">Data from <a href="https://www.realtor.com/research/data/" target="_blank" rel="noopener noreferrer" class="underline hover:text-gray-700">Realtor.com</a> | Visualized by Inman with Gemini</p>
+        </footer>
+    </div>
+
+    <!-- Choices.js for searchable dropdowns -->
+    <script src="https://cdn.jsdelivr.net/npm/choices.js/public/assets/scripts/choices.min.js"></script>
+
+    <script>
+        // --- UTILITY FUNCTIONS --- //
+        function formatLabelForWrapping(label) { return label.replace(/-/g, '-\u200B'); }
+        
+        function formatLargeDollars(num) {
+            if (num === null || isNaN(num)) return 'N/A';
+            const absNum = Math.abs(num);
+            if (absNum >= 1e9) return `$${(num / 1e9).toFixed(1)}B`;
+            if (absNum >= 1e6) return `$${(num / 1e6).toFixed(1)}M`;
+            if (absNum >= 1000) return `$${(Math.round(num / 1000)).toLocaleString()}K`;
+            return `$${Math.round(num).toLocaleString()}`;
+        }
+
+        const formatPercent = (val, precision, addPlus) => {
+            if (val === null || isNaN(val)) return 'N/A';
+            const num = (val * 100).toFixed(precision);
+            return addPlus && val > 0 ? `+${num}%` : `${num}%`;
+        }
+
+        // --- CONFIGURATION --- //
+        const metrics = {
+            "List price": { 
+                label: "List price", 
+                description: "This view shows a typical asking price",
+                periods: { 
+                    raw: { dataKey: "List price" }, 
+                    yoy: { dataKey: "List price, Y/Y" }, 
+                    hist: { dataKey: "List price, vs. 2017-19" } 
+                }, 
+                format: (v, p) => p === 'raw' ? formatLargeDollars(v) : formatPercent(v, 1, true) 
+            },
+            "Active listings": { 
+                label: "Active listings", 
+                description: "This view shows the monthly number of active listings",
+                periods: { 
+                    raw: { dataKey: "Active listings" }, 
+                    yoy: { dataKey: "Active listings, Y/Y" }, 
+                    hist: { dataKey: "Active listings, vs. 2017-19" } 
+                }, 
+                format: (v, p) => p === 'raw' ? Math.round(v).toLocaleString() : formatPercent(v, 1, true) 
+            },
+            "New listings": { 
+                label: "New listings", 
+                description: "This view shows the monthly number of newly listed properties",
+                periods: { 
+                    raw: { dataKey: "New listings" }, 
+                    yoy: { dataKey: "New listings, Y/Y" }, 
+                    hist: { dataKey: "New listings, vs. 2017-19" } 
+                }, 
+                format: (v, p) => p === 'raw' ? Math.round(v).toLocaleString() : formatPercent(v, 1, true) 
+            },
+            "Listing outflow": { 
+                label: "Listing outflow", 
+                description: "This view shows the monthly number of properties that went pending or left the market",
+                periods: { 
+                    raw: { dataKey: "Listing outflow" }, 
+                    yoy: { dataKey: "Listing outflow, Y/Y" }, 
+                    hist: { dataKey: "Listing outflow, vs. 2017-19" } 
+                }, 
+                format: (v, p) => p === 'raw' ? Math.round(v).toLocaleString() : formatPercent(v, 1, true) 
+            },
+            "Outflow volume per active listing": { 
+                label: "Outflow volume per active listing", 
+                description: "This view shows the pace of listing outflow as a share of available inventory",
+                periods: { 
+                    raw: { dataKey: "Outflow volume per active listing" }, 
+                    yoy: { dataKey: "Outflow volume per active listing, Y/Y" }, 
+                    hist: { dataKey: "Outflow volume per active listing, vs. 2017-19" } 
+                }, 
+                format: (v, p) => p === 'raw' ? v.toFixed(2) : formatPercent(v, 1, true) 
+            },
+            "Days on market": { 
+                label: "Days on market", 
+                description: "This view shows how long a typical home took to sell",
+                periods: { 
+                    raw: { dataKey: "Days on market" }, 
+                    yoy: { dataKey: "Days on market, Y/Y" }, 
+                    hist: { dataKey: "Days on market, vs. 2017-19" } 
+                }, 
+                format: (v, p) => p === 'raw' ? Math.round(v).toLocaleString() : formatPercent(v, 1, true) 
+            },
+            "Potential commission pool": { 
+                label: "Potential commission pool", 
+                description: "This view shows a rough estimate of total commission revenue",
+                periods: { 
+                    raw: { dataKey: "Potential commission pool" }, 
+                    yoy: { dataKey: "Potential commission pool, Y/Y" }, 
+                    hist: { dataKey: "Potential commission pool, vs. 2017-19" } 
+                }, 
+                format: (v, p) => p === 'raw' ? formatLargeDollars(v) : formatPercent(v, 1, true) 
+            }
+        };
+
+        const viewDescriptions = {
+            raw: "over time.",
+            yoy: "over time, compared to the same time last year.",
+            hist: "over time, compared to a pre-pandemic 'normal.'"
+        };
+        
+        const nonComparableMetrics = ["Active listings", "New listings", "Listing outflow", "Potential commission pool"];
+        const dataBaseUrl = 'https://dhouston890.github.io/inman-tools/data/';
+        const marketColorPalette = ['#1f77b4', '#ff7f0e', '#2ca02c', '#d62728', '#9467bd', '#8c564b'];
+        const nationalLineColor = '#1f77b4';
+        const nationalReferenceLineColor = '#a0aec0'; // A neutral gray
+
+        // --- GLOBAL VARIABLES --- //
+        let myChart, marketChoices, metricChoices, viewChoices;
+        let nationalDataCache = null;
+        let cbsaDataCache = null;
+        let isCbsaDataLoading = false;
+
+        const chartLoader = document.getElementById('chart-loader');
+        const descLine2 = document.getElementById('desc-line-2');
+        const tagsContainer = document.getElementById('tags-container');
+        
+        // --- INITIALIZATION --- //
+        document.addEventListener('DOMContentLoaded', () => {
+            initializeChart();
+            initializeSelectors();
+            loadInitialData();
+        });
+
+        function initializeChart() {
+            const ctx = document.getElementById('myChart').getContext('2d');
+            myChart = new Chart(ctx, {
+                type: 'line',
+                data: { labels: [], datasets: [] },
+                options: {
+                    responsive: true,
+                    maintainAspectRatio: false,
+                    interaction: {
+                        mode: 'index',
+                        intersect: false,
+                    },
+                    scales: {
+                        x: { 
+                            type: 'time',
+                            time: { unit: 'year' },
+                            grid: { display: false },
+                            ticks: { font: { weight: '600' } }
+                        },
+                        y: { 
+                            grid: { color: '#e2e8f0' },
+                            ticks: {
+                                callback: function(value, index, ticks) {
+                                    const viewKey = viewChoices.getValue(true);
+                                    if (viewKey !== 'raw') return formatPercent(value, 0, false);
+                                    
+                                    const metricKey = metricChoices.getValue(true);
+                                    if (metricKey === "List price" || metricKey === "Potential commission pool") return formatLargeDollars(value);
+                                    if (metricKey === "Outflow volume per active listing") return value.toFixed(1);
+                                    
+                                    if (value >= 1000000) return (value / 1000000).toFixed(1) + 'M';
+                                    if (value >= 1000) return (value / 1000).toFixed(0) + 'K';
+                                    return value;
+                                }
+                            }
+                        }
+                    },
+                    plugins: {
+                        legend: {
+                            position: 'bottom',
+                            labels: { usePointStyle: true },
+                            onHover: (event, legendItem, legend) => {
+                                legend.chart.data.datasets.forEach(dataset => {
+                                    if (dataset.label === legendItem.text) {
+                                        dataset.borderWidth = 4;
+                                    }
+                                });
+                                legend.chart.update();
+                            },
+                            onLeave: (event, legendItem, legend) => {
+                                legend.chart.data.datasets.forEach(dataset => {
+                                    dataset.borderWidth = 2.5;
+                                });
+                                legend.chart.update();
+                            }
+                        },
+                        tooltip: {
+                            backgroundColor: 'rgba(0, 0, 0, 0.8)',
+                            titleFont: { weight: 'bold' },
+                            bodySpacing: 4,
+                            padding: 10,
+                            callbacks: {
+                                label: function(context) {
+                                    const label = context.dataset.label || '';
+                                    if (label) {
+                                        const value = context.parsed.y;
+                                        const metricKey = context.dataset.metricKey;
+                                        const viewKey = context.dataset.viewKey;
+                                        return `${label}: ${metrics[metricKey].format(value, viewKey)}`;
+                                    }
+                                    return null;
+                                }
+                            }
+                        }
+                    }
+                }
+            });
+        }
+        
+        async function initializeSelectors() {
+            // --- Metric Selector ---
+            const metricSelect = document.getElementById('metric-select');
+            const metricOptions = Object.keys(metrics).map(key => ({ value: key, label: formatLabelForWrapping(metrics[key].label), selected: key === "List price" }));
+            metricChoices = new Choices(metricSelect, { choices: metricOptions, searchEnabled: false, itemSelectText: 'Select', shouldSort: false });
+            metricSelect.addEventListener('change', handleSelectionChange);
+
+            // --- View Selector ---
+            const viewSelect = document.getElementById('view-select');
+            const viewOptions = [
+                { value: 'raw', label: 'Value', selected: true },
+                { value: 'yoy', label: 'Change since last year' },
+                { value: 'hist', label: 'Change since 2017-19' }
+            ].map(opt => ({...opt, label: formatLabelForWrapping(opt.label)}));
+            viewChoices = new Choices(viewSelect, { choices: viewOptions, searchEnabled: false, itemSelectText: 'Select', shouldSort: false });
+            viewSelect.addEventListener('change', handleSelectionChange);
+
+            // --- Market Selector ---
+            const marketSelect = document.getElementById('market-select');
+            marketChoices = new Choices(marketSelect, { 
+                searchEnabled: true, 
+                itemSelectText: 'Select', 
+                shouldSort: false, 
+                removeItemButton: true,
+                maxItemCount: 4,
+                placeholder: true, 
+                placeholderValue: 'Select up to 4 markets...' 
+            });
+            marketSelect.addEventListener('change', handleSelectionChange);
+            
+            try {
+                const response = await fetch(`${dataBaseUrl}cbsa_list.json`);
+                if (!response.ok) throw new Error(`HTTP error! status: ${response.status}`);
+                const data = await response.json();
+                const processedMarkets = data.markets.map(market => ({ ...market, label: formatLabelForWrapping(market.label) }));
+                // FIXED: Removed redundant setChoices call
+                marketChoices.setChoices([{ value: 'USA', label: 'U.S. National' }, ...processedMarkets], 'value', 'label', false);
+            } catch (error) {
+                console.error("Failed to load market list:", error);
+                marketChoices.setChoices([{ value: '', label: 'Error loading markets', disabled: true }], 'value', 'label', true);
+            }
+        }
+        
+        async function loadInitialData() {
+            chartLoader.classList.add('visible');
+            try {
+                const response = await fetch(`${dataBaseUrl}us_national_timeseries.json`);
+                if (!response.ok) throw new Error(`HTTP error! status: ${response.status}`);
+                nationalDataCache = await response.json();
+                // Filter data to start from Jan 2019
+                nationalDataCache = nationalDataCache.filter(d => new Date(d.date) >= new Date('2019-01-01'));
+                updateChart();
+            } catch (error) {
+                console.error("Failed to load initial data:", error);
+                descLine2.textContent = "Error: Could not load initial data.";
+            } finally {
+                chartLoader.classList.remove('visible');
+            }
+        }
+
+        async function loadCbsaData() {
+            if (cbsaDataCache || isCbsaDataLoading) return;
+            isCbsaDataLoading = true;
+            chartLoader.classList.add('visible');
+            try {
+                const response = await fetch(`${dataBaseUrl}cbsa_all_timeseries.json`);
+                if (!response.ok) throw new Error(`HTTP error! status: ${response.status}`);
+                cbsaDataCache = await response.json();
+                // Filter data to start from Jan 2019
+                cbsaDataCache = cbsaDataCache.filter(d => new Date(d.date) >= new Date('2019-01-01'));
+            } catch (error) {
+                console.error("Failed to load CBSA data:", error);
+                descLine2.textContent = "Error: Could not load market data.";
+            } finally {
+                isCbsaDataLoading = false;
+                chartLoader.classList.remove('visible');
+            }
+        }
+        
+        function handleSelectionChange() {
+            const selectedMarkets = marketChoices.getValue(true);
+            const selectedMetric = metricChoices.getValue(true);
+            const selectedView = viewChoices.getValue(true);
+
+            // --- Enforce Logic Rules ---
+            // Rule 1: Multi-metric mode disabled for "Value" view.
+            if (selectedView === 'raw' && selectedMarkets.length === 0) {
+                 metricChoices.enable(); // Re-enable if it was disabled
+            }
+
+            // Rule 2: Special comparison rule for raw counts.
+            const isNonComparable = selectedView === 'raw' && nonComparableMetrics.includes(selectedMetric);
+            if (isNonComparable && selectedMarkets.length > 1) {
+                // If user selected a non-comparable metric with multiple markets, keep only the first market.
+                const firstMarket = selectedMarkets[0];
+                marketChoices.setValue([firstMarket]);
+                return; // Let the change event re-trigger with the corrected selection.
+            }
+
+            // If user selects a market, ensure CBSA data is loaded.
+            if (selectedMarkets.length > 0 && !cbsaDataCache) {
+                loadCbsaData().then(() => updateChart());
+            } else {
+                updateChart();
+            }
+        }
+
+        function updateChart() {
+            if (!nationalDataCache) return;
+
+            const selectedMarkets = marketChoices.getValue(true);
+            const selectedMetric = metricChoices.getValue(true);
+            const selectedView = viewChoices.getValue(true);
+            
+            // --- Determine Mode and Apply Rules ---
+            let isMultiMetricMode = false; // For future implementation if needed
+            const isNonComparableScenario = selectedView === 'raw' && nonComparableMetrics.includes(selectedMetric);
+            
+            // --- Prepare Data for Chart.js ---
+            const datasets = [];
+            const labels = nationalDataCache.map(d => d.date);
+
+            const periodInfo = metrics[selectedMetric].periods[selectedView];
+            const dataKey = periodInfo.dataKey;
+
+            // Add National Data
+            const showNational = !isNonComparableScenario || selectedMarkets.length === 0;
+            if (showNational) {
+                const isReference = selectedMarkets.length > 0;
+                datasets.push({
+                    label: 'U.S. National',
+                    data: nationalDataCache.map(d => d[dataKey]),
+                    borderColor: isReference ? nationalReferenceLineColor : nationalLineColor,
+                    borderWidth: 2.5,
+                    pointRadius: 0,
+                    borderDash: isReference ? [5, 5] : [],
+                    metricKey: selectedMetric,
+                    viewKey: selectedView
+                });
+            }
+
+            // Add CBSA Data
+            if (cbsaDataCache && selectedMarkets.length > 0) {
+                selectedMarkets.forEach((marketValue, index) => {
+                    const marketData = cbsaDataCache.filter(d => d.safe_metro_name === marketValue);
+                    if (marketData.length > 0) {
+                        datasets.push({
+                            label: marketData[0].Metro,
+                            data: marketData.map(d => d[dataKey]),
+                            borderColor: marketColorPalette[index % marketColorPalette.length],
+                            borderWidth: 2.5,
+                            pointRadius: 0,
+                            metricKey: selectedMetric,
+                            viewKey: selectedView
+                        });
+                    }
+                });
+            }
+
+            // --- Update UI Elements ---
+            // Update description
+            descLine2.textContent = metrics[selectedMetric].description + " " + viewDescriptions[selectedView];
+            
+            // Update tags
+            updateTags();
+
+            // --- Update Chart ---
+            myChart.data.labels = labels;
+            myChart.data.datasets = datasets;
+            myChart.options.scales.y.ticks.callback = function(value) {
+                 return metrics[selectedMetric].format(value, selectedView).replace('+', '');
+            };
+            myChart.update();
+        }
+        
+        function updateTags() {
+            tagsContainer.innerHTML = '';
+            const selectedMarkets = marketChoices.getValue();
+            
+            selectedMarkets.forEach(item => {
+                const tag = document.createElement('div');
+                tag.className = 'selection-tag';
+                tag.innerHTML = `
+                    <span>${item.label}</span>
+                    <button data-value="${item.value}">&times;</button>
+                `;
+                tagsContainer.appendChild(tag);
+            });
+
+            // Add event listeners to the remove buttons
+            tagsContainer.querySelectorAll('button').forEach(button => {
+                button.addEventListener('click', (e) => {
+                    const valueToRemove = e.target.getAttribute('data-value');
+                    marketChoices.removeItem(valueToRemove);
+                    handleSelectionChange(); // Re-render the chart
+                });
+            });
+        }
+    </script>
+</body>
+</html>
