@@ -10,8 +10,7 @@
 
     <!-- Chart.js for line charts -->
     <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
-    <!-- ADDED: Chart.js Date Adapter to handle time scales -->
-    <script src="https://cdn.jsdelivr.net/npm/date-fns@2.29.3/index.min.js"></script>
+    <!-- Chart.js Date Adapter to handle time scales -->
     <script src="https://cdn.jsdelivr.net/npm/chartjs-adapter-date-fns@2.0.0/dist/chartjs-adapter-date-fns.bundle.min.js"></script>
     
     <!-- Choices.js CSS for searchable dropdowns -->
@@ -24,7 +23,7 @@
             margin: 0;
             padding: 0;
             font-family: 'Inter', sans-serif;
-            background-color: #f8fafc; /* A light gray background */
+            background-color: #ffffff; /* White background to match map tool */
         }
         .main-container {
             display: flex;
@@ -69,6 +68,10 @@
         .choices__list--single .choices__item {
             text-align: center;
         }
+        .choices__item { /* Rule for line breaks in dropdowns */
+            word-break: break-word; 
+            white-space: normal;
+        }
         .choices[data-type*="select-multiple"] .choices__button, .choices[data-type*="select-one"] .choices__button {
             border-left: 1px solid #d1d5db;
             margin-left: 6px;
@@ -100,7 +103,7 @@
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
     <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
 </head>
-<body class="bg-gray-50">
+<body class="bg-white">
 
     <div class="main-container p-4 md:p-6">
         <header class="mb-4 border-b pb-3 text-center flex-shrink-0">
@@ -285,26 +288,16 @@
                     scales: {
                         x: { 
                             type: 'time',
-                            time: { unit: 'year' },
+                            time: { 
+                                unit: 'year',
+                                tooltipFormat: 'MMMM yyyy' // Tooltip date format
+                            },
                             grid: { display: false },
                             ticks: { font: { weight: '600' } }
                         },
                         y: { 
                             grid: { color: '#e2e8f0' },
-                            ticks: {
-                                callback: function(value, index, ticks) {
-                                    const viewKey = viewChoices.getValue(true);
-                                    if (viewKey !== 'raw') return formatPercent(value, 0, false);
-                                    
-                                    const metricKey = metricChoices.getValue(true);
-                                    if (metricKey === "List price" || metricKey === "Potential commission pool") return formatLargeDollars(value);
-                                    if (metricKey === "Outflow volume per active listing") return value.toFixed(1);
-                                    
-                                    if (value >= 1000000) return (value / 1000000).toFixed(1) + 'M';
-                                    if (value >= 1000) return (value / 1000).toFixed(0) + 'K';
-                                    return value;
-                                }
-                            }
+                            // The ticks callback is now set dynamically in updateChart()
                         }
                     },
                     plugins: {
@@ -331,7 +324,14 @@
                             titleFont: { weight: 'bold' },
                             bodySpacing: 4,
                             padding: 10,
+                            itemSort: (a, b) => b.parsed.y - a.parsed.y, // Sort tooltips
                             callbacks: {
+                                title: function(context) { // Format tooltip title date
+                                     return new Date(context[0].parsed.x).toLocaleDateString('en-US', {
+                                        year: 'numeric',
+                                        month: 'long',
+                                    });
+                                },
                                 label: function(context) {
                                     const label = context.dataset.label || '';
                                     if (label) {
@@ -350,25 +350,23 @@
         }
         
         async function initializeSelectors() {
-            // --- Metric Selector ---
-            const metricSelect = document.getElementById('metric-select');
+            // --- Metric Selector (SINGLE SELECT) ---
+            const metricSelectEl = document.getElementById('metric-select');
             const metricOptions = Object.keys(metrics).map(key => ({ value: key, label: formatLabelForWrapping(metrics[key].label), selected: key === "List price" }));
-            metricChoices = new Choices(metricSelect, { choices: metricOptions, searchEnabled: false, itemSelectText: 'Select', shouldSort: false });
-            metricSelect.addEventListener('change', handleSelectionChange);
-
+            metricChoices = new Choices(metricSelectEl, { choices: metricOptions, searchEnabled: false, itemSelectText: 'Select', shouldSort: false });
+            
             // --- View Selector ---
-            const viewSelect = document.getElementById('view-select');
+            const viewSelectEl = document.getElementById('view-select');
             const viewOptions = [
                 { value: 'raw', label: 'Value', selected: true },
                 { value: 'yoy', label: 'Change since last year' },
                 { value: 'hist', label: 'Change since 2017-19' }
             ].map(opt => ({...opt, label: formatLabelForWrapping(opt.label)}));
-            viewChoices = new Choices(viewSelect, { choices: viewOptions, searchEnabled: false, itemSelectText: 'Select', shouldSort: false });
-            viewSelect.addEventListener('change', handleSelectionChange);
-
-            // --- Market Selector ---
-            const marketSelect = document.getElementById('market-select');
-            marketChoices = new Choices(marketSelect, { 
+            viewChoices = new Choices(viewSelectEl, { choices: viewOptions, searchEnabled: false, itemSelectText: 'Select', shouldSort: false });
+            
+            // --- Market Selector (MULTI SELECT) ---
+            const marketSelectEl = document.getElementById('market-select');
+            marketChoices = new Choices(marketSelectEl, { 
                 searchEnabled: true, 
                 itemSelectText: 'Select', 
                 shouldSort: false, 
@@ -377,15 +375,17 @@
                 placeholder: true, 
                 placeholderValue: 'Select up to 4 markets...' 
             });
-            marketSelect.addEventListener('change', handleSelectionChange);
+            
+            // --- Event Listeners ---
+            viewSelectEl.addEventListener('change', handleSelectionChange, false);
+            marketSelectEl.addEventListener('change', handleSelectionChange, false);
+            metricSelectEl.addEventListener('change', handleSelectionChange, false);
             
             try {
                 const response = await fetch(`${dataBaseUrl}cbsa_list.json`);
-                if (!response.ok) throw new Error(`HTTP error! status: ${response.status}`);
                 const data = await response.json();
                 const processedMarkets = data.markets.map(market => ({ ...market, label: formatLabelForWrapping(market.label) }));
-                // FIXED: Removed redundant setChoices call
-                marketChoices.setChoices([{ value: 'USA', label: 'U.S. National' }, ...processedMarkets], 'value', 'label', false);
+                marketChoices.setChoices(processedMarkets, 'value', 'label', false);
             } catch (error) {
                 console.error("Failed to load market list:", error);
                 marketChoices.setChoices([{ value: '', label: 'Error loading markets', disabled: true }], 'value', 'label', true);
@@ -396,9 +396,7 @@
             chartLoader.classList.add('visible');
             try {
                 const response = await fetch(`${dataBaseUrl}us_national_timeseries.json`);
-                if (!response.ok) throw new Error(`HTTP error! status: ${response.status}`);
                 nationalDataCache = await response.json();
-                // Filter data to start from Jan 2019
                 nationalDataCache = nationalDataCache.filter(d => new Date(d.date) >= new Date('2019-01-01'));
                 updateChart();
             } catch (error) {
@@ -415,9 +413,7 @@
             chartLoader.classList.add('visible');
             try {
                 const response = await fetch(`${dataBaseUrl}cbsa_all_timeseries.json`);
-                if (!response.ok) throw new Error(`HTTP error! status: ${response.status}`);
                 cbsaDataCache = await response.json();
-                // Filter data to start from Jan 2019
                 cbsaDataCache = cbsaDataCache.filter(d => new Date(d.date) >= new Date('2019-01-01'));
             } catch (error) {
                 console.error("Failed to load CBSA data:", error);
@@ -428,27 +424,22 @@
             }
         }
         
+        // --- SIMPLIFIED LOGIC HANDLER ---
         function handleSelectionChange() {
             const selectedMarkets = marketChoices.getValue(true);
             const selectedMetric = metricChoices.getValue(true);
             const selectedView = viewChoices.getValue(true);
 
-            // --- Enforce Logic Rules ---
-            // Rule 1: Multi-metric mode disabled for "Value" view.
-            if (selectedView === 'raw' && selectedMarkets.length === 0) {
-                 metricChoices.enable(); // Re-enable if it was disabled
-            }
-
-            // Rule 2: Special comparison rule for raw counts.
+            // Rule: Special comparison rule for raw counts.
             const isNonComparable = selectedView === 'raw' && nonComparableMetrics.includes(selectedMetric);
             if (isNonComparable && selectedMarkets.length > 1) {
-                // If user selected a non-comparable metric with multiple markets, keep only the first market.
-                const firstMarket = selectedMarkets[0];
-                marketChoices.setValue([firstMarket]);
-                return; // Let the change event re-trigger with the corrected selection.
+                // If the rule is violated, keep only the most recently selected market.
+                const lastSelectedMarket = selectedMarkets[selectedMarkets.length - 1];
+                marketChoices.setValue([lastSelectedMarket]);
+                // The setValue call will re-trigger this function with a valid state, so we exit early.
+                return;
             }
 
-            // If user selects a market, ensure CBSA data is loaded.
             if (selectedMarkets.length > 0 && !cbsaDataCache) {
                 loadCbsaData().then(() => updateChart());
             } else {
@@ -457,21 +448,26 @@
         }
 
         function updateChart() {
-            if (!nationalDataCache) return;
+            if (!nationalDataCache || !metricChoices || !viewChoices || !marketChoices) return;
 
             const selectedMarkets = marketChoices.getValue(true);
-            const selectedMetric = metricChoices.getValue(true);
+            const metricKey = metricChoices.getValue(true);
             const selectedView = viewChoices.getValue(true);
             
-            // --- Determine Mode and Apply Rules ---
-            let isMultiMetricMode = false; // For future implementation if needed
-            const isNonComparableScenario = selectedView === 'raw' && nonComparableMetrics.includes(selectedMetric);
+            if (!metricKey) {
+                myChart.data.labels = [];
+                myChart.data.datasets = [];
+                myChart.update();
+                descLine2.textContent = "Please select a metric to display data.";
+                updateTags();
+                return;
+            }
+
+            const isNonComparableScenario = selectedView === 'raw' && nonComparableMetrics.includes(metricKey);
             
-            // --- Prepare Data for Chart.js ---
             const datasets = [];
             const labels = nationalDataCache.map(d => d.date);
-
-            const periodInfo = metrics[selectedMetric].periods[selectedView];
+            const periodInfo = metrics[metricKey].periods[selectedView];
             const dataKey = periodInfo.dataKey;
 
             // Add National Data
@@ -482,11 +478,9 @@
                     label: 'U.S. National',
                     data: nationalDataCache.map(d => d[dataKey]),
                     borderColor: isReference ? nationalReferenceLineColor : nationalLineColor,
-                    borderWidth: 2.5,
-                    pointRadius: 0,
+                    borderWidth: 2.5, pointRadius: 0,
                     borderDash: isReference ? [5, 5] : [],
-                    metricKey: selectedMetric,
-                    viewKey: selectedView
+                    metricKey: metricKey, viewKey: selectedView
                 });
             }
 
@@ -499,28 +493,27 @@
                             label: marketData[0].Metro,
                             data: marketData.map(d => d[dataKey]),
                             borderColor: marketColorPalette[index % marketColorPalette.length],
-                            borderWidth: 2.5,
-                            pointRadius: 0,
-                            metricKey: selectedMetric,
-                            viewKey: selectedView
+                            borderWidth: 2.5, pointRadius: 0,
+                            metricKey: metricKey, viewKey: selectedView
                         });
                     }
                 });
             }
+            descLine2.textContent = metrics[metricKey].description + " " + viewDescriptions[selectedView];
 
-            // --- Update UI Elements ---
-            // Update description
-            descLine2.textContent = metrics[selectedMetric].description + " " + viewDescriptions[selectedView];
-            
-            // Update tags
             updateTags();
 
-            // --- Update Chart ---
             myChart.data.labels = labels;
             myChart.data.datasets = datasets;
+            
             myChart.options.scales.y.ticks.callback = function(value) {
-                 return metrics[selectedMetric].format(value, selectedView).replace('+', '');
+                const viewKey = viewChoices.getValue(true);
+                const metricKeyCallback = metricChoices.getValue(true);
+                if (!metricKeyCallback) return value;
+                if (viewKey !== 'raw') return formatPercent(value, 0, false);
+                return metrics[metricKeyCallback].format(value, viewKey).replace('+', '');
             };
+
             myChart.update();
         }
         
@@ -531,19 +524,14 @@
             selectedMarkets.forEach(item => {
                 const tag = document.createElement('div');
                 tag.className = 'selection-tag';
-                tag.innerHTML = `
-                    <span>${item.label}</span>
-                    <button data-value="${item.value}">&times;</button>
-                `;
+                tag.innerHTML = `<span>${item.label}</span><button data-value="${item.value}">&times;</button>`;
                 tagsContainer.appendChild(tag);
             });
 
-            // Add event listeners to the remove buttons
             tagsContainer.querySelectorAll('button').forEach(button => {
                 button.addEventListener('click', (e) => {
                     const valueToRemove = e.target.getAttribute('data-value');
-                    marketChoices.removeItem(valueToRemove);
-                    handleSelectionChange(); // Re-render the chart
+                    marketChoices.removeActiveItemsByValue(valueToRemove);
                 });
             });
         }
