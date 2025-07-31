@@ -1,0 +1,488 @@
+# ---
+# R Script: Complete Market Analysis from Raw Data to GeoJSON Export
+# Description: This script loads raw ZIP code data, enriches it with CBSA and
+#              Census information, performs time-series calculations at both the
+#              ZIP code and CBSA level, and exports a full set of GeoJSON files
+#              and time-series JSON files for line charts.
+# Author: Gemini
+# Date: 2025-06-26
+# ---
+
+# Before Step 1, download the following files from the Realtor.com data library and save them to the working directory under these file names:
+# Monthly Housing Inventory, National —> 'national_analysis.csv'
+# Monthly Housing Inventory, Metro —> 'market_analysis.csv'
+# Monthly Housing Inventory, ZIP —> 'zip_map_data.csv'
+
+# After all code is run, open Github desktop app and Commit the new files in the linked folder to main, then Push origin
+
+# Step 1: Install and load necessary packages
+# --------------------------------------------------------------------------
+# install.packages(c("dplyr", "readxl", "tidycensus", "lubridate", "zoo", "sf", "tigris", "purrr", "jsonlite"))
+
+library(dplyr)
+library(readxl)
+library(tidycensus)
+library(lubridate)
+library(zoo)
+library(sf)
+library(tigris)
+library(purrr)
+library(jsonlite)
+
+# ---
+# PART I: CREATE THE `final_data` OBJECT FROM SCRATCH
+# ---
+
+# Step 2: Load Raw Data and External Data Sources
+# --------------------------------------------------------------------------
+message("--- PART I: Creating the `final_data` object ---")
+message("Step 2: Loading raw data and external sources...")
+
+# 2a. Load the initial raw data from Realtor.com's data library
+zip_map_data <- read.csv('zip_map_data.csv')
+
+# 2b. Set up Census API Key (requires user action one time)
+# census_api_key("YOUR_API_KEY_HERE", install = TRUE)
+
+# 2c. Load and prepare the HUD ZIP-to-CBSA crosswalk file
+# NOTE: This requires 'zip_cbsa_names.xlsx' to be in your working directory.
+crosswalk_file_path <- "zip_cbsa_names.xlsx"
+zip_to_cbsa_crosswalk <- read_excel(crosswalk_file_path)
+
+zip_to_cbsa_map <- zip_to_cbsa_crosswalk %>%
+  select(postal_code = ZIP, cbsa_code = CBSA) %>%
+  mutate(
+    postal_code = sprintf("%05d", as.integer(trimws(as.character(postal_code))))
+  ) %>%
+  distinct(postal_code, .keep_all = TRUE)
+message("ZIP-to-CBSA crosswalk loaded and prepared.")
+
+# 2d. Fetch and prepare CBSA-level household data from the Census
+cbsa_households <- get_acs(
+  geography = "metropolitan statistical area/micropolitan statistical area",
+  variables = c(total_households = "B11012_001"),
+  year = 2022,
+  survey = "acs1"
+)
+
+cbsa_ranked_data <- cbsa_households %>%
+  select(cbsa_code = GEOID, cbsa_name = NAME, total_households = estimate) %>%
+  mutate(cbsa_name = gsub("\\s(Metro|Micro)\\sArea$", "", cbsa_name)) %>%
+  mutate(cbsa_household_rank = as.numeric(min_rank(desc(total_households))))
+message("Census CBSA data fetched and prepared.")
+
+
+# Step 3: Combine and Process Data into `final_data`
+# --------------------------------------------------------------------------
+message("Step 3: Creating the `final_data` object...")
+
+final_data <- zip_map_data %>%
+  # Clean and standardize postal_code to ensure a reliable join
+  mutate(
+    postal_code = sprintf("%05d", as.integer(trimws(as.character(postal_code))))
+  ) %>%
+  # Convert date column from yyyymm format
+  mutate(
+    date = as.Date(paste0(month_date_yyyymm, "01"), format = "%Y%m%d")
+  ) %>%
+  select(-month_date_yyyymm) %>%
+  # Join with the crosswalk and Census data
+  left_join(zip_to_cbsa_map, by = "postal_code") %>%
+  left_join(cbsa_ranked_data, by = "cbsa_code") %>%
+  # Relocate cbsa_name for better readability
+  relocate(cbsa_name, .after = postal_code)
+
+message("`final_data` object created successfully.")
+
+
+# ---
+# PART II: ZIP-CODE LEVEL ANALYSIS AND GEOJSON EXPORT
+# ---
+message("--- PART II: Starting ZIP-level analysis and GeoJSON export ---")
+
+# Step 4: Prepare Data for Time-Series Analysis
+# --------------------------------------------------------------------------
+message("Step 4: Preparing data for time-series analysis...")
+
+# Filter out rows missing necessary data and standardize date to the 15th
+final_data_filtered <- final_data %>%
+  filter(
+    !is.na(cbsa_household_rank)
+  ) %>%
+  mutate(date = floor_date(date, "month") + days(14))
+
+message("Initial data prepared and filtered.")
+
+
+# Step 5: Define Reusable Calculation Function
+# --------------------------------------------------------------------------
+# This function encapsulates all time-series logic and can be used for
+# both ZIP-level and CBSA-level calculations.
+
+perform_market_calculations <- function(df, group_var) {
+  
+  # --- 5a. Initial Calculations (Outflow, Revenue) ---
+  df_calculated <- df %>%
+    group_by(!!sym(group_var)) %>%
+    arrange(date) %>%
+    mutate(
+      abs_chg_active_listing_count = active_listing_count - lag(active_listing_count, n = 1),
+      total_outflow = new_listing_count - abs_chg_active_listing_count,
+      total_outflow = if_else(total_outflow < 0, 0, total_outflow),
+      potential_revenue_pool = total_outflow * median_listing_price * 0.055
+    ) %>%
+    ungroup()
+  
+  # --- 5b. 3-Month Rolling Averages ---
+  roll_mean_strict <- function(x) {
+    if(any(is.na(x))) NA_real_ else mean(x)
+  }
+  
+  df_calculated <- df_calculated %>%
+    group_by(!!sym(group_var)) %>%
+    arrange(date) %>%
+    mutate(
+      potential_revenue_3m = rollapply(potential_revenue_pool, width = 3, FUN = roll_mean_strict, fill = NA, align = "right"),
+      total_outflow_3m = rollapply(total_outflow, width = 3, FUN = roll_mean_strict, fill = NA, align = "right"),
+      new_listing_count_3m = rollapply(new_listing_count, width = 3, FUN = roll_mean_strict, fill = NA, align = "right"),
+      active_listing_count_3m = rollapply(active_listing_count, width = 3, FUN = roll_mean_strict, fill = NA, align = "right"),
+      est_outflow_price_3m = rollapply(
+        data = cbind(total_outflow, median_listing_price), width = 3,
+        FUN = function(x) {
+          if(any(is.na(x))) return(NA_real_)
+          weights <- x[,1]; prices <- x[,2]
+          if(sum(weights) == 0) return(NA_real_)
+          weighted.mean(prices, weights)
+        }, by.column = FALSE, align = "right", fill = NA
+      ),
+      weighted_days_on_market_3m = rollapply(
+        data = cbind(total_outflow, median_days_on_market), width = 3,
+        FUN = function(x) {
+          if(any(is.na(x))) return(NA_real_)
+          weights <- x[,1]; dom <- x[,2]
+          if(sum(weights) == 0) return(NA_real_)
+          weighted.mean(dom, weights)
+        }, by.column = FALSE, align = "right", fill = NA
+      ),
+      inventory_turnover_ratio_3m = total_outflow_3m / active_listing_count_3m
+    ) %>%
+    ungroup()
+  
+  # --- 5c. 2017-2019 Baseline Calculations ---
+  baseline_period <- 2017:2019
+  level_baseline <- df_calculated %>%
+    filter(year(date) %in% baseline_period) %>%
+    group_by(!!sym(group_var), month = month(date)) %>%
+    summarise(
+      baseline_potential_revenue_3m = mean(potential_revenue_3m, na.rm = TRUE),
+      baseline_est_outflow_price_3m = mean(est_outflow_price_3m, na.rm = TRUE),
+      baseline_total_outflow_3m = mean(total_outflow_3m, na.rm = TRUE),
+      baseline_inventory_turnover_ratio_3m = mean(inventory_turnover_ratio_3m, na.rm = TRUE),
+      baseline_active_listing_count_3m = mean(active_listing_count_3m, na.rm = TRUE),
+      baseline_new_listing_count_3m = mean(new_listing_count_3m, na.rm = TRUE),
+      baseline_weighted_days_on_market_3m = mean(weighted_days_on_market_3m, na.rm = TRUE),
+      .groups = 'drop'
+    )
+  
+  df_calculated <- df_calculated %>%
+    mutate(month = month(date)) %>%
+    left_join(level_baseline, by = c(setNames("month", "month"), setNames(group_var, group_var))) %>%
+    mutate(
+      potential_revenue_3m_vsbaseline_decimal = (potential_revenue_3m / baseline_potential_revenue_3m) - 1,
+      est_outflow_price_3m_vsbaseline_decimal = (est_outflow_price_3m / baseline_est_outflow_price_3m) - 1,
+      total_outflow_3m_vsbaseline_decimal = (total_outflow_3m / baseline_total_outflow_3m) - 1,
+      inventory_turnover_ratio_3m_vsbaseline_decimal = (inventory_turnover_ratio_3m / baseline_inventory_turnover_ratio_3m) - 1,
+      active_listing_count_3m_vsbaseline_decimal = (active_listing_count_3m / baseline_active_listing_count_3m) - 1,
+      new_listing_count_3m_vsbaseline_decimal = (new_listing_count_3m / baseline_new_listing_count_3m) - 1,
+      weighted_days_on_market_3m_vsbaseline_decimal = (weighted_days_on_market_3m / baseline_weighted_days_on_market_3m) - 1
+    ) %>%
+    select(-month, -starts_with("baseline_"))
+  
+  # --- 5d. Year-over-Year Calculations ---
+  df_calculated <- df_calculated %>%
+    group_by(!!sym(group_var)) %>%
+    arrange(date) %>%
+    mutate(
+      potential_revenue_3m_yy_decimal = (potential_revenue_3m / lag(potential_revenue_3m, 12)) - 1,
+      est_outflow_price_3m_yy_decimal = (est_outflow_price_3m / lag(est_outflow_price_3m, 12)) - 1,
+      total_outflow_3m_yy_decimal = (total_outflow_3m / lag(total_outflow_3m, 12)) - 1,
+      inventory_turnover_ratio_3m_yy_decimal = (inventory_turnover_ratio_3m / lag(inventory_turnover_ratio_3m, 12)) - 1,
+      active_listing_count_3m_yy_decimal = (active_listing_count_3m / lag(active_listing_count_3m, 12)) - 1,
+      new_listing_count_3m_yy_decimal = (new_listing_count_3m / lag(new_listing_count_3m, 12)) - 1,
+      weighted_days_on_market_3m_yy_decimal = (weighted_days_on_market_3m / lag(weighted_days_on_market_3m, 12)) - 1
+    ) %>%
+    ungroup()
+  
+  return(df_calculated)
+}
+
+# Step 6: Perform ZIP-level Calculations and Export
+# --------------------------------------------------------------------------
+message("Step 6: Calculating ZIP-level metrics...")
+zip_data_calculated <- perform_market_calculations(final_data_filtered, "postal_code")
+
+# --- 6a. Filter to Latest Date ---
+zip_latest_data <- zip_data_calculated %>%
+  group_by(postal_code) %>%
+  filter(date == max(date)) %>%
+  ungroup()
+
+# --- 6b. Download ZIP Code Shapefiles and Join ---
+message("Downloading ZIP Code (ZCTA) shapefiles for 2020...")
+zip_shapes <- zctas(cb = TRUE, year = 2020)
+zip_data_geo <- zip_latest_data %>%
+  left_join(zip_shapes, by = c("postal_code" = "ZCTA5CE20")) %>%
+  st_as_sf() %>%
+  filter(!is.na(st_is_valid(.)))
+message("ZIP shapefiles joined.")
+
+# --- 6c. Export ZIP-level GeoJSON files and CBSA list ---
+message("Step 6c: Preparing and exporting ZIP-level files...")
+output_dir <- file.path("~", "Desktop", "inman-tools", "data")
+if (dir.exists(output_dir)) {
+  message(paste("Cleaning old files from:", output_dir))
+  do.call(file.remove, list(list.files(output_dir, full.names = TRUE)))
+} else {
+  message(paste("Creating directory:", output_dir))
+  dir.create(output_dir, recursive = TRUE)
+}
+
+zip_data_geo_prepared <- zip_data_geo %>%
+  mutate(safe_metro_name = gsub("/", "-", cbsa_name))
+
+zip_data_for_export <- zip_data_geo_prepared %>%
+  transmute(
+    cbsa_code, 
+    `ZIP code` = postal_code, `Metro` = cbsa_name, safe_metro_name,
+    `List price` = est_outflow_price_3m,
+    `List price, Y/Y` = if_else(is.infinite(est_outflow_price_3m_yy_decimal) | is.na(est_outflow_price_3m_yy_decimal), NA_real_, round(est_outflow_price_3m_yy_decimal, 3)),
+    `List price, vs. 2017-19` = if_else(is.infinite(est_outflow_price_3m_vsbaseline_decimal) | is.na(est_outflow_price_3m_vsbaseline_decimal), NA_real_, round(est_outflow_price_3m_vsbaseline_decimal, 3)),
+    `Active listings` = active_listing_count_3m,
+    `Active listings, Y/Y` = if_else(is.infinite(active_listing_count_3m_yy_decimal) | is.na(active_listing_count_3m_yy_decimal), NA_real_, round(active_listing_count_3m_yy_decimal, 3)),
+    `Active listings, vs. 2017-19` = if_else(is.infinite(active_listing_count_3m_vsbaseline_decimal) | is.na(active_listing_count_3m_vsbaseline_decimal), NA_real_, round(active_listing_count_3m_vsbaseline_decimal, 3)),
+    `New listings` = new_listing_count_3m,
+    `New listings, Y/Y` = if_else(is.infinite(new_listing_count_3m_yy_decimal) | is.na(new_listing_count_3m_yy_decimal), NA_real_, round(new_listing_count_3m_yy_decimal, 3)),
+    `New listings, vs. 2017-19` = if_else(is.infinite(new_listing_count_3m_vsbaseline_decimal) | is.na(new_listing_count_3m_vsbaseline_decimal), NA_real_, round(new_listing_count_3m_vsbaseline_decimal, 3)),
+    `Listing outflow` = total_outflow_3m,
+    `Listing outflow, Y/Y` = if_else(is.infinite(total_outflow_3m_yy_decimal) | is.na(total_outflow_3m_yy_decimal), NA_real_, round(total_outflow_3m_yy_decimal, 3)),
+    `Listing outflow, vs. 2017-19` = if_else(is.infinite(total_outflow_3m_vsbaseline_decimal) | is.na(total_outflow_3m_vsbaseline_decimal), NA_real_, round(total_outflow_3m_vsbaseline_decimal, 3)),
+    `Outflow volume per active listing` = if_else(is.infinite(inventory_turnover_ratio_3m), NA_real_, inventory_turnover_ratio_3m),
+    `Outflow volume per active listing, Y/Y` = if_else(is.infinite(inventory_turnover_ratio_3m_yy_decimal) | is.na(inventory_turnover_ratio_3m_yy_decimal), NA_real_, round(inventory_turnover_ratio_3m_yy_decimal, 3)),
+    `Outflow volume per active listing, vs. 2017-19` = if_else(is.infinite(inventory_turnover_ratio_3m_vsbaseline_decimal) | is.na(inventory_turnover_ratio_3m_vsbaseline_decimal), NA_real_, round(inventory_turnover_ratio_3m_vsbaseline_decimal, 3)),
+    `Days on market` = weighted_days_on_market_3m,
+    `Days on market, Y/Y` = if_else(is.infinite(weighted_days_on_market_3m_yy_decimal) | is.na(weighted_days_on_market_3m_yy_decimal), NA_real_, round(weighted_days_on_market_3m_yy_decimal, 3)),
+    `Days on market, vs. 2017-19` = if_else(is.infinite(weighted_days_on_market_3m_vsbaseline_decimal) | is.na(weighted_days_on_market_3m_vsbaseline_decimal), NA_real_, round(weighted_days_on_market_3m_vsbaseline_decimal, 3)),
+    `Potential commission pool` = potential_revenue_3m,
+    `Potential commission pool, Y/Y` = if_else(is.infinite(potential_revenue_3m_yy_decimal) | is.na(potential_revenue_3m_yy_decimal), NA_real_, round(potential_revenue_3m_yy_decimal, 3)),
+    `Potential commission pool, vs. 2017-19` = if_else(is.infinite(potential_revenue_3m_vsbaseline_decimal) | is.na(potential_revenue_3m_vsbaseline_decimal), NA_real_, round(potential_revenue_3m_vsbaseline_decimal, 3)),
+    geometry
+  )
+
+market_map <- zip_data_for_export %>%
+  st_drop_geometry() %>%
+  distinct(cbsa_code, Metro, safe_metro_name) %>%
+  left_join(select(cbsa_ranked_data, cbsa_code, cbsa_household_rank), by = "cbsa_code") %>%
+  arrange(cbsa_household_rank)
+
+markets_list <- map2(market_map$Metro, market_map$safe_metro_name, ~list(label = .x, value = .y))
+json_output_list <- list(markets = markets_list)
+json_filepath <- file.path(output_dir, "cbsa_list.json")
+write_json(json_output_list, json_filepath, auto_unbox = TRUE, pretty = TRUE)
+message(paste("Market list saved to:", json_filepath))
+
+save_cbsa_geojson <- function(data, safe_filename) {
+  filepath <- file.path(output_dir, paste0(safe_filename, ".geojson"))
+  message(paste("Writing file:", filepath))
+  st_write(data, filepath, driver = "GeoJSON", delete_dsn = TRUE)
+}
+
+zip_data_for_export %>%
+  group_by(safe_metro_name) %>%
+  group_split() %>%
+  walk(~ {
+    safe_name <- .x$safe_metro_name[1]
+    data_to_write <- .x %>% select(-safe_metro_name, -cbsa_code)
+    save_cbsa_geojson(data_to_write, safe_name)
+  })
+message("All ZIP-level GeoJSON files have been exported successfully.")
+
+
+# ---
+# PART III: CBSA-LEVEL NATIONAL FILE CREATION
+# ---
+message("--- PART III: Starting CBSA-level national file creation ---")
+
+# Step 8: Load and Prepare CBSA-level Data
+# --------------------------------------------------------------------------
+message("Step 8: Loading and preparing market_analysis.csv...")
+cbsa_data_raw <- read.csv("market_analysis.csv")
+
+# Prepare data: create date, ensure cbsa_code is character for the join
+cbsa_data_prepared <- cbsa_data_raw %>%
+  mutate(
+    date = as.Date(paste0(month_date_yyyymm, "15"), format = "%Y%m%d"),
+    cbsa_code = as.character(cbsa_code)
+  )
+
+# Filter using the robust cbsa_code from the master market_map.
+cbsa_data_filtered <- cbsa_data_prepared %>%
+  inner_join(market_map, by = "cbsa_code")
+
+message("CBSA data loaded and filtered.")
+
+# Step 9: Perform CBSA-level Calculations
+# --------------------------------------------------------------------------
+message("Step 9: Calculating CBSA-level metrics...")
+cbsa_data_calculated <- perform_market_calculations(cbsa_data_filtered, "cbsa_code")
+
+# Step 10: Final CBSA Data Prep and Shapefile Join
+# --------------------------------------------------------------------------
+message("Step 10: Filtering to latest date and joining CBSA shapefiles...")
+
+# --- 10a. Filter to Latest Date ---
+cbsa_latest_data <- cbsa_data_calculated %>%
+  group_by(cbsa_code) %>%
+  filter(date == max(date)) %>%
+  ungroup()
+
+# --- 10b. Download CBSA Shapefiles (2020 vintage) and Join ---
+message("Downloading CBSA shapefiles for 2020...")
+cbsa_shapes <- core_based_statistical_areas(cb = TRUE, year = 2020)
+
+cbsa_data_geo <- cbsa_latest_data %>%
+  mutate(cbsa_code = as.character(cbsa_code)) %>%
+  left_join(cbsa_shapes, by = c("cbsa_code" = "GEOID")) %>%
+  st_as_sf() %>%
+  filter(!is.na(st_is_valid(.)))
+message("CBSA shapefiles joined.")
+
+# Step 11: Export National CBSA GeoJSON File
+# --------------------------------------------------------------------------
+message("Step 11: Preparing and exporting national CBSA file...")
+
+cbsa_data_for_export <- cbsa_data_geo %>%
+  transmute(
+    cbsa_display_name = gsub(",.*$", "", Metro),
+    cbsa_filename_value = safe_metro_name,
+    `List price` = est_outflow_price_3m,
+    `List price, Y/Y` = if_else(is.infinite(est_outflow_price_3m_yy_decimal) | is.na(est_outflow_price_3m_yy_decimal), NA_real_, round(est_outflow_price_3m_yy_decimal, 3)),
+    `List price, vs. 2017-19` = if_else(is.infinite(est_outflow_price_3m_vsbaseline_decimal) | is.na(est_outflow_price_3m_vsbaseline_decimal), NA_real_, round(est_outflow_price_3m_vsbaseline_decimal, 3)),
+    `Active listings` = active_listing_count_3m,
+    `Active listings, Y/Y` = if_else(is.infinite(active_listing_count_3m_yy_decimal) | is.na(active_listing_count_3m_yy_decimal), NA_real_, round(active_listing_count_3m_yy_decimal, 3)),
+    `Active listings, vs. 2017-19` = if_else(is.infinite(active_listing_count_3m_vsbaseline_decimal) | is.na(active_listing_count_3m_vsbaseline_decimal), NA_real_, round(active_listing_count_3m_vsbaseline_decimal, 3)),
+    `New listings` = new_listing_count_3m,
+    `New listings, Y/Y` = if_else(is.infinite(new_listing_count_3m_yy_decimal) | is.na(new_listing_count_3m_yy_decimal), NA_real_, round(new_listing_count_3m_yy_decimal, 3)),
+    `New listings, vs. 2017-19` = if_else(is.infinite(new_listing_count_3m_vsbaseline_decimal) | is.na(new_listing_count_3m_vsbaseline_decimal), NA_real_, round(new_listing_count_3m_vsbaseline_decimal, 3)),
+    `Listing outflow` = total_outflow_3m,
+    `Listing outflow, Y/Y` = if_else(is.infinite(total_outflow_3m_yy_decimal) | is.na(total_outflow_3m_yy_decimal), NA_real_, round(total_outflow_3m_yy_decimal, 3)),
+    `Listing outflow, vs. 2017-19` = if_else(is.infinite(total_outflow_3m_vsbaseline_decimal) | is.na(total_outflow_3m_vsbaseline_decimal), NA_real_, round(total_outflow_3m_vsbaseline_decimal, 3)),
+    `Outflow volume per active listing` = if_else(is.infinite(inventory_turnover_ratio_3m), NA_real_, inventory_turnover_ratio_3m),
+    `Outflow volume per active listing, Y/Y` = if_else(is.infinite(inventory_turnover_ratio_3m_yy_decimal) | is.na(inventory_turnover_ratio_3m_yy_decimal), NA_real_, round(inventory_turnover_ratio_3m_yy_decimal, 3)),
+    `Outflow volume per active listing, vs. 2017-19` = if_else(is.infinite(inventory_turnover_ratio_3m_vsbaseline_decimal) | is.na(inventory_turnover_ratio_3m_vsbaseline_decimal), NA_real_, round(inventory_turnover_ratio_3m_vsbaseline_decimal, 3)),
+    `Days on market` = weighted_days_on_market_3m,
+    `Days on market, Y/Y` = if_else(is.infinite(weighted_days_on_market_3m_yy_decimal) | is.na(weighted_days_on_market_3m_yy_decimal), NA_real_, round(weighted_days_on_market_3m_yy_decimal, 3)),
+    `Days on market, vs. 2017-19` = if_else(is.infinite(weighted_days_on_market_3m_vsbaseline_decimal) | is.na(weighted_days_on_market_3m_vsbaseline_decimal), NA_real_, round(weighted_days_on_market_3m_vsbaseline_decimal, 3)),
+    `Potential commission pool` = potential_revenue_3m,
+    `Potential commission pool, Y/Y` = if_else(is.infinite(potential_revenue_3m_yy_decimal) | is.na(potential_revenue_3m_yy_decimal), NA_real_, round(potential_revenue_3m_yy_decimal, 3)),
+    `Potential commission pool, vs. 2017-19` = if_else(is.infinite(potential_revenue_3m_vsbaseline_decimal) | is.na(potential_revenue_3m_vsbaseline_decimal), NA_real_, round(potential_revenue_3m_vsbaseline_decimal, 3)),
+    geometry
+  )
+
+national_filepath <- file.path(output_dir, "cbsa_national_data.geojson")
+message(paste("Writing national CBSA file to:", national_filepath))
+st_write(cbsa_data_for_export, national_filepath, driver = "GeoJSON", delete_dsn = TRUE)
+
+message("National CBSA GeoJSON file has been exported successfully.")
+
+
+# ---
+# PART IV: PREPARE DATA FOR LINE CHART TOOL
+# ---
+message("--- PART IV: Preparing data for line chart tool ---")
+
+# Step 12: Create the National Time-Series File
+# --------------------------------------------------------------------------
+message("Step 12: Loading and processing national_analysis.csv...")
+national_data_raw <- read.csv("national_analysis.csv")
+
+# Prepare data for calculation function
+national_data_prepared <- national_data_raw %>%
+  mutate(
+    date = as.Date(paste0(month_date_yyyymm, "15"), format = "%Y%m%d"),
+    geography = "USA" # Add dummy grouping variable
+  )
+
+# Perform the same time-series calculations
+national_data_calculated <- perform_market_calculations(national_data_prepared, "geography")
+
+# UPDATED: Format the national data columns to match the CBSA time-series file.
+national_timeseries_for_export <- national_data_calculated %>%
+  transmute(
+    date = date,
+    `List price` = est_outflow_price_3m,
+    `List price, Y/Y` = if_else(is.infinite(est_outflow_price_3m_yy_decimal) | is.na(est_outflow_price_3m_yy_decimal), NA_real_, round(est_outflow_price_3m_yy_decimal, 3)),
+    `List price, vs. 2017-19` = if_else(is.infinite(est_outflow_price_3m_vsbaseline_decimal) | is.na(est_outflow_price_3m_vsbaseline_decimal), NA_real_, round(est_outflow_price_3m_vsbaseline_decimal, 3)),
+    `Active listings` = active_listing_count_3m,
+    `Active listings, Y/Y` = if_else(is.infinite(active_listing_count_3m_yy_decimal) | is.na(active_listing_count_3m_yy_decimal), NA_real_, round(active_listing_count_3m_yy_decimal, 3)),
+    `Active listings, vs. 2017-19` = if_else(is.infinite(active_listing_count_3m_vsbaseline_decimal) | is.na(active_listing_count_3m_vsbaseline_decimal), NA_real_, round(active_listing_count_3m_vsbaseline_decimal, 3)),
+    `New listings` = new_listing_count_3m,
+    `New listings, Y/Y` = if_else(is.infinite(new_listing_count_3m_yy_decimal) | is.na(new_listing_count_3m_yy_decimal), NA_real_, round(new_listing_count_3m_yy_decimal, 3)),
+    `New listings, vs. 2017-19` = if_else(is.infinite(new_listing_count_3m_vsbaseline_decimal) | is.na(new_listing_count_3m_vsbaseline_decimal), NA_real_, round(new_listing_count_3m_vsbaseline_decimal, 3)),
+    `Listing outflow` = total_outflow_3m,
+    `Listing outflow, Y/Y` = if_else(is.infinite(total_outflow_3m_yy_decimal) | is.na(total_outflow_3m_yy_decimal), NA_real_, round(total_outflow_3m_yy_decimal, 3)),
+    `Listing outflow, vs. 2017-19` = if_else(is.infinite(total_outflow_3m_vsbaseline_decimal) | is.na(total_outflow_3m_vsbaseline_decimal), NA_real_, round(total_outflow_3m_vsbaseline_decimal, 3)),
+    `Outflow volume per active listing` = if_else(is.infinite(inventory_turnover_ratio_3m), NA_real_, inventory_turnover_ratio_3m),
+    `Outflow volume per active listing, Y/Y` = if_else(is.infinite(inventory_turnover_ratio_3m_yy_decimal) | is.na(inventory_turnover_ratio_3m_yy_decimal), NA_real_, round(inventory_turnover_ratio_3m_yy_decimal, 3)),
+    `Outflow volume per active listing, vs. 2017-19` = if_else(is.infinite(inventory_turnover_ratio_3m_vsbaseline_decimal) | is.na(inventory_turnover_ratio_3m_vsbaseline_decimal), NA_real_, round(inventory_turnover_ratio_3m_vsbaseline_decimal, 3)),
+    `Days on market` = weighted_days_on_market_3m,
+    `Days on market, Y/Y` = if_else(is.infinite(weighted_days_on_market_3m_yy_decimal) | is.na(weighted_days_on_market_3m_yy_decimal), NA_real_, round(weighted_days_on_market_3m_yy_decimal, 3)),
+    `Days on market, vs. 2017-19` = if_else(is.infinite(weighted_days_on_market_3m_vsbaseline_decimal) | is.na(weighted_days_on_market_3m_vsbaseline_decimal), NA_real_, round(weighted_days_on_market_3m_vsbaseline_decimal, 3)),
+    `Potential commission pool` = potential_revenue_3m,
+    `Potential commission pool, Y/Y` = if_else(is.infinite(potential_revenue_3m_yy_decimal) | is.na(potential_revenue_3m_yy_decimal), NA_real_, round(potential_revenue_3m_yy_decimal, 3)),
+    `Potential commission pool, vs. 2017-19` = if_else(is.infinite(potential_revenue_3m_vsbaseline_decimal) | is.na(potential_revenue_3m_vsbaseline_decimal), NA_real_, round(potential_revenue_3m_vsbaseline_decimal, 3))
+  )
+
+# Write the full time-series to a JSON file
+national_timeseries_filepath <- file.path(output_dir, "us_national_timeseries.json")
+write_json(national_timeseries_for_export, national_timeseries_filepath, auto_unbox = TRUE, pretty = TRUE)
+message(paste("National time-series file saved to:", national_timeseries_filepath))
+
+
+# Step 13: Create the Comprehensive CBSA Time-Series File
+# --------------------------------------------------------------------------
+message("Step 13: Preparing comprehensive CBSA time-series file...")
+
+# Use the already calculated cbsa_data_calculated object from Step 9
+# and format it for the line chart tool.
+cbsa_timeseries_for_export <- cbsa_data_calculated %>%
+  transmute(
+    Metro = Metro,
+    safe_metro_name = safe_metro_name,
+    date = date,
+    `List price` = est_outflow_price_3m,
+    `List price, Y/Y` = if_else(is.infinite(est_outflow_price_3m_yy_decimal) | is.na(est_outflow_price_3m_yy_decimal), NA_real_, round(est_outflow_price_3m_yy_decimal, 3)),
+    `List price, vs. 2017-19` = if_else(is.infinite(est_outflow_price_3m_vsbaseline_decimal) | is.na(est_outflow_price_3m_vsbaseline_decimal), NA_real_, round(est_outflow_price_3m_vsbaseline_decimal, 3)),
+    `Active listings` = active_listing_count_3m,
+    `Active listings, Y/Y` = if_else(is.infinite(active_listing_count_3m_yy_decimal) | is.na(active_listing_count_3m_yy_decimal), NA_real_, round(active_listing_count_3m_yy_decimal, 3)),
+    `Active listings, vs. 2017-19` = if_else(is.infinite(active_listing_count_3m_vsbaseline_decimal) | is.na(active_listing_count_3m_vsbaseline_decimal), NA_real_, round(active_listing_count_3m_vsbaseline_decimal, 3)),
+    `New listings` = new_listing_count_3m,
+    `New listings, Y/Y` = if_else(is.infinite(new_listing_count_3m_yy_decimal) | is.na(new_listing_count_3m_yy_decimal), NA_real_, round(new_listing_count_3m_yy_decimal, 3)),
+    `New listings, vs. 2017-19` = if_else(is.infinite(new_listing_count_3m_vsbaseline_decimal) | is.na(new_listing_count_3m_vsbaseline_decimal), NA_real_, round(new_listing_count_3m_vsbaseline_decimal, 3)),
+    `Listing outflow` = total_outflow_3m,
+    `Listing outflow, Y/Y` = if_else(is.infinite(total_outflow_3m_yy_decimal) | is.na(total_outflow_3m_yy_decimal), NA_real_, round(total_outflow_3m_yy_decimal, 3)),
+    `Listing outflow, vs. 2017-19` = if_else(is.infinite(total_outflow_3m_vsbaseline_decimal) | is.na(total_outflow_3m_vsbaseline_decimal), NA_real_, round(total_outflow_3m_vsbaseline_decimal, 3)),
+    `Outflow volume per active listing` = if_else(is.infinite(inventory_turnover_ratio_3m), NA_real_, inventory_turnover_ratio_3m),
+    `Outflow volume per active listing, Y/Y` = if_else(is.infinite(inventory_turnover_ratio_3m_yy_decimal) | is.na(inventory_turnover_ratio_3m_yy_decimal), NA_real_, round(inventory_turnover_ratio_3m_yy_decimal, 3)),
+    `Outflow volume per active listing, vs. 2017-19` = if_else(is.infinite(inventory_turnover_ratio_3m_vsbaseline_decimal) | is.na(inventory_turnover_ratio_3m_vsbaseline_decimal), NA_real_, round(inventory_turnover_ratio_3m_vsbaseline_decimal, 3)),
+    `Days on market` = weighted_days_on_market_3m,
+    `Days on market, Y/Y` = if_else(is.infinite(weighted_days_on_market_3m_yy_decimal) | is.na(weighted_days_on_market_3m_yy_decimal), NA_real_, round(weighted_days_on_market_3m_yy_decimal, 3)),
+    `Days on market, vs. 2017-19` = if_else(is.infinite(weighted_days_on_market_3m_vsbaseline_decimal) | is.na(weighted_days_on_market_3m_vsbaseline_decimal), NA_real_, round(weighted_days_on_market_3m_vsbaseline_decimal, 3)),
+    `Potential commission pool` = potential_revenue_3m,
+    `Potential commission pool, Y/Y` = if_else(is.infinite(potential_revenue_3m_yy_decimal) | is.na(potential_revenue_3m_yy_decimal), NA_real_, round(potential_revenue_3m_yy_decimal, 3)),
+    `Potential commission pool, vs. 2017-19` = if_else(is.infinite(potential_revenue_3m_vsbaseline_decimal) | is.na(potential_revenue_3m_vsbaseline_decimal), NA_real_, round(potential_revenue_3m_vsbaseline_decimal, 3))
+  )
+
+# Write the comprehensive CBSA time-series data to a single JSON file
+cbsa_timeseries_filepath <- file.path(output_dir, "cbsa_all_timeseries.json")
+write_json(cbsa_timeseries_for_export, cbsa_timeseries_filepath, auto_unbox = TRUE, pretty = TRUE)
+message(paste("Comprehensive CBSA time-series file saved to:", cbsa_timeseries_filepath))
