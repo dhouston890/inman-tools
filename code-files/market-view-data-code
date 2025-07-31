@@ -13,6 +13,8 @@
 # Monthly Housing Inventory, Metro —> 'market_analysis.csv'
 # Monthly Housing Inventory, ZIP —> 'zip_map_data.csv'
 
+# After all code is run, open Github desktop app and Commit the new files in the linked folder to main, then Push origin
+
 # Step 1: Install and load necessary packages
 # --------------------------------------------------------------------------
 # install.packages(c("dplyr", "readxl", "tidycensus", "lubridate", "zoo", "sf", "tigris", "purrr", "jsonlite"))
