@@ -28,7 +28,9 @@
         .main-container {
             display: flex;
             flex-direction: column;
-            min-height: 100vh;
+            /* FIXED: Adjusted height for better embedding */
+            max-height: 800px; 
+            height: 100%;
             overflow-y: auto;
         }
         #chart-container {
@@ -62,10 +64,15 @@
             padding-top: 4px !important;
             padding-bottom: 3px !important;
             min-height: auto !important;
-            background-color: #fff;
+            background-color: #f9fafb; 
             border-radius: 0.375rem;
+            border: 1px solid #d1d5db; 
         }
         .choices__list--single .choices__item {
+            text-align: center;
+        }
+        /* FIXED: Center align placeholder text in multi-select */
+        .choices[data-type*='select-multiple'] .choices__inner {
             text-align: center;
         }
         .choices__item { /* Rule for line breaks in dropdowns */
@@ -106,25 +113,22 @@
 <body class="bg-white">
 
     <div class="main-container p-4 md:p-6">
-        <!-- FIXED: Header classes aligned with map tool -->
         <header class="mb-2 border-b pb-2 text-center flex-shrink-0">
-            <!-- FIXED: Title font size aligned with map tool -->
             <h1 class="text-2xl font-bold text-gray-800">Inman Market Trends</h1>
-            <!-- FIXED: Descriptive text font size aligned with map tool -->
             <p id="desc-line-2" class="text-gray-600 text-xs mt-1"></p>
         </header>
 
         <!-- Filter Controls -->
         <div class="grid grid-cols-1 md:grid-cols-3 gap-4 mb-2 flex-shrink-0">
-            <div style="z-index: 1003;">
+            <div>
                 <label for="market-select" class="block text-sm font-medium text-gray-700 mb-1 text-center">1. Select Market(s)</label>
                 <select id="market-select" multiple></select>
             </div>
-            <div style="z-index: 1002;">
+            <div>
                 <label for="metric-select" class="block text-sm font-medium text-gray-700 mb-1 text-center">2. Select a Metric</label>
                 <select id="metric-select"></select>
             </div>
-             <div style="z-index: 1001;">
+             <div>
                 <label for="view-select" class="block text-sm font-medium text-gray-700 mb-1 text-center">3. Select a View</label>
                 <select id="view-select"></select>
             </div>
@@ -147,7 +151,6 @@
             </div>
         </div>
         <footer class="flex-shrink-0 text-center py-2">
-             <!-- FIXED: Updated credit line -->
              <p class="text-xs text-gray-500">Chart.js | Choices.js | Data from <a href="https://www.realtor.com/research/data/" target="_blank" rel="noopener noreferrer" class="underline hover:text-gray-700">Realtor.com</a> | Analysis by Inman | Visualized with Gemini</p>
         </footer>
     </div>
@@ -319,7 +322,7 @@
                             },
                             onLeave: (event, legendItem, legend) => {
                                 legend.chart.data.datasets.forEach(dataset => {
-                                    dataset.borderWidth = 2.5;
+                                    dataset.borderWidth = 2.7;
                                 });
                                 legend.chart.update();
                             }
@@ -492,7 +495,7 @@
                     label: 'U.S. National',
                     data: nationalDataCache.map(d => d[dataKey]),
                     borderColor: isReference ? nationalReferenceLineColor : nationalLineColor,
-                    borderWidth: 2.5, pointRadius: 0,
+                    borderWidth: 2.7, pointRadius: 0,
                     borderDash: isReference ? [5, 5] : [],
                     metricKey: metricKey, viewKey: selectedView
                 });
@@ -507,7 +510,7 @@
                             label: marketData[0].Metro,
                             data: marketData.map(d => d[dataKey]),
                             borderColor: marketColorPalette[index % marketColorPalette.length],
-                            borderWidth: 2.5, pointRadius: 0,
+                            borderWidth: 2.7, pointRadius: 0,
                             metricKey: metricKey, viewKey: selectedView
                         });
                     }
