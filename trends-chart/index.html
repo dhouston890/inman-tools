@@ -28,7 +28,6 @@
         .main-container {
             display: flex;
             flex-direction: column;
-            /* FIXED: Adjusted height for better embedding */
             max-height: 800px; 
             height: 100%;
             overflow-y: auto;
@@ -71,7 +70,6 @@
         .choices__list--single .choices__item {
             text-align: center;
         }
-        /* FIXED: Center align placeholder text in multi-select */
         .choices[data-type*='select-multiple'] .choices__inner {
             text-align: center;
         }
@@ -82,28 +80,6 @@
         .choices[data-type*="select-multiple"] .choices__button, .choices[data-type*="select-one"] .choices__button {
             border-left: 1px solid #d1d5db;
             margin-left: 6px;
-        }
-        /* Styling for selection tags */
-        .selection-tag {
-            display: inline-flex;
-            align-items: center;
-            background-color: #e0e7ff;
-            color: #3730a3;
-            border-radius: 9999px;
-            padding: 4px 12px;
-            font-size: 14px;
-            font-weight: 500;
-            margin: 4px;
-        }
-        .selection-tag button {
-            margin-left: 8px;
-            background: none;
-            border: none;
-            cursor: pointer;
-            color: #4f46e5;
-        }
-        .selection-tag button:hover {
-            color: #3730a3;
         }
     </style>
     <link rel="preconnect" href="https://fonts.googleapis.com">
@@ -119,7 +95,7 @@
         </header>
 
         <!-- Filter Controls -->
-        <div class="grid grid-cols-1 md:grid-cols-3 gap-4 mb-2 flex-shrink-0">
+        <div class="grid grid-cols-1 md:grid-cols-3 gap-4 mb-3 flex-shrink-0">
             <div>
                 <label for="market-select" class="block text-sm font-medium text-gray-700 mb-1 text-center">1. Select Market(s)</label>
                 <select id="market-select" multiple></select>
@@ -133,9 +109,6 @@
                 <select id="view-select"></select>
             </div>
         </div>
-
-        <!-- Selection Tags Container -->
-        <div id="tags-container" class="flex flex-wrap justify-center items-center mb-3 min-h-[36px]"></div>
 
         <!-- The Chart Container -->
         <div id="chart-container" class="bg-white rounded-lg shadow-sm">
@@ -251,10 +224,11 @@
             }
         };
 
+        // FIXED: Updated view descriptions based on your edits
         const viewDescriptions = {
-            raw: "over time.",
-            yoy: "over time, compared to the same time last year.",
-            hist: "over time, compared to a pre-pandemic 'normal.'"
+            raw: "over the preceding three months.",
+            yoy: "over the preceding three months, compared to the same period the previous year.",
+            hist: "over the preceding three months, compared to a pre-pandemic “normal” for that time of year."
         };
         
         const nonComparableMetrics = ["Active listings", "New listings", "Listing outflow", "Potential commission pool"];
@@ -272,7 +246,6 @@
 
         const chartLoader = document.getElementById('chart-loader');
         const descLine2 = document.getElementById('desc-line-2');
-        const tagsContainer = document.getElementById('tags-container');
         
         // --- INITIALIZATION --- //
         document.addEventListener('DOMContentLoaded', () => {
@@ -322,7 +295,7 @@
                             },
                             onLeave: (event, legendItem, legend) => {
                                 legend.chart.data.datasets.forEach(dataset => {
-                                    dataset.borderWidth = 2.7;
+                                    dataset.borderWidth = 3.0;
                                 });
                                 legend.chart.update();
                             }
@@ -398,7 +371,6 @@
                             return template(`
                                 <div class="${classNames.item}" data-item data-id="${data.id}" data-value="${data.value}" ${data.active ? 'aria-selected="true"' : ''} ${data.disabled ? 'aria-disabled="true"' : ''}>
                                     ${newLabel}
-                                    <button type="button" class="${classNames.button}" aria-label="Remove item: '${data.value}'" data-button>Remove item</button>
                                 </div>
                             `);
                         },
@@ -476,7 +448,6 @@
                 myChart.data.datasets = [];
                 myChart.update();
                 descLine2.textContent = "Please select a metric to display data.";
-                updateTags();
                 return;
             }
 
@@ -495,7 +466,7 @@
                     label: 'U.S. National',
                     data: nationalDataCache.map(d => d[dataKey]),
                     borderColor: isReference ? nationalReferenceLineColor : nationalLineColor,
-                    borderWidth: 2.7, pointRadius: 0,
+                    borderWidth: 3.0, pointRadius: 0,
                     borderDash: isReference ? [5, 5] : [],
                     metricKey: metricKey, viewKey: selectedView
                 });
@@ -510,15 +481,13 @@
                             label: marketData[0].Metro,
                             data: marketData.map(d => d[dataKey]),
                             borderColor: marketColorPalette[index % marketColorPalette.length],
-                            borderWidth: 2.7, pointRadius: 0,
+                            borderWidth: 3.0, pointRadius: 0,
                             metricKey: metricKey, viewKey: selectedView
                         });
                     }
                 });
             }
             descLine2.textContent = metrics[metricKey].description + " " + viewDescriptions[selectedView];
-
-            updateTags();
 
             myChart.data.labels = labels;
             myChart.data.datasets = datasets;
@@ -532,25 +501,6 @@
             };
 
             myChart.update();
-        }
-        
-        function updateTags() {
-            tagsContainer.innerHTML = '';
-            const selectedMarkets = marketChoices.getValue();
-            
-            selectedMarkets.forEach(item => {
-                const tag = document.createElement('div');
-                tag.className = 'selection-tag';
-                tag.innerHTML = `<span>${item.label.replace(/,.*/, '')}</span><button data-value="${item.value}">&times;</button>`;
-                tagsContainer.appendChild(tag);
-            });
-
-            tagsContainer.querySelectorAll('button').forEach(button => {
-                button.addEventListener('click', (e) => {
-                    const valueToRemove = e.target.getAttribute('data-value');
-                    marketChoices.removeActiveItemsByValue(valueToRemove);
-                });
-            });
         }
     </script>
 </body>
