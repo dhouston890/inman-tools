@@ -106,9 +106,12 @@
 <body class="bg-white">
 
     <div class="main-container p-4 md:p-6">
-        <header class="mb-4 border-b pb-3 text-center flex-shrink-0">
-            <h1 class="text-2xl md:text-3xl font-bold text-gray-800">Inman Market Trends</h1>
-            <p id="desc-line-2" class="text-gray-600 text-sm mt-1 h-5"></p>
+        <!-- FIXED: Header classes aligned with map tool -->
+        <header class="mb-2 border-b pb-2 text-center flex-shrink-0">
+            <!-- FIXED: Title font size aligned with map tool -->
+            <h1 class="text-2xl font-bold text-gray-800">Inman Market Trends</h1>
+            <!-- FIXED: Descriptive text font size aligned with map tool -->
+            <p id="desc-line-2" class="text-gray-600 text-xs mt-1"></p>
         </header>
 
         <!-- Filter Controls -->
@@ -144,7 +147,8 @@
             </div>
         </div>
         <footer class="flex-shrink-0 text-center py-2">
-             <p class="text-xs text-gray-500">Data from <a href="https://www.realtor.com/research/data/" target="_blank" rel="noopener noreferrer" class="underline hover:text-gray-700">Realtor.com</a> | Visualized by Inman with Gemini</p>
+             <!-- FIXED: Updated credit line -->
+             <p class="text-xs text-gray-500">Chart.js | Choices.js | Data from <a href="https://www.realtor.com/research/data/" target="_blank" rel="noopener noreferrer" class="underline hover:text-gray-700">Realtor.com</a> | Analysis by Inman | Visualized with Gemini</p>
         </footer>
     </div>
 
@@ -169,7 +173,7 @@
             const num = (val * 100).toFixed(precision);
             return addPlus && val > 0 ? `+${num}%` : `${num}%`;
         }
-
+        
         // --- CONFIGURATION --- //
         const metrics = {
             "List price": { 
@@ -252,8 +256,9 @@
         
         const nonComparableMetrics = ["Active listings", "New listings", "Listing outflow", "Potential commission pool"];
         const dataBaseUrl = 'https://dhouston890.github.io/inman-tools/data/';
-        const marketColorPalette = ['#1f77b4', '#ff7f0e', '#2ca02c', '#d62728', '#9467bd', '#8c564b'];
-        const nationalLineColor = '#1f77b4';
+        
+        const marketColorPalette = ['#4477AA', '#EE6677', '#228833', '#DDAA33', '#66CCEE', '#AA3377'];
+        const nationalLineColor = '#4477AA';
         const nationalReferenceLineColor = '#a0aec0'; // A neutral gray
 
         // --- GLOBAL VARIABLES --- //
@@ -321,19 +326,30 @@
                         },
                         tooltip: {
                             backgroundColor: 'rgba(0, 0, 0, 0.8)',
-                            titleFont: { weight: 'bold' },
-                            bodySpacing: 4,
+                            titleFont: { weight: 'bold', size: 14 },
+                            beforeBodyFont: { weight: 'normal' },
+                            bodyFont: { weight: 'normal' },
+                            bodySpacing: 6,
                             padding: 10,
                             itemSort: (a, b) => b.parsed.y - a.parsed.y, // Sort tooltips
                             callbacks: {
-                                title: function(context) { // Format tooltip title date
-                                     return new Date(context[0].parsed.x).toLocaleDateString('en-US', {
+                                title: function(tooltipItems) {
+                                    const firstItem = tooltipItems[0];
+                                    if (!firstItem) return '';
+                                    const metricKey = firstItem.dataset.metricKey;
+                                    const viewKey = firstItem.dataset.viewKey;
+                                    return metrics[metricKey].periods[viewKey].dataKey;
+                                },
+                                beforeBody: function(context) {
+                                    return new Date(context[0].parsed.x).toLocaleDateString('en-US', {
                                         year: 'numeric',
                                         month: 'long',
                                     });
                                 },
                                 label: function(context) {
-                                    const label = context.dataset.label || '';
+                                    let label = context.dataset.label || '';
+                                    label = label.replace(/,.*/, '');
+
                                     if (label) {
                                         const value = context.parsed.y;
                                         const metricKey = context.dataset.metricKey;
@@ -341,7 +357,7 @@
                                         return `${label}: ${metrics[metricKey].format(value, viewKey)}`;
                                     }
                                     return null;
-                                }
+                                },
                             }
                         }
                     }
@@ -350,22 +366,20 @@
         }
         
         async function initializeSelectors() {
-            // --- Metric Selector (SINGLE SELECT) ---
             const metricSelectEl = document.getElementById('metric-select');
+            const marketSelectEl = document.getElementById('market-select');
+            const viewSelectEl = document.getElementById('view-select');
+
             const metricOptions = Object.keys(metrics).map(key => ({ value: key, label: formatLabelForWrapping(metrics[key].label), selected: key === "List price" }));
             metricChoices = new Choices(metricSelectEl, { choices: metricOptions, searchEnabled: false, itemSelectText: 'Select', shouldSort: false });
             
-            // --- View Selector ---
-            const viewSelectEl = document.getElementById('view-select');
             const viewOptions = [
                 { value: 'raw', label: 'Value', selected: true },
-                { value: 'yoy', label: 'Change since last year' },
+                { value: 'yoy', label: 'Change since previous year' },
                 { value: 'hist', label: 'Change since 2017-19' }
             ].map(opt => ({...opt, label: formatLabelForWrapping(opt.label)}));
             viewChoices = new Choices(viewSelectEl, { choices: viewOptions, searchEnabled: false, itemSelectText: 'Select', shouldSort: false });
             
-            // --- Market Selector (MULTI SELECT) ---
-            const marketSelectEl = document.getElementById('market-select');
             marketChoices = new Choices(marketSelectEl, { 
                 searchEnabled: true, 
                 itemSelectText: 'Select', 
@@ -373,7 +387,20 @@
                 removeItemButton: true,
                 maxItemCount: 4,
                 placeholder: true, 
-                placeholderValue: 'Select up to 4 markets...' 
+                placeholderValue: 'Select up to 4 markets...',
+                callbackOnCreateTemplates: function(template) {
+                    return {
+                        item: ({ classNames }, data) => {
+                            const newLabel = data.label.replace(/,.*/, '');
+                            return template(`
+                                <div class="${classNames.item}" data-item data-id="${data.id}" data-value="${data.value}" ${data.active ? 'aria-selected="true"' : ''} ${data.disabled ? 'aria-disabled="true"' : ''}>
+                                    ${newLabel}
+                                    <button type="button" class="${classNames.button}" aria-label="Remove item: '${data.value}'" data-button>Remove item</button>
+                                </div>
+                            `);
+                        },
+                    };
+                }
             });
             
             // --- Event Listeners ---
@@ -398,7 +425,7 @@
                 const response = await fetch(`${dataBaseUrl}us_national_timeseries.json`);
                 nationalDataCache = await response.json();
                 nationalDataCache = nationalDataCache.filter(d => new Date(d.date) >= new Date('2019-01-01'));
-                updateChart();
+                handleSelectionChange(); // Initial draw
             } catch (error) {
                 console.error("Failed to load initial data:", error);
                 descLine2.textContent = "Error: Could not load initial data.";
@@ -427,19 +454,6 @@
         // --- SIMPLIFIED LOGIC HANDLER ---
         function handleSelectionChange() {
             const selectedMarkets = marketChoices.getValue(true);
-            const selectedMetric = metricChoices.getValue(true);
-            const selectedView = viewChoices.getValue(true);
-
-            // Rule: Special comparison rule for raw counts.
-            const isNonComparable = selectedView === 'raw' && nonComparableMetrics.includes(selectedMetric);
-            if (isNonComparable && selectedMarkets.length > 1) {
-                // If the rule is violated, keep only the most recently selected market.
-                const lastSelectedMarket = selectedMarkets[selectedMarkets.length - 1];
-                marketChoices.setValue([lastSelectedMarket]);
-                // The setValue call will re-trigger this function with a valid state, so we exit early.
-                return;
-            }
-
             if (selectedMarkets.length > 0 && !cbsaDataCache) {
                 loadCbsaData().then(() => updateChart());
             } else {
@@ -464,6 +478,7 @@
             }
 
             const isNonComparableScenario = selectedView === 'raw' && nonComparableMetrics.includes(metricKey);
+            const showNational = !isNonComparableScenario || selectedMarkets.length === 0;
             
             const datasets = [];
             const labels = nationalDataCache.map(d => d.date);
@@ -471,7 +486,6 @@
             const dataKey = periodInfo.dataKey;
 
             // Add National Data
-            const showNational = !isNonComparableScenario || selectedMarkets.length === 0;
             if (showNational) {
                 const isReference = selectedMarkets.length > 0;
                 datasets.push({
@@ -524,7 +538,7 @@
             selectedMarkets.forEach(item => {
                 const tag = document.createElement('div');
                 tag.className = 'selection-tag';
-                tag.innerHTML = `<span>${item.label}</span><button data-value="${item.value}">&times;</button>`;
+                tag.innerHTML = `<span>${item.label.replace(/,.*/, '')}</span><button data-value="${item.value}">&times;</button>`;
                 tagsContainer.appendChild(tag);
             });
 
