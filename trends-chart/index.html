@@ -363,7 +363,6 @@
                 maxItemCount: 4,
                 placeholder: true, 
                 placeholderValue: 'Select up to 4 markets...',
-                // FIXED: Restored the remove button to the selected item tags
                 callbackOnCreateTemplates: function(template) {
                     return {
                         item: ({ classNames }, data) => {
@@ -489,6 +488,14 @@
                 });
             }
             descLine2.textContent = metrics[metricKey].description + " " + viewDescriptions[selectedView];
+            
+            // FIXED: Add padding to the x-axis
+            if (labels.length > 0) {
+                const lastDate = new Date(labels[labels.length - 1]);
+                const maxDate = new Date(lastDate.setMonth(lastDate.getMonth() + 1));
+                myChart.options.scales.x.max = maxDate.getTime();
+            }
+
 
             myChart.data.labels = labels;
             myChart.data.datasets = datasets;
