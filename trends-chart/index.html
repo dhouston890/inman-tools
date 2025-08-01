@@ -402,15 +402,15 @@
             const viewParam = params.get('view');
 
             if (marketsParam) {
-                // FIXED: Use semicolon as the separator for markets
                 const marketValues = marketsParam.split(';');
                 marketChoices.setValue(marketValues);
             }
             if (metricParam) {
-                metricChoices.setValue([metricParam]);
+                // FIXED: Use setChoiceByValue for single-select dropdowns to ensure label is displayed correctly.
+                metricChoices.setChoiceByValue(metricParam);
             }
             if (viewParam) {
-                viewChoices.setValue([viewParam]);
+                viewChoices.setChoiceByValue(viewParam);
             }
 
             loadInitialData();
@@ -450,7 +450,6 @@
         
         // --- LOGIC HANDLER ---
         function handleSelectionChange() {
-            // NEW: Update URL after every change, wrapped in a try/catch
             try {
                 updateUrl();
             } catch (e) {
@@ -552,12 +551,10 @@
                  params.set('view', selectedView);
             }
             if (selectedMarkets && selectedMarkets.length > 0) {
-                // FIXED: Use semicolon as the separator for markets
                 params.set('markets', selectedMarkets.join(';'));
             }
 
             const newUrl = `${window.location.pathname}?${params.toString()}`;
-            // Use replaceState to avoid creating unnecessary browser history entries
             history.replaceState({}, '', newUrl);
         }
     </script>
