@@ -387,10 +387,12 @@
                 const data = await response.json();
                 const processedMarkets = data.markets.map(market => ({ ...market, label: formatLabelForWrapping(market.label) }));
                 marketChoices.setChoices(processedMarkets, 'value', 'label', false);
+                // FIXED: Moved applyUrlParametersAndLoadData to ensure it runs after choices are set.
                 applyUrlParametersAndLoadData();
             } catch (error) {
                 console.error("Failed to load market list:", error);
                 marketChoices.setChoices([{ value: '', label: 'Error loading markets', disabled: true }], 'value', 'label', true);
+                // Still try to load default data even if market list fails
                 loadInitialData();
             }
         }
@@ -406,7 +408,6 @@
                 marketChoices.setValue(marketValues);
             }
             if (metricParam) {
-                // FIXED: Use setChoiceByValue for single-select dropdowns to ensure label is displayed correctly.
                 metricChoices.setChoiceByValue(metricParam);
             }
             if (viewParam) {
