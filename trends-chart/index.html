@@ -250,7 +250,6 @@
         document.addEventListener('DOMContentLoaded', () => {
             initializeChart();
             initializeSelectors();
-            loadInitialData();
         });
 
         function initializeChart() {
@@ -388,19 +387,44 @@
                 const data = await response.json();
                 const processedMarkets = data.markets.map(market => ({ ...market, label: formatLabelForWrapping(market.label) }));
                 marketChoices.setChoices(processedMarkets, 'value', 'label', false);
+                // NEW: After choices are set, apply URL params and load data
+                applyUrlParametersAndLoadData();
             } catch (error) {
                 console.error("Failed to load market list:", error);
                 marketChoices.setChoices([{ value: '', label: 'Error loading markets', disabled: true }], 'value', 'label', true);
+                // Still try to load default data even if market list fails
+                loadInitialData();
             }
         }
         
+        // NEW: Function to handle URL parameters
+        function applyUrlParametersAndLoadData() {
+            const params = new URLSearchParams(window.location.search);
+            const marketsParam = params.get('markets');
+            const metricParam = params.get('metric');
+            const viewParam = params.get('view');
+
+            if (marketsParam) {
+                const marketValues = marketsParam.split(',');
+                marketChoices.setValue(marketValues);
+            }
+            if (metricParam) {
+                metricChoices.setValue([metricParam]);
+            }
+            if (viewParam) {
+                viewChoices.setValue([viewParam]);
+            }
+
+            loadInitialData();
+        }
+
         async function loadInitialData() {
             chartLoader.classList.add('visible');
             try {
                 const response = await fetch(`${dataBaseUrl}us_national_timeseries.json`);
                 nationalDataCache = await response.json();
                 nationalDataCache = nationalDataCache.filter(d => new Date(d.date) >= new Date('2019-01-01'));
-                handleSelectionChange(); // Initial draw
+                handleSelectionChange(); // Initial draw based on (potentially updated) selections
             } catch (error) {
                 console.error("Failed to load initial data:", error);
                 descLine2.textContent = "Error: Could not load initial data.";
@@ -488,14 +512,6 @@
                 });
             }
             descLine2.textContent = metrics[metricKey].description + " " + viewDescriptions[selectedView];
-            
-            // FIXED: Add padding to the x-axis
-            if (labels.length > 0) {
-                const lastDate = new Date(labels[labels.length - 1]);
-                const maxDate = new Date(lastDate.setMonth(lastDate.getMonth() + 1));
-                myChart.options.scales.x.max = maxDate.getTime();
-            }
-
 
             myChart.data.labels = labels;
             myChart.data.datasets = datasets;
