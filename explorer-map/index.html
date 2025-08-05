@@ -258,7 +258,7 @@
             "Potential commission pool": { 
                 label: "Potential commission pool", 
                 urlKey: "commission-pool",
-                description: "This view shows a rough estimate of total commission revenue. This is calculated by multiplying the number of homes that left the market by the prevailing list price and a uniform 5.5% commission rate. The map below reflects this monthly level",
+                description: "This view shows a rough estimate of monthly commission revenue. This is calculated by multiplying the monthly average number of homes that left the market by the prevailing list price and a uniform 5.5% commission rate. The map below reflects this monthly level",
                 periods: { 
                     raw: { dataKey: "Potential commission pool", legendLabel: "Potential commission pool" }, 
                     yoy: { dataKey: "Potential commission pool, Y/Y", legendLabel: "Potential commission pool, Y/Y" }, 
@@ -270,9 +270,9 @@
         };
 
         const periodDescriptions = {
-            raw: " during a recent three-month period.",
-            yoy: " during a recent three-month period, compared to the same time last year.",
-            hist: " during a recent three-month period, compared to a pre-pandemic 'normal.'"
+            raw: " during the most recent three-month period.",
+            yoy: " during the most recent three-month period, compared to the same time last year.",
+            hist: " during the most recent three-month period, compared to a pre-pandemic \"normal\" for that time of year."
         };
 
         const dataBaseUrl = 'https://dhouston890.github.io/inman-tools/data/';
@@ -322,7 +322,7 @@
             
             const periodSelect = document.getElementById('period-select');
             const periodOptions = [
-                { value: 'raw', label: 'Value', selected: true },
+                { value: 'raw', label: 'Recent value', selected: true },
                 { value: 'yoy', label: 'Change since last year' },
                 { value: 'hist', label: 'Change since 2017-19' }
             ].map(opt => ({...opt, label: formatLabelForWrapping(opt.label)}));
