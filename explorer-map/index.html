@@ -185,6 +185,7 @@
         const metrics = {
             "List price": { 
                 label: "List price", 
+                urlKey: "list-price",
                 description: "This view shows a typical asking price",
                 periods: { 
                     raw: { dataKey: "List price", legendLabel: "List price" }, 
@@ -196,6 +197,7 @@
             },
             "Active listings": { 
                 label: "Active listings", 
+                urlKey: "active-listings",
                 description: "This view shows the monthly number of active listings on the market",
                 periods: { 
                     raw: { dataKey: "Active listings", legendLabel: "Active listings" }, 
@@ -207,6 +209,7 @@
             },
             "New listings": { 
                 label: "New listings", 
+                urlKey: "new-listings",
                 description: "This view shows the monthly number of newly listed properties that came online",
                 periods: { 
                     raw: { dataKey: "New listings", legendLabel: "New listings" }, 
@@ -218,6 +221,7 @@
             },
             "Listing outflow": { 
                 label: "Listing outflow", 
+                urlKey: "listing-outflow",
                 description: "This view shows the monthly number of properties that went pending or left the market",
                 periods: { 
                     raw: { dataKey: "Listing outflow", legendLabel: "Listing outflow" }, 
@@ -229,6 +233,7 @@
             },
             "Outflow volume per active listing": { 
                 label: "Outflow volume per active listing", 
+                urlKey: "outflow-per-listing",
                 description: "This view of demand shows the pace of listing outflow as a share of available inventory",
                 periods: { 
                     raw: { dataKey: "Outflow volume per active listing", legendLabel: "Outflow volume<br>per active listing" }, 
@@ -240,6 +245,7 @@
             },
             "Days on market": { 
                 label: "Days on market", 
+                urlKey: "days-on-market",
                 description: "This view shows how long a typical home took to sell",
                 periods: { 
                     raw: { dataKey: "Days on market", legendLabel: "Days on market" }, 
@@ -251,6 +257,7 @@
             },
             "Potential commission pool": { 
                 label: "Potential commission pool", 
+                urlKey: "commission-pool",
                 description: "This view shows a rough estimate of total commission revenue. This is calculated by multiplying the number of homes that left the market by the prevailing list price and a uniform 5.5% commission rate. The map below reflects this monthly level",
                 periods: { 
                     raw: { dataKey: "Potential commission pool", legendLabel: "Potential commission pool" }, 
@@ -285,7 +292,6 @@
         document.addEventListener('DOMContentLoaded', () => {
             initializeMap();
             initializeSelectors();
-            loadViewForMarket(null); // Load national view on start
         });
 
         function initializeMap() {
@@ -337,6 +343,10 @@
                 const data = await response.json();
                 const processedMarkets = data.markets.map(market => ({ ...market, label: formatLabelForWrapping(market.label) }));
                 cbsaChoices.setChoices([{ value: '', label: 'Select a Market...', placeholder: true }, ...processedMarkets], 'value', 'label', true);
+                
+                // Now that markets are loaded, apply URL parameters and load the initial view.
+                loadInitialViewFromURL();
+
             } catch (error) {
                 console.error("Failed to load market list:", error);
                 cbsaChoices.setChoices([{ value: '', label: 'Error loading markets', disabled: true }], 'value', 'label', true);
@@ -346,6 +356,55 @@
                 cbsaChoices.setChoiceByValue(''); 
                 loadViewForMarket(null);
             });
+        }
+
+        function loadInitialViewFromURL() {
+            const params = new URLSearchParams(window.location.search);
+            const marketParam = params.get('market');
+            const metricParam = params.get('metric');
+            const periodParam = params.get('period');
+
+            if (metricParam) {
+                const metricKey = Object.keys(metrics).find(key => metrics[key].urlKey === metricParam);
+                if (metricKey) {
+                    metricChoices.setChoiceByValue(metricKey);
+                }
+            }
+
+            if (periodParam) {
+                periodChoices.setChoiceByValue(periodParam);
+            }
+
+            if (marketParam) {
+                cbsaChoices.setChoiceByValue(marketParam);
+            }
+            
+            // Trigger the initial load. If marketParam is null, it loads the national view.
+            loadViewForMarket(marketParam);
+        }
+
+        function updateURLParameters() {
+            const market = cbsaChoices.getValue(true);
+            const metricKey = metricChoices.getValue(true);
+            const period = periodChoices.getValue(true);
+
+            const params = new URLSearchParams();
+            if (market) {
+                params.set('market', market);
+            }
+            if (metricKey && metrics[metricKey]) {
+                params.set('metric', metrics[metricKey].urlKey);
+            }
+            if (period) {
+                params.set('period', period);
+            }
+
+            const newUrl = `${window.location.pathname}?${params.toString()}`;
+            try {
+                history.pushState({path: newUrl}, '', newUrl);
+            } catch (error) {
+                console.warn("Could not update URL history. This is expected in a sandboxed environment.", error);
+            }
         }
 
         function loadViewForMarket(marketFilename) {
@@ -410,6 +469,7 @@
             if (!baseMetricKey || !periodKey) return;
             
             updateDescription();
+            updateURLParameters();
 
             const periodInfo = metrics[baseMetricKey].periods[periodKey];
             const dataKey = periodInfo.dataKey;
