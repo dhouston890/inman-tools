@@ -151,6 +151,7 @@
         }
         
         // --- CONFIGURATION --- //
+        // FIXED: Updated descriptions based on your edits
         const metrics = {
             "List price": { 
                 label: "List price", 
@@ -214,7 +215,7 @@
             },
             "Potential commission pool": { 
                 label: "Potential commission pool", 
-                description: "This view shows a rough estimate of total commission revenue",
+                description: "This view shows a rough estimate of monthly commission revenue",
                 periods: { 
                     raw: { dataKey: "Potential commission pool" }, 
                     yoy: { dataKey: "Potential commission pool, Y/Y" }, 
@@ -225,9 +226,9 @@
         };
 
         const viewDescriptions = {
-            raw: "over the preceding three months.",
-            yoy: "over the preceding three months, compared to the same period the previous year.",
-            hist: "over the preceding three months, compared to a pre-pandemic “normal” for that time of year."
+            raw: "over the three months ending on the displayed date.",
+            yoy: "over the three months ending on the displayed date, compared to the same period the previous year.",
+            hist: "over the three months ending on the displayed date, compared to a pre-pandemic “normal” for that time of year."
         };
         
         const nonComparableMetrics = ["Active listings", "New listings", "Listing outflow", "Potential commission pool"];
@@ -387,12 +388,10 @@
                 const data = await response.json();
                 const processedMarkets = data.markets.map(market => ({ ...market, label: formatLabelForWrapping(market.label) }));
                 marketChoices.setChoices(processedMarkets, 'value', 'label', false);
-                // FIXED: Moved applyUrlParametersAndLoadData to ensure it runs after choices are set.
                 applyUrlParametersAndLoadData();
             } catch (error) {
                 console.error("Failed to load market list:", error);
                 marketChoices.setChoices([{ value: '', label: 'Error loading markets', disabled: true }], 'value', 'label', true);
-                // Still try to load default data even if market list fails
                 loadInitialData();
             }
         }
@@ -559,5 +558,5 @@
             history.replaceState({}, '', newUrl);
         }
     </script>
-</body> 
+</body>
 </html>
