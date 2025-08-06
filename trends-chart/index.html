@@ -31,6 +31,7 @@
             max-height: 800px; 
             height: 100%;
             overflow-y: auto;
+            background-color: white; /* Ensure background is white in fullscreen */
         }
         #chart-container {
             flex-grow: 1;
@@ -81,6 +82,54 @@
             border-left: 1px solid #d1d5db;
             margin-left: 6px;
         }
+        
+        /* Fullscreen button styles */
+        #fullscreen-btn {
+            position: absolute;
+            top: 10px;
+            right: 10px;
+            z-index: 800;
+            background-color: white;
+            border: 2px solid rgba(0,0,0,0.2);
+            border-radius: 4px;
+            cursor: pointer;
+            padding: 5px;
+            display: flex;
+            align-items: center;
+        }
+        #fullscreen-btn:hover {
+            background-color: #f4f4f4;
+        }
+        #fullscreen-btn svg {
+            width: 18px;
+            height: 18px;
+        }
+        #fullscreen-text {
+            font-size: 12px;
+            font-weight: bold;
+            margin-left: 5px;
+        }
+
+        /* Responsive styles for better embedding */
+        @media (max-width: 767px) {
+            .main-container {
+                padding: 0.5rem;
+            }
+            header {
+                margin-bottom: 0.5rem !important;
+                padding-bottom: 0.5rem !important;
+            }
+            header h1 {
+                font-size: 1.25rem; /* text-xl */
+            }
+            .filter-grid {
+                gap: 0.5rem !important;
+                margin-bottom: 0.75rem !important;
+            }
+            #chart-container {
+                min-height: 375px;
+            }
+        }
     </style>
     <link rel="preconnect" href="https://fonts.googleapis.com">
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
@@ -88,14 +137,14 @@
 </head>
 <body class="bg-white">
 
-    <div class="main-container p-4 md:p-6">
+    <div id="tool-container" class="main-container p-4 md:p-6">
         <header class="mb-2 border-b pb-2 text-center flex-shrink-0">
             <h1 class="text-2xl font-bold text-gray-800">Inman Market Trends</h1>
             <p id="desc-line-2" class="text-gray-600 text-xs mt-1"></p>
         </header>
 
         <!-- Filter Controls -->
-        <div class="grid grid-cols-1 md:grid-cols-3 gap-4 mb-3 flex-shrink-0">
+        <div class="filter-grid grid grid-cols-1 md:grid-cols-3 gap-4 mb-3 flex-shrink-0">
             <div>
                 <label for="market-select" class="block text-sm font-medium text-gray-700 mb-1 text-center">1. Select Market(s)</label>
                 <select id="market-select" multiple></select>
@@ -112,6 +161,11 @@
 
         <!-- The Chart Container -->
         <div id="chart-container" class="bg-white rounded-lg shadow-sm">
+            <button id="fullscreen-btn" title="Toggle Fullscreen">
+                <svg id="enter-fullscreen-icon" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="currentColor"><path d="M7 14H5v5h5v-2H7v-3zm-2-4h2V7h3V5H5v5zm12 7h-3v2h5v-5h-2v3zM14 5v2h3v3h2V5h-5z"/></svg>
+                <svg id="exit-fullscreen-icon" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="currentColor" style="display: none;"><path d="M5 16h3v3h2v-5H5v2zm3-8H5v2h5V5H8v3zm6 11h2v-3h3v-2h-5v5zm2-11V5h-2v5h5V8h-3z"/></svg>
+                <span id="fullscreen-text" style="display: none;">Exit Full Screen</span>
+            </button>
             <canvas id="myChart"></canvas>
             <div id="chart-loader">
                 <div class="text-center">
@@ -151,7 +205,6 @@
         }
         
         // --- CONFIGURATION --- //
-        // FIXED: Updated descriptions based on your edits
         const metrics = {
             "List price": { 
                 label: "List price", 
@@ -251,6 +304,7 @@
         document.addEventListener('DOMContentLoaded', () => {
             initializeChart();
             initializeSelectors();
+            initializeFullscreen(); // Call the new function
         });
 
         function initializeChart() {
@@ -556,6 +610,35 @@
 
             const newUrl = `${window.location.pathname}?${params.toString()}`;
             history.replaceState({}, '', newUrl);
+        }
+
+        function initializeFullscreen() {
+            const fullscreenBtn = document.getElementById('fullscreen-btn');
+            const toolContainer = document.getElementById('tool-container');
+            const enterIcon = document.getElementById('enter-fullscreen-icon');
+            const exitIcon = document.getElementById('exit-fullscreen-icon');
+            const fullscreenText = document.getElementById('fullscreen-text');
+
+            fullscreenBtn.addEventListener('click', () => {
+                if (!document.fullscreenElement) {
+                    toolContainer.requestFullscreen().catch(err => {
+                        alert(`Error attempting to enable full-screen mode: ${err.message} (${err.name})`);
+                    });
+                } else {
+                    document.exitFullscreen();
+                }
+            });
+
+            document.addEventListener('fullscreenchange', () => {
+                const isFullscreen = !!document.fullscreenElement;
+                enterIcon.style.display = isFullscreen ? 'none' : 'block';
+                exitIcon.style.display = isFullscreen ? 'block' : 'none';
+                fullscreenText.style.display = isFullscreen ? 'block' : 'none';
+                
+                setTimeout(() => {
+                    myChart.resize();
+                }, 100);
+            });
         }
     </script>
 </body>
