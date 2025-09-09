@@ -31,6 +31,7 @@
             max-height: 800px; 
             height: 100%;
             overflow-y: auto;
+            background-color: white; /* Ensure background is white in fullscreen */
         }
         #chart-container {
             flex-grow: 1;
@@ -81,6 +82,54 @@
             border-left: 1px solid #d1d5db;
             margin-left: 6px;
         }
+        
+        /* Fullscreen button styles */
+        #fullscreen-btn {
+            position: absolute;
+            top: 10px;
+            right: 10px;
+            z-index: 800;
+            background-color: white;
+            border: 2px solid rgba(0,0,0,0.2);
+            border-radius: 4px;
+            cursor: pointer;
+            padding: 5px;
+            display: flex;
+            align-items: center;
+        }
+        #fullscreen-btn:hover {
+            background-color: #f4f4f4;
+        }
+        #fullscreen-btn svg {
+            width: 18px;
+            height: 18px;
+        }
+        #fullscreen-text {
+            font-size: 12px;
+            font-weight: bold;
+            margin-left: 5px;
+        }
+
+        /* Responsive styles for better embedding */
+        @media (max-width: 767px) {
+            .main-container {
+                padding: 0.5rem;
+            }
+            header {
+                margin-bottom: 0.5rem !important;
+                padding-bottom: 0.5rem !important;
+            }
+            header img { /* Adjust logo height on mobile */
+                height: 3rem; /* h-12 */
+            }
+            .filter-grid {
+                gap: 0.5rem !important;
+                margin-bottom: 0.75rem !important;
+            }
+            #chart-container {
+                min-height: 375px;
+            }
+        }
     </style>
     <link rel="preconnect" href="https://fonts.googleapis.com">
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
@@ -88,14 +137,16 @@
 </head>
 <body class="bg-white">
 
-    <div class="main-container p-4 md:p-6">
+    <div id="tool-container" class="main-container p-4 md:p-6">
         <header class="mb-2 border-b pb-2 text-center flex-shrink-0">
-            <h1 class="text-2xl font-bold text-gray-800">Inman Market Trends</h1>
+            <img src="https://dhouston890.github.io/inman-tools/assets/Inman_Market_Trends_Dark%20Blue,%20Blue%20Dot@2x.png" 
+                 alt="Inman Market Trends Logo" 
+                 class="h-16 w-auto mx-auto mb-2">
             <p id="desc-line-2" class="text-gray-600 text-xs mt-1"></p>
         </header>
 
         <!-- Filter Controls -->
-        <div class="grid grid-cols-1 md:grid-cols-3 gap-4 mb-3 flex-shrink-0">
+        <div class="filter-grid grid grid-cols-1 md:grid-cols-3 gap-4 mb-3 flex-shrink-0">
             <div>
                 <label for="market-select" class="block text-sm font-medium text-gray-700 mb-1 text-center">1. Select Market(s)</label>
                 <select id="market-select" multiple></select>
@@ -112,6 +163,11 @@
 
         <!-- The Chart Container -->
         <div id="chart-container" class="bg-white rounded-lg shadow-sm">
+            <button id="fullscreen-btn" title="Toggle Fullscreen">
+                <svg id="enter-fullscreen-icon" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="currentColor"><path d="M7 14H5v5h5v-2H7v-3zm-2-4h2V7h3V5H5v5zm12 7h-3v2h5v-5h-2v3zM14 5v2h3v3h2V5h-5z"/></svg>
+                <svg id="exit-fullscreen-icon" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="currentColor" style="display: none;"><path d="M5 16h3v3h2v-5H5v2zm3-8H5v2h5V5H8v3zm6 11h2v-3h3v-2h-5v5zm2-11V5h-2v5h5V8h-3z"/></svg>
+                <span id="fullscreen-text" style="display: none;">Exit Full Screen</span>
+            </button>
             <canvas id="myChart"></canvas>
             <div id="chart-loader">
                 <div class="text-center">
@@ -214,7 +270,7 @@
             },
             "Potential commission pool": { 
                 label: "Potential commission pool", 
-                description: "This view shows a rough estimate of total commission revenue",
+                description: "This view shows a rough estimate of monthly commission revenue",
                 periods: { 
                     raw: { dataKey: "Potential commission pool" }, 
                     yoy: { dataKey: "Potential commission pool, Y/Y" }, 
@@ -225,9 +281,9 @@
         };
 
         const viewDescriptions = {
-            raw: "over the preceding three months.",
-            yoy: "over the preceding three months, compared to the same period the previous year.",
-            hist: "over the preceding three months, compared to a pre-pandemic “normal” for that time of year."
+            raw: "over the three months ending on the displayed date.",
+            yoy: "over the three months ending on the displayed date, compared to the same period the previous year.",
+            hist: "over the three months ending on the displayed date, compared to a pre-pandemic “normal” for that time of year."
         };
         
         const nonComparableMetrics = ["Active listings", "New listings", "Listing outflow", "Potential commission pool"];
@@ -250,7 +306,7 @@
         document.addEventListener('DOMContentLoaded', () => {
             initializeChart();
             initializeSelectors();
-            loadInitialData();
+            initializeFullscreen(); // Call the new function
         });
 
         function initializeChart() {
@@ -388,19 +444,41 @@
                 const data = await response.json();
                 const processedMarkets = data.markets.map(market => ({ ...market, label: formatLabelForWrapping(market.label) }));
                 marketChoices.setChoices(processedMarkets, 'value', 'label', false);
+                applyUrlParametersAndLoadData();
             } catch (error) {
                 console.error("Failed to load market list:", error);
                 marketChoices.setChoices([{ value: '', label: 'Error loading markets', disabled: true }], 'value', 'label', true);
+                loadInitialData();
             }
         }
         
+        function applyUrlParametersAndLoadData() {
+            const params = new URLSearchParams(window.location.search);
+            const marketsParam = params.get('markets');
+            const metricParam = params.get('metric');
+            const viewParam = params.get('view');
+
+            if (marketsParam) {
+                const marketValues = marketsParam.split(';');
+                marketChoices.setValue(marketValues);
+            }
+            if (metricParam) {
+                metricChoices.setChoiceByValue(metricParam);
+            }
+            if (viewParam) {
+                viewChoices.setChoiceByValue(viewParam);
+            }
+
+            loadInitialData();
+        }
+
         async function loadInitialData() {
             chartLoader.classList.add('visible');
             try {
                 const response = await fetch(`${dataBaseUrl}us_national_timeseries.json`);
                 nationalDataCache = await response.json();
                 nationalDataCache = nationalDataCache.filter(d => new Date(d.date) >= new Date('2019-01-01'));
-                handleSelectionChange(); // Initial draw
+                handleSelectionChange(); 
             } catch (error) {
                 console.error("Failed to load initial data:", error);
                 descLine2.textContent = "Error: Could not load initial data.";
@@ -426,8 +504,14 @@
             }
         }
         
-        // --- SIMPLIFIED LOGIC HANDLER ---
+        // --- LOGIC HANDLER ---
         function handleSelectionChange() {
+            try {
+                updateUrl();
+            } catch (e) {
+                console.warn("Could not update URL. This is expected in some secure environments.");
+            }
+
             const selectedMarkets = marketChoices.getValue(true);
             if (selectedMarkets.length > 0 && !cbsaDataCache) {
                 loadCbsaData().then(() => updateChart());
@@ -475,7 +559,7 @@
             // Add CBSA Data
             if (cbsaDataCache && selectedMarkets.length > 0) {
                 selectedMarkets.forEach((marketValue, index) => {
-                    const marketData = cbsaDataCache.filter(d => d.safe_metro_name === marketValue);
+                    const marketData = cbsaDataCache.filter(d => d.safe_metro_name === marketValue || d.Metro === marketValue);
                     if (marketData.length > 0) {
                         datasets.push({
                             label: marketData[0].Metro,
@@ -488,18 +572,17 @@
                 });
             }
             descLine2.textContent = metrics[metricKey].description + " " + viewDescriptions[selectedView];
+
+            myChart.data.labels = labels;
+            myChart.data.datasets = datasets;
             
-            // FIXED: Add padding to the x-axis
+            myChart.options.scales.x.max = undefined; // Reset max before calculating
             if (labels.length > 0) {
                 const lastDate = new Date(labels[labels.length - 1]);
                 const maxDate = new Date(lastDate.setMonth(lastDate.getMonth() + 1));
                 myChart.options.scales.x.max = maxDate.getTime();
             }
 
-
-            myChart.data.labels = labels;
-            myChart.data.datasets = datasets;
-            
             myChart.options.scales.y.ticks.callback = function(value) {
                 const viewKey = viewChoices.getValue(true);
                 const metricKeyCallback = metricChoices.getValue(true);
@@ -510,6 +593,60 @@
 
             myChart.update();
         }
+
+        function updateUrl() {
+            const selectedMarkets = marketChoices.getValue(true);
+            const selectedMetric = metricChoices.getValue(true);
+            const selectedView = viewChoices.getValue(true);
+
+            const params = new URLSearchParams();
+            if (selectedMetric) {
+                 params.set('metric', selectedMetric);
+            }
+            if (selectedView) {
+                 params.set('view', selectedView);
+            }
+            if (selectedMarkets && selectedMarkets.length > 0) {
+                params.set('markets', selectedMarkets.join(';'));
+            }
+
+            const newUrl = `${window.location.pathname}?${params.toString()}`;
+            try {
+                history.replaceState({}, '', newUrl);
+            } catch(e) {
+                // Silently fail in sandboxed environments
+            }
+        }
+
+        function initializeFullscreen() {
+            const fullscreenBtn = document.getElementById('fullscreen-btn');
+            const toolContainer = document.getElementById('tool-container');
+            const enterIcon = document.getElementById('enter-fullscreen-icon');
+            const exitIcon = document.getElementById('exit-fullscreen-icon');
+            const fullscreenText = document.getElementById('fullscreen-text');
+
+            fullscreenBtn.addEventListener('click', () => {
+                if (!document.fullscreenElement) {
+                    toolContainer.requestFullscreen().catch(err => {
+                        alert(`Error attempting to enable full-screen mode: ${err.message} (${err.name})`);
+                    });
+                } else {
+                    document.exitFullscreen();
+                }
+            });
+
+            document.addEventListener('fullscreenchange', () => {
+                const isFullscreen = !!document.fullscreenElement;
+                enterIcon.style.display = isFullscreen ? 'none' : 'block';
+                exitIcon.style.display = isFullscreen ? 'block' : 'none';
+                fullscreenText.style.display = isFullscreen ? 'block' : 'none';
+                
+                setTimeout(() => {
+                    myChart.resize();
+                }, 100);
+            });
+        }
     </script>
 </body>
 </html>
+

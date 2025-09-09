@@ -27,6 +27,7 @@
             flex-direction: column;
             height: 100vh; /* Full viewport height */
             overflow-y: auto; /* Allow scrolling on the whole container if needed */
+            background-color: white; /* Ensure background is white in fullscreen */
         }
         #map-container {
             flex-grow: 1; /* Allows the map to take up remaining vertical space */
@@ -108,6 +109,32 @@
         .leaflet-labels-pane {
             pointer-events: none;
         }
+        /* Fullscreen button styles */
+        #fullscreen-btn {
+            position: absolute;
+            top: 10px;
+            right: 10px;
+            z-index: 800;
+            background-color: white;
+            border: 2px solid rgba(0,0,0,0.2);
+            border-radius: 4px;
+            cursor: pointer;
+            padding: 5px;
+            display: flex;
+            align-items: center;
+        }
+        #fullscreen-btn:hover {
+            background-color: #f4f4f4;
+        }
+        #fullscreen-btn svg {
+            width: 18px;
+            height: 18px;
+        }
+        #fullscreen-text {
+            font-size: 12px;
+            font-weight: bold;
+            margin-left: 5px;
+        }
     </style>
     <link rel="preconnect" href="https://fonts.googleapis.com">
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
@@ -115,9 +142,9 @@
 </head>
 <body class="bg-white">
 
-    <div class="full-height-container p-4 md:p-6">
+    <div id="tool-container" class="full-height-container p-4 md:p-6">
         <header class="mb-2 border-b pb-2 text-center flex-shrink-0">
-            <h1 class="text-2xl font-bold text-gray-800">Inman Market Explorer</h1>
+            <img src="https://dhouston890.github.io/inman-tools/assets/Inman_Market_Explorer_Stacked_Dark%20Blue,%20Blue%20Dot@2x.png" alt="Inman Market Explorer Logo" class="h-16 w-auto mx-auto mb-2">
             <p id="desc-line-2" class="text-gray-600 text-xs mt-1"></p>
         </header>
 
@@ -149,6 +176,11 @@
                     <p class="text-lg font-semibold text-gray-700">Loading market data...</p>
                 </div>
             </div>
+            <button id="fullscreen-btn" title="Toggle Fullscreen">
+                <svg id="enter-fullscreen-icon" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="currentColor"><path d="M7 14H5v5h5v-2H7v-3zm-2-4h2V7h3V5H5v5zm12 7h-3v2h5v-5h-2v3zM14 5v2h3v3h2V5h-5z"/></svg>
+                <svg id="exit-fullscreen-icon" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="currentColor" style="display: none;"><path d="M5 16h3v3h2v-5H5v2zm3-8H5v2h5V5H8v3zm6 11h2v-3h3v-2h-5v5zm2-11V5h-2v5h5V8h-3z"/></svg>
+                <span id="fullscreen-text" style="display: none;">Exit Full Screen</span>
+            </button>
         </div>
         <footer class="flex-shrink-0 text-center py-2">
              <button id="return-btn" class="hidden bg-blue-500 hover:bg-blue-700 text-white font-bold py-2 px-4 rounded mb-2">Return to National View</button>
@@ -185,6 +217,7 @@
         const metrics = {
             "List price": { 
                 label: "List price", 
+                urlKey: "list-price",
                 description: "This view shows a typical asking price",
                 periods: { 
                     raw: { dataKey: "List price", legendLabel: "List price" }, 
@@ -196,6 +229,7 @@
             },
             "Active listings": { 
                 label: "Active listings", 
+                urlKey: "active-listings",
                 description: "This view shows the monthly number of active listings on the market",
                 periods: { 
                     raw: { dataKey: "Active listings", legendLabel: "Active listings" }, 
@@ -207,6 +241,7 @@
             },
             "New listings": { 
                 label: "New listings", 
+                urlKey: "new-listings",
                 description: "This view shows the monthly number of newly listed properties that came online",
                 periods: { 
                     raw: { dataKey: "New listings", legendLabel: "New listings" }, 
@@ -218,6 +253,7 @@
             },
             "Listing outflow": { 
                 label: "Listing outflow", 
+                urlKey: "listing-outflow",
                 description: "This view shows the monthly number of properties that went pending or left the market",
                 periods: { 
                     raw: { dataKey: "Listing outflow", legendLabel: "Listing outflow" }, 
@@ -229,6 +265,7 @@
             },
             "Outflow volume per active listing": { 
                 label: "Outflow volume per active listing", 
+                urlKey: "outflow-per-listing",
                 description: "This view of demand shows the pace of listing outflow as a share of available inventory",
                 periods: { 
                     raw: { dataKey: "Outflow volume per active listing", legendLabel: "Outflow volume<br>per active listing" }, 
@@ -240,6 +277,7 @@
             },
             "Days on market": { 
                 label: "Days on market", 
+                urlKey: "days-on-market",
                 description: "This view shows how long a typical home took to sell",
                 periods: { 
                     raw: { dataKey: "Days on market", legendLabel: "Days on market" }, 
@@ -251,7 +289,8 @@
             },
             "Potential commission pool": { 
                 label: "Potential commission pool", 
-                description: "This view shows a rough estimate of total commission revenue. This is calculated by multiplying the number of homes that left the market by the prevailing list price and a uniform 5.5% commission rate. The map below reflects this monthly level",
+                urlKey: "commission-pool",
+                description: "This view shows a rough estimate of monthly commission revenue. This is calculated by multiplying the monthly average number of homes that left the market by the prevailing list price and a uniform 5.5% commission rate. The map below reflects this monthly level",
                 periods: { 
                     raw: { dataKey: "Potential commission pool", legendLabel: "Potential commission pool" }, 
                     yoy: { dataKey: "Potential commission pool, Y/Y", legendLabel: "Potential commission pool, Y/Y" }, 
@@ -263,9 +302,9 @@
         };
 
         const periodDescriptions = {
-            raw: " during a recent three-month period.",
-            yoy: " during a recent three-month period, compared to the same time last year.",
-            hist: " during a recent three-month period, compared to a pre-pandemic 'normal.'"
+            raw: " during the most recent three-month period.",
+            yoy: " during the most recent three-month period, compared to the same time last year.",
+            hist: " during the most recent three-month period, compared to a pre-pandemic \"normal\" for that time of year."
         };
 
         const dataBaseUrl = 'https://dhouston890.github.io/inman-tools/data/';
@@ -285,7 +324,7 @@
         document.addEventListener('DOMContentLoaded', () => {
             initializeMap();
             initializeSelectors();
-            loadViewForMarket(null); // Load national view on start
+            initializeFullscreen();
         });
 
         function initializeMap() {
@@ -316,7 +355,7 @@
             
             const periodSelect = document.getElementById('period-select');
             const periodOptions = [
-                { value: 'raw', label: 'Value', selected: true },
+                { value: 'raw', label: 'Recent value', selected: true },
                 { value: 'yoy', label: 'Change since last year' },
                 { value: 'hist', label: 'Change since 2017-19' }
             ].map(opt => ({...opt, label: formatLabelForWrapping(opt.label)}));
@@ -337,6 +376,10 @@
                 const data = await response.json();
                 const processedMarkets = data.markets.map(market => ({ ...market, label: formatLabelForWrapping(market.label) }));
                 cbsaChoices.setChoices([{ value: '', label: 'Select a Market...', placeholder: true }, ...processedMarkets], 'value', 'label', true);
+                
+                // Now that markets are loaded, apply URL parameters and load the initial view.
+                loadInitialViewFromURL();
+
             } catch (error) {
                 console.error("Failed to load market list:", error);
                 cbsaChoices.setChoices([{ value: '', label: 'Error loading markets', disabled: true }], 'value', 'label', true);
@@ -346,6 +389,55 @@
                 cbsaChoices.setChoiceByValue(''); 
                 loadViewForMarket(null);
             });
+        }
+
+        function loadInitialViewFromURL() {
+            const params = new URLSearchParams(window.location.search);
+            const marketParam = params.get('market');
+            const metricParam = params.get('metric');
+            const periodParam = params.get('period');
+
+            if (metricParam) {
+                const metricKey = Object.keys(metrics).find(key => metrics[key].urlKey === metricParam);
+                if (metricKey) {
+                    metricChoices.setChoiceByValue(metricKey);
+                }
+            }
+
+            if (periodParam) {
+                periodChoices.setChoiceByValue(periodParam);
+            }
+
+            if (marketParam) {
+                cbsaChoices.setChoiceByValue(marketParam);
+            }
+            
+            // Trigger the initial load. If marketParam is null, it loads the national view.
+            loadViewForMarket(marketParam);
+        }
+
+        function updateURLParameters() {
+            const market = cbsaChoices.getValue(true);
+            const metricKey = metricChoices.getValue(true);
+            const period = periodChoices.getValue(true);
+
+            const params = new URLSearchParams();
+            if (market) {
+                params.set('market', market);
+            }
+            if (metricKey && metrics[metricKey]) {
+                params.set('metric', metrics[metricKey].urlKey);
+            }
+            if (period) {
+                params.set('period', period);
+            }
+
+            const newUrl = `${window.location.pathname}?${params.toString()}`;
+            try {
+                history.pushState({path: newUrl}, '', newUrl);
+            } catch (error) {
+                console.warn("Could not update URL history. This is expected in a sandboxed environment.", error);
+            }
         }
 
         function loadViewForMarket(marketFilename) {
@@ -410,6 +502,7 @@
             if (!baseMetricKey || !periodKey) return;
             
             updateDescription();
+            updateURLParameters();
 
             const periodInfo = metrics[baseMetricKey].periods[periodKey];
             const dataKey = periodInfo.dataKey;
@@ -681,6 +774,36 @@
 
         function resetHighlight(layer) {
            geoJsonLayer.resetStyle(layer);
+        }
+
+        function initializeFullscreen() {
+            const fullscreenBtn = document.getElementById('fullscreen-btn');
+            const toolContainer = document.getElementById('tool-container');
+            const enterIcon = document.getElementById('enter-fullscreen-icon');
+            const exitIcon = document.getElementById('exit-fullscreen-icon');
+            const fullscreenText = document.getElementById('fullscreen-text');
+
+            fullscreenBtn.addEventListener('click', () => {
+                if (!document.fullscreenElement) {
+                    toolContainer.requestFullscreen().catch(err => {
+                        console.warn(`Error attempting to enable full-screen mode: ${err.message} (${err.name})`);
+                    });
+                } else {
+                    document.exitFullscreen();
+                }
+            });
+
+            document.addEventListener('fullscreenchange', () => {
+                const isFullscreen = !!document.fullscreenElement;
+                enterIcon.style.display = isFullscreen ? 'none' : 'block';
+                exitIcon.style.display = isFullscreen ? 'block' : 'none';
+                fullscreenText.style.display = isFullscreen ? 'block' : 'none';
+                
+                // Crucially, invalidate map size after a short delay to allow the transition to complete
+                setTimeout(() => {
+                    map.invalidateSize();
+                }, 100);
+            });
         }
     </script>
 </body>
