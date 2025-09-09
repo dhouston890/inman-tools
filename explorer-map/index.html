@@ -144,7 +144,7 @@
 
     <div id="tool-container" class="full-height-container p-4 md:p-6">
         <header class="mb-2 border-b pb-2 text-center flex-shrink-0">
-            <h1 class="text-2xl font-bold text-gray-800">Inman Market Explorer</h1>
+            <img src="https://dhouston890.github.io/inman-tools/assets/Inman_Market_Explorer_Stacked_Dark%20Blue,%20Blue%20Dot@2x.png" alt="Inman Market Explorer Logo" class="h-16 w-auto mx-auto mb-2">
             <p id="desc-line-2" class="text-gray-600 text-xs mt-1"></p>
         </header>
 
@@ -786,7 +786,7 @@
             fullscreenBtn.addEventListener('click', () => {
                 if (!document.fullscreenElement) {
                     toolContainer.requestFullscreen().catch(err => {
-                        alert(`Error attempting to enable full-screen mode: ${err.message} (${err.name})`);
+                        console.warn(`Error attempting to enable full-screen mode: ${err.message} (${err.name})`);
                     });
                 } else {
                     document.exitFullscreen();
