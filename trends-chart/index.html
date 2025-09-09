@@ -119,8 +119,8 @@
                 margin-bottom: 0.5rem !important;
                 padding-bottom: 0.5rem !important;
             }
-            header h1 {
-                font-size: 1.25rem; /* text-xl */
+            header img { /* Adjust logo height on mobile */
+                height: 3rem; /* h-12 */
             }
             .filter-grid {
                 gap: 0.5rem !important;
@@ -139,7 +139,9 @@
 
     <div id="tool-container" class="main-container p-4 md:p-6">
         <header class="mb-2 border-b pb-2 text-center flex-shrink-0">
-            <h1 class="text-2xl font-bold text-gray-800">Inman Market Trends</h1>
+            <img src="https://dhouston890.github.io/inman-tools/assets/Inman_Market_Trends_Dark%20Blue,%20Blue%20Dot@2x.png" 
+                 alt="Inman Market Trends Logo" 
+                 class="h-16 w-auto mx-auto mb-2">
             <p id="desc-line-2" class="text-gray-600 text-xs mt-1"></p>
         </header>
 
@@ -609,7 +611,11 @@
             }
 
             const newUrl = `${window.location.pathname}?${params.toString()}`;
-            history.replaceState({}, '', newUrl);
+            try {
+                history.replaceState({}, '', newUrl);
+            } catch(e) {
+                // Silently fail in sandboxed environments
+            }
         }
 
         function initializeFullscreen() {
@@ -643,3 +649,4 @@
     </script>
 </body>
 </html>
+
