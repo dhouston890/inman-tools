@@ -287,7 +287,7 @@
                 formatLegend: (v, p) => p === 'raw' ? Math.round(v).toLocaleString() : formatPercent(v, 0, true), 
                 formatTooltip: (v, p) => p === 'raw' ? Math.round(v).toLocaleString() : formatPercent(v, 1, true) 
             },
-            "Potential commission pool": { 
+            /*"Potential commission pool": { 
                 label: "Potential commission pool", 
                 urlKey: "commission-pool",
                 description: "This view shows a rough estimate of monthly commission revenue. This is calculated by multiplying the monthly average number of homes that left the market by the prevailing list price and a uniform 5.5% commission rate. The map below reflects this monthly level",
@@ -298,7 +298,7 @@
                 }, 
                 formatLegend: (v, p) => p === 'raw' ? formatLargeDollars(v) : formatPercent(v, 0, true), 
                 formatTooltip: (v, p) => p === 'raw' ? formatLargeDollars(v) : formatPercent(v, 1, true) 
-            }
+            }*/
         };
 
         const periodDescriptions = {
@@ -808,3 +808,5 @@
     </script>
 </body>
 </html>
+
+
