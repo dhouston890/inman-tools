@@ -268,7 +268,7 @@
                 }, 
                 format: (v, p) => p === 'raw' ? Math.round(v).toLocaleString() : formatPercent(v, 1, true) 
             },
-            "Potential commission pool": { 
+            /* "Potential commission pool": { 
                 label: "Potential commission pool", 
                 description: "This view shows a rough estimate of monthly commission revenue",
                 periods: { 
@@ -277,7 +277,7 @@
                     hist: { dataKey: "Potential commission pool, vs. 2017-19" } 
                 }, 
                 format: (v, p) => p === 'raw' ? formatLargeDollars(v) : formatPercent(v, 1, true) 
-            }
+            } */
         };
 
         const viewDescriptions = {
@@ -286,7 +286,7 @@
             hist: "over the three months ending on the displayed date, compared to a pre-pandemic “normal” for that time of year."
         };
         
-        const nonComparableMetrics = ["Active listings", "New listings", "Listing outflow", "Potential commission pool"];
+        const nonComparableMetrics = ["Active listings", "New listings", "Listing outflow"/*, "Potential commission pool"*/];
         const dataBaseUrl = 'https://dhouston890.github.io/inman-tools/data/';
         
         const marketColorPalette = ['#4477AA', '#EE6677', '#228833', '#DDAA33', '#66CCEE', '#AA3377'];
@@ -628,7 +628,9 @@
             fullscreenBtn.addEventListener('click', () => {
                 if (!document.fullscreenElement) {
                     toolContainer.requestFullscreen().catch(err => {
-                        alert(`Error attempting to enable full-screen mode: ${err.message} (${err.name})`);
+                        // Use a custom modal or message box in a real app
+                        // For this example, we'll keep it simple
+                        console.error(`Error attempting to enable full-screen mode: ${err.message} (${err.name})`);
                     });
                 } else {
                     document.exitFullscreen();
@@ -641,6 +643,7 @@
                 exitIcon.style.display = isFullscreen ? 'block' : 'none';
                 fullscreenText.style.display = isFullscreen ? 'block' : 'none';
                 
+                // Add a small delay for the browser to resize, then update the chart
                 setTimeout(() => {
                     myChart.resize();
                 }, 100);
@@ -649,4 +652,5 @@
     </script>
 </body>
 </html>
+
 
