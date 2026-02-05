@@ -2593,5 +2593,29 @@
     "Potential commission pool": 8140847048.5833,
     "Potential commission pool, Y/Y": 0.08,
     "Potential commission pool, vs. 2017-19": 0.213
+  },
+  {
+    "date": "2026-01-15",
+    "List price": 404924.1809,
+    "List price, Y/Y": -0.003,
+    "List price, vs. 2017-19": 0.493,
+    "Active listings": 987265,
+    "Active listings, Y/Y": 0.116,
+    "Active listings, vs. 2017-19": -0.17,
+    "New listings": 297855.3333,
+    "New listings, Y/Y": 0.006,
+    "New listings, vs. 2017-19": -0.16,
+    "Listing outflow": 360242,
+    "Listing outflow, Y/Y": 0.067,
+    "Listing outflow, vs. 2017-19": -0.165,
+    "Outflow volume per active listing": 0.3649,
+    "Outflow volume per active listing, Y/Y": -0.044,
+    "Outflow volume per active listing, vs. 2017-19": 0.005,
+    "Days on market": 71.8344,
+    "Days on market, Y/Y": 0.053,
+    "Days on market, vs. 2017-19": -0.077,
+    "Potential commission pool": 8022888323.0833,
+    "Potential commission pool, Y/Y": 0.063,
+    "Potential commission pool, vs. 2017-19": 0.248
   }
 ]
