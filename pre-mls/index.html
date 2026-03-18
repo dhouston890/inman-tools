@@ -1,0 +1,475 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>The Race to Pre-MLS Partnerships | Inman News</title>
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Outfit:wght@300;400;600;700&display=swap" rel="stylesheet">
+    <style>
+        :root {
+            /* Inman Brand Colors */
+            --inman-primary: #020A3E;
+            --inman-secondary: #0D83FF;
+            --inman-white: #FFFFFF;
+            --inman-gray-light: #F1F5F9;
+            --inman-gray-text: #475569;
+
+            /* Model Specific Accents */
+            --color-exclusive: #E8A838;
+            /* Gold */
+            --color-aggregator: #3B82F6;
+            /* Blue */
+            --color-nonexclusive: #A78BFA;
+            /* Violet */
+            --color-mls: #10B981;
+            /* Emerald/Teal */
+
+            --font-main: 'Outfit', sans-serif;
+            --container-width: 1000px;
+        }
+
+        * {
+            box-sizing: border-box;
+            margin: 0;
+            padding: 0;
+        }
+
+        body {
+            font-family: var(--font-main);
+            background-color: var(--inman-white);
+            color: var(--inman-primary);
+            line-height: 1.5;
+            padding: 40px 20px;
+            display: flex;
+            justify-content: center;
+        }
+
+        .infographic {
+            max-width: var(--container-width);
+            width: 100%;
+        }
+
+        header {
+            text-align: center;
+            margin-bottom: 50px;
+            border-bottom: 2px solid var(--inman-gray-light);
+            padding-bottom: 30px;
+        }
+
+        h1 {
+            font-size: 2.5rem;
+            font-weight: 700;
+            margin-bottom: 10px;
+            letter-spacing: -0.02em;
+        }
+
+        .subtitle {
+            font-size: 1.1rem;
+            color: var(--inman-gray-text);
+            max-width: 700px;
+            margin: 0 auto;
+        }
+
+        /* Grid Layout */
+        .partnerships-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(450px, 1fr));
+            gap: 30px;
+        }
+
+        @media (max-width: 768px) {
+            .partnerships-grid {
+                grid-template-columns: 1fr;
+            }
+
+            h1 {
+                font-size: 2rem;
+            }
+        }
+
+        /* Card Styling */
+        .card {
+            background: var(--inman-white);
+            border: 1px solid var(--inman-gray-light);
+            border-radius: 12px;
+            padding: 30px;
+            position: relative;
+            transition: transform 0.2s ease, box-shadow 0.2s ease;
+            display: flex;
+            flex-direction: column;
+            box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.05);
+        }
+
+        .card:hover {
+            transform: translateY(-4px);
+            box-shadow: 0 10px 15px -3px rgba(0, 0, 0, 0.1);
+        }
+
+        /* Accent Borders */
+        .card--exclusive {
+            border-left: 6px solid var(--color-exclusive);
+        }
+
+        .card--aggregator {
+            border-left: 6px solid var(--color-aggregator);
+        }
+
+        .card--nonexclusive {
+            border-left: 6px solid var(--color-nonexclusive);
+        }
+
+        .card--mls {
+            border-left: 6px solid var(--color-mls);
+        }
+
+        .card__badge {
+            display: inline-block;
+            font-size: 0.7rem;
+            font-weight: 700;
+            text-transform: uppercase;
+            letter-spacing: 0.1em;
+            padding: 4px 10px;
+            border-radius: 4px;
+            margin-bottom: 20px;
+            align-self: flex-start;
+        }
+
+        .card--exclusive .card__badge {
+            background: rgba(232, 168, 56, 0.1);
+            color: #B47814;
+        }
+
+        .card--aggregator .card__badge {
+            background: rgba(59, 130, 246, 0.1);
+            color: #1D4ED8;
+        }
+
+        .card--nonexclusive .card__badge {
+            background: rgba(167, 139, 250, 0.1);
+            color: #6D28D9;
+        }
+
+        .card--mls .card__badge {
+            background: rgba(16, 185, 129, 0.1);
+            color: #047857;
+        }
+
+        /* Partners Section */
+        .card__partners {
+            display: flex;
+            align-items: center;
+            gap: 15px;
+            margin-bottom: 25px;
+            flex-wrap: wrap;
+        }
+
+        .partner {
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            gap: 8px;
+            text-align: center;
+        }
+
+        /* Custom Tooltip (Small Icons Only) */
+        .partner__avatar--sm::after {
+            content: attr(data-company);
+            position: absolute;
+            top: 130%;
+            left: 50%;
+            transform: translateX(-50%) translateY(-5px);
+            background: var(--inman-primary);
+            color: white;
+            padding: 4px 10px;
+            border-radius: 4px;
+            font-size: 0.7rem;
+            white-space: nowrap;
+            opacity: 0;
+            pointer-events: none;
+            transition: all 0.2s ease;
+            z-index: 20;
+            font-weight: 600;
+            box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.1);
+        }
+
+        .partner__avatar--sm:hover::after {
+            opacity: 1;
+            transform: translateX(-50%) translateY(0);
+            z-index: 100;
+        }
+
+        .partner__avatar {
+            width: 60px;
+            height: 60px;
+            background: var(--inman-white);
+            border-radius: 50%;
+            border: 2.5px solid #F1F5F9;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            overflow: hidden;
+            background-size: contain;
+            background-position: center;
+            background-repeat: no-repeat;
+            padding: 4px;
+            cursor: default;
+            position: relative;
+            transition: border-color 0.2s;
+            z-index: 1;
+        }
+
+        .partner span {
+            font-size: 0.9rem;
+            font-weight: 600;
+            color: var(--inman-primary);
+        }
+
+        .connector {
+            font-size: 1.2rem;
+            font-weight: 300;
+            color: #94A3B8;
+            padding-bottom: 20px;
+        }
+
+        /* Partner Companies Grid & Tooltips */
+        .partner-group {
+            display: grid;
+            grid-template-columns: repeat(3, 1fr);
+            gap: 6px;
+        }
+
+        .partner__avatar--sm:hover {
+            border-color: var(--inman-secondary);
+            z-index: 50;
+            transform: scale(1.1);
+        }
+
+        .partner__avatar--sm {
+            width: 32px;
+            height: 32px;
+            background: var(--inman-gray-light);
+            border-radius: 50%;
+            border: 1.5px solid #E2E8F0;
+            cursor: pointer;
+            position: relative;
+            background-size: contain;
+            background-position: center;
+            background-repeat: no-repeat;
+            transition: all 0.2s ease;
+            z-index: 1;
+        }
+
+        /* Custom Tooltip Position logic is now combined above */
+
+        /* Details List */
+        .card__details {
+            list-style: none;
+            flex-grow: 1;
+        }
+
+        .card__details li {
+            position: relative;
+            padding-left: 20px;
+            margin-bottom: 12px;
+            font-size: 0.95rem;
+            color: var(--inman-gray-text);
+        }
+
+        .card__details li::before {
+            content: "";
+            position: absolute;
+            left: 0;
+            top: 10px;
+            width: 6px;
+            height: 6px;
+            border-radius: 50%;
+        }
+
+        .card--exclusive .card__details li::before {
+            background: var(--color-exclusive);
+        }
+
+        .card--aggregator .card__details li::before {
+            background: var(--color-aggregator);
+        }
+
+        .card--nonexclusive .card__details li::before {
+            background: var(--color-nonexclusive);
+        }
+
+        .card--mls .card__details li::before {
+            background: var(--color-mls);
+        }
+
+        .card__details li strong {
+            color: var(--inman-primary);
+            display: block;
+            margin-bottom: 2px;
+        }
+
+        /* Footer */
+        footer {
+            margin-top: 60px;
+            text-align: center;
+            font-size: 0.85rem;
+            color: #94A3B8;
+            padding: 20px;
+        }
+
+        /* Highlight classes */
+        .highlight {
+            font-weight: 600;
+            color: var(--inman-primary);
+        }
+    </style>
+</head>
+
+<body>
+
+    <div class="infographic">
+        <header>
+            <h1>4 New Takes on Pre-MLS Listings</h1>
+            <p class="subtitle">After Compass announced it would bring "coming soon" listings to Redfin, the brokerage's
+                competitors rolled out three new
+                partnerships or initiatives in rapid succession to provide their listings with pre-MLS exposure. Here's
+                what they look like.</p>
+        </header>
+
+        <div class="partnerships-grid">
+            <!-- 1. Compass model -->
+            <article class="card card--exclusive">
+                <div class="card__badge">The Compass model</div>
+                <div class="card__partners">
+                    <div class="partner">
+                        <div class="partner__avatar" style="background-image: url('re_brand_images/compass_logo.png');"
+                            data-company="Compass"></div>
+                        <span>Compass</span>
+                    </div>
+                    <span class="connector">→</span>
+                    <div class="partner">
+                        <div class="partner__avatar" style="background-image: url('re_brand_images/redfin_logo.jpeg');"
+                            data-company="Redfin"></div>
+                        <span>Redfin</span>
+                    </div>
+                    <div class="partner">
+                        <div class="partner__avatar" style="background-image: url('re_brand_images/rocket_logo.jpg');"
+                            data-company="Rocket Mortgage"></div>
+                        <span>Rocket</span>
+                    </div>
+                </div>
+                <ul class="card__details">
+                    <li><strong>Closed Access</strong> Listings stay within the Redfin and Compass networks.</li>
+                    <li><strong>No Referral Fees</strong> Buyer leads from Redfin route directly to Compass listing
+                        agents with no referral fees.</li>
+                    <li><strong>Financial Incentives</strong> Rocket Mortgage offers buyers <span class="highlight">1%
+                            rate reductions</span> for the first year of a loan,or up to a <span
+                            class="highlight">$6,000 lender credit</span>.</li>
+                </ul>
+            </article>
+
+            <!-- 2. Zillow model -->
+            <article class="card card--aggregator">
+                <div class="card__badge">The Zillow response</div>
+                <div class="card__partners">
+                    <div class="partner" style="gap: 4px;">
+                        <div class="partner-group">
+                            <div class="partner__avatar--sm"
+                                style="background-image: url('re_brand_images/homeservices_logo.jpeg');"
+                                data-company="HomeServices of America"></div>
+                            <div class="partner__avatar--sm" data-company="Keller Williams"></div>
+                            <div class="partner__avatar--sm" data-company="RE/MAX"></div>
+                            <div class="partner__avatar--sm" data-company="Side"></div>
+                            <div class="partner__avatar--sm" data-company="United Real Estate"></div>
+                        </div>
+                        <span style="font-size: 0.7rem; font-weight: 400; color: #94A3B8;">Partner Companies</span>
+                    </div>
+                    <span class="connector">→</span>
+                    <div class="partner">
+                        <div class="partner__avatar" style="background-image: url('re_brand_images/zillow_logo.png');"
+                            data-company="Zillow"></div>
+                        <span>Zillow</span>
+                    </div>
+                </div>
+                <ul class="card__details">
+                    <li><strong>Wide Visibility</strong> Reaches Zillow's <span class="highlight">235 million</span>
+                        monthly unique users.</li>
+                    <li><strong>Direct Connection</strong> Prompts consumers to contact the agent for a Zillow Preview
+                        listing.</li>
+                    <li><strong>Revenue Sharing</strong> Participating brokerages receive a portion of the referral
+                        revenue Zillow
+                        earns from Preferred agent transactions.</li>
+                </ul>
+            </article>
+
+            <!-- 3. eXp model -->
+            <article class="card card--nonexclusive">
+                <div class="card__badge">A multi-portal alternative</div>
+                <div class="card__partners">
+                    <div class="partner">
+                        <div class="partner__avatar" style="background-image: url('re_brand_images/eXp_logo.jpg');"
+                            data-company="eXp Realty"></div>
+                        <span>eXp Realty</span>
+                    </div>
+                    <span class="connector">→</span>
+                    <div class="partner">
+                        <div class="partner__avatar"
+                            style="background-image: url('re_brand_images/realtorcom_logo.svg');"
+                            data-company="Realtor.com"></div>
+                        <span>Realtor.com</span>
+                    </div>
+                    <div class="partner">
+                        <div class="partner__avatar"
+                            style="background-image: url('re_brand_images/homescom_logo.jpeg');"
+                            data-company="Homes.com"></div>
+                        <span>Homes.com</span>
+                    </div>
+                    <div class="partner">
+                        <div class="partner__avatar"
+                            style="background-image: url('re_brand_images/comehome_logo.jpeg');"
+                            data-company="ComeHome"></div>
+                        <span>ComeHome</span>
+                    </div>
+                </div>
+                <ul class="card__details">
+                    <li><strong>Push to Partners</strong> Listings are syndicated to portal partners through third-party
+                        distribution platform Zenlist.</li>
+                    <li><strong>Strict Non-Exclusivity</strong> Any portal can receive pre-market listings, including
+                        Zillow and Redfin.</li>
+                    <li><strong>Broad Footprint</strong> Strategy centers on wide digital exposure across competing
+                        national portals.</li>
+                </ul>
+            </article>
+
+            <!-- 4. Howard Hanna model -->
+            <article class="card card--mls">
+                <div class="card__badge">HannaList</div>
+                <div class="card__partners">
+                    <div class="partner">
+                        <div class="partner__avatar"
+                            style="background-image: url('re_brand_images/howardhanna_logo.jpg');"
+                            data-company="Howard Hanna"></div>
+                        <span>Howard Hanna</span>
+                    </div>
+                </div>
+                <ul class="card__details">
+                    <li><strong>Internal Network</strong> Connects Howard Hanna listing clients with buyer clients
+                        before public launch.</li>
+                    <li><strong>MLS Partnership</strong> Deep collaboration with local MLSs to ensure compliance with
+                        policy.</li>
+                    <li><strong>No Early Public Exposure</strong> HannaList properties are withheld from listing portals
+                        until public launch.</li>
+                </ul>
+            </article>
+        </div>
+
+        <footer>
+            Visualized by Inman with Claude and Gemini
+        </footer>
+    </div>
+
+</body>
+
+</html>
