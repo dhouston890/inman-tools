@@ -168,20 +168,52 @@ perform_market_calculations <- function(df, group_var) {
     ) %>%
     ungroup()
   
-  # --- 5c. 2017-2019 Baseline Calculations ---
+  # --- 5c. 2017-2019 Baseline Calculations (De-trended Seasonal Factor) ---
   baseline_period <- 2017:2019
-  level_baseline <- df_calculated %>%
+  metrics_to_baseline <- c(
+    "potential_revenue_3m", "est_outflow_price_3m", "total_outflow_3m",
+    "inventory_turnover_ratio_3m", "active_listing_count_3m",
+    "new_listing_count_3m", "weighted_days_on_market_3m"
+  )
+  
+  # 1. Calculate the 'Anchor' (Grand Mean for the entire pre-pandemic period)
+  anchors <- df_calculated %>%
+    filter(year(date) %in% baseline_period) %>%
+    group_by(!!sym(group_var)) %>%
+    summarise(across(
+      all_of(metrics_to_baseline),
+      \(x) mean(x, na.rm = TRUE), .names = "anchor_{.col}"
+    ), .groups = 'drop')
+
+  # 2. Calculate Seasonal Factors (Ratio to Centered 12-month Moving Average)
+  # This isolates the seasonal footprint by removing the multi-year trend.
+  seasonal_factors <- df_calculated %>%
+    group_by(!!sym(group_var)) %>%
+    arrange(date) %>%
+    mutate(across(
+      all_of(metrics_to_baseline),
+      \(x) x / rollapply(x, width = 12, FUN = mean, fill = NA, align = "center"),
+      .names = "ratio_{.col}"
+    )) %>%
     filter(year(date) %in% baseline_period) %>%
     group_by(!!sym(group_var), month = month(date)) %>%
-    summarise(
-      baseline_potential_revenue_3m = mean(potential_revenue_3m, na.rm = TRUE),
-      baseline_est_outflow_price_3m = mean(est_outflow_price_3m, na.rm = TRUE),
-      baseline_total_outflow_3m = mean(total_outflow_3m, na.rm = TRUE),
-      baseline_inventory_turnover_ratio_3m = mean(inventory_turnover_ratio_3m, na.rm = TRUE),
-      baseline_active_listing_count_3m = mean(active_listing_count_3m, na.rm = TRUE),
-      baseline_new_listing_count_3m = mean(new_listing_count_3m, na.rm = TRUE),
-      baseline_weighted_days_on_market_3m = mean(weighted_days_on_market_3m, na.rm = TRUE),
-      .groups = 'drop'
+    summarise(across(
+      starts_with("ratio_"),
+      \(x) mean(x, na.rm = TRUE), .names = "factor_{.col}"
+    ), .groups = 'drop') %>%
+    rename_with(~gsub("factor_ratio_", "factor_", .x))
+
+  # 3. Combine Anchor and Factor to create the smooth Monthly Baseline
+  level_baseline <- anchors %>%
+    left_join(seasonal_factors, by = group_var) %>%
+    mutate(
+      baseline_potential_revenue_3m = anchor_potential_revenue_3m * factor_potential_revenue_3m,
+      baseline_est_outflow_price_3m = anchor_est_outflow_price_3m * factor_est_outflow_price_3m,
+      baseline_total_outflow_3m = anchor_total_outflow_3m * factor_total_outflow_3m,
+      baseline_inventory_turnover_ratio_3m = anchor_inventory_turnover_ratio_3m * factor_inventory_turnover_ratio_3m,
+      baseline_active_listing_count_3m = anchor_active_listing_count_3m * factor_active_listing_count_3m,
+      baseline_new_listing_count_3m = anchor_new_listing_count_3m * factor_new_listing_count_3m,
+      baseline_weighted_days_on_market_3m = anchor_weighted_days_on_market_3m * factor_weighted_days_on_market_3m
     )
   
   df_calculated <- df_calculated %>%
@@ -196,7 +228,7 @@ perform_market_calculations <- function(df, group_var) {
       new_listing_count_3m_vsbaseline_decimal = (new_listing_count_3m / baseline_new_listing_count_3m) - 1,
       weighted_days_on_market_3m_vsbaseline_decimal = (weighted_days_on_market_3m / baseline_weighted_days_on_market_3m) - 1
     ) %>%
-    select(-month, -starts_with("baseline_"))
+    select(-month, -starts_with("baseline_"), -starts_with("anchor_"), -starts_with("factor_"))
   
   # --- 5d. Year-over-Year Calculations ---
   df_calculated <- df_calculated %>%
