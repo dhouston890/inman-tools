@@ -1,0 +1,1419 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1" />
+<title>How AI power users compare to other agents | Inman</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&family=Lora:ital,wght@0,400;0,500;0,600;1,400&display=swap" rel="stylesheet">
+<style>
+  :root {
+    --inman-dark:        #020A3E; /* Premium deep navy background */
+    --inman-dark-2:      #081254; /* Component-level background */
+    --inman-blue:        #0D83FF; /* Premium vibrant blue */
+    --inman-blue-soft:   rgba(13, 131, 255, 0.55);
+    --inman-blue-faint:  rgba(13, 131, 255, 0.20);
+    --inman-white:       #ffffff;
+    --inman-white-soft:  rgba(255, 255, 255, 0.55);
+    --inman-white-faint: rgba(255, 255, 255, 0.20);
+    --inman-grid:        rgba(13, 131, 255, 0.18); /* Subtle transparent grid line */
+    --inman-muted-text:  #cfd4f0;
+    --font-body:    "Inter", "Helvetica Neue", Arial, sans-serif;
+    --font-display: "Lora", Georgia, serif;
+  }
+
+  * { box-sizing: border-box; }
+  html, body { margin: 0; padding: 0; }
+  body {
+    background: var(--inman-dark);
+    color: var(--inman-white);
+    font-family: var(--font-body);
+    font-size: 15px;
+    line-height: 1.45;
+    -webkit-font-smoothing: antialiased;
+  }
+
+  #tool {
+    max-width: 760px;
+    margin: 0 auto;
+    padding: 28px 22px 24px;
+  }
+
+  /* ---------------- Header ---------------- */
+  .tool-header { margin-bottom: 22px; }
+  .headline {
+    font-family: var(--font-display);
+    font-weight: 600;
+    font-size: clamp(22px, 3.4vw, 28px);
+    line-height: 1.18;
+    margin: 0 0 10px;
+    color: var(--inman-white);
+  }
+  .deck {
+    margin: 0 0 14px;
+    font-size: 14.5px;
+    color: var(--inman-muted-text);
+    max-width: 60ch;
+  }
+  .cohort-callout {
+    display: block;
+    padding: 12px 16px;
+    background: rgba(13, 131, 255, 0.08);
+    border-left: 4px solid var(--inman-blue);
+    border-radius: 0 6px 6px 0;
+    font-size: 14px;
+    line-height: 1.45;
+    color: var(--inman-white);
+  }
+  .cohort-callout strong { font-weight: 600; }
+  .cohort-callout .floor-note {
+    display: block;
+    margin-top: 4px;
+    color: var(--inman-muted-text);
+    font-size: 12.5px;
+  }
+
+  /* ---------------- Animation overlay (full-frame) ---------------- */
+  /* Default state: tool body visible, animation overlay hidden.
+     When #tool has .is-animating, the overlay takes over and the body
+     fades out. */
+  .anim-overlay {
+    display: none;
+    opacity: 0;
+    min-height: 520px;
+    padding: 32px 8px;
+    transition: opacity 500ms ease;
+    background: radial-gradient(circle at center, var(--inman-dark-2) 0%, var(--inman-dark) 100%);
+    border-radius: 8px;
+  }
+  #tool.is-animating .anim-overlay { display: block; opacity: 1; }
+  #tool.is-animating .tool-body    { display: none; }
+
+  .anim-inner {
+    display: flex;
+    flex-direction: column;
+    align-items: stretch;
+    gap: 24px;
+  }
+  
+  .anim-caption-container {
+    text-align: center;
+    min-height: 88px;
+    display: flex;
+    flex-direction: column;
+    justify-content: center;
+    margin-bottom: 8px;
+  }
+  .anim-date {
+    font-family: var(--font-body);
+    font-size: 12px;
+    font-weight: 700;
+    text-transform: uppercase;
+    letter-spacing: 0.15em;
+    color: var(--inman-blue);
+    margin: 0 0 6px 0;
+    transition: opacity 350ms ease;
+  }
+  .anim-commentary {
+    font-family: var(--font-display);
+    font-size: clamp(18px, 2.8vw, 22px);
+    color: var(--inman-white);
+    font-style: italic;
+    font-weight: 500;
+    margin: 0;
+    min-height: 1.5em;
+    transition: opacity 350ms ease;
+  }
+  .anim-date.is-fading, .anim-commentary.is-fading { opacity: 0; }
+
+  .anim-table-container {
+    display: flex;
+    flex-direction: column;
+  }
+  .anim-table-header {
+    display: grid;
+    grid-template-columns: minmax(0, 1fr);
+    font-family: var(--font-body);
+    font-size: 11px;
+    font-weight: 700;
+    text-transform: uppercase;
+    letter-spacing: 0.12em;
+    color: var(--inman-muted-text);
+    margin-bottom: 12px;
+    padding: 0 12px 8px;
+    border-bottom: 1px solid var(--inman-grid);
+  }
+  .anim-header-right {
+    display: none;
+  }
+  @media (min-width: 600px) {
+    .anim-table-header {
+      grid-template-columns: minmax(220px, 1.5fr) minmax(260px, 3fr);
+      gap: 18px;
+    }
+    .anim-header-right {
+      display: block;
+    }
+  }
+
+  .anim-rows {
+    display: flex;
+    flex-direction: column;
+    gap: 22px;
+  }
+  .anim-row {
+    display: grid;
+    grid-template-columns: minmax(0, 1fr);
+    gap: 6px;
+  }
+  @media (min-width: 600px) {
+    .anim-row { grid-template-columns: minmax(220px, 1.5fr) minmax(260px, 3fr); align-items: center; gap: 18px; }
+  }
+  .anim-row .label {
+    font-size: 16px;
+    line-height: 1.25;
+    color: var(--inman-white);
+  }
+  .anim-row .mini-chart { height: 60px; }
+
+  .anim-footer {
+    display: flex;
+    flex-wrap: wrap;
+    align-items: center;
+    justify-content: space-between;
+    gap: 12px 18px;
+    margin-top: 4px;
+  }
+  .anim-key {
+    font-size: 13px;
+    color: var(--inman-muted-text);
+    margin: 0;
+  }
+  .anim-key .pu  { color: var(--inman-blue); font-weight: 600; }
+  .anim-key .oa  { color: var(--inman-white); font-weight: 600; }
+  .anim-key .sep { margin: 0 8px; color: var(--inman-white-soft); }
+
+  .anim-skip {
+    background: transparent;
+    border: 1px solid var(--inman-white-soft);
+    color: var(--inman-white);
+    padding: 6px 12px;
+    border-radius: 3px;
+    font-family: var(--font-body);
+    font-size: 12.5px;
+    cursor: pointer;
+  }
+  .anim-skip:hover { border-color: var(--inman-blue); color: var(--inman-blue); }
+
+  /* Replay button — small, sits in the tool body, hidden until the
+     opening animation has run at least once. */
+  .replay-btn {
+    background: transparent;
+    border: 1px solid var(--inman-white-soft);
+    color: var(--inman-muted-text);
+    padding: 4px 10px;
+    border-radius: 3px;
+    font-family: var(--font-body);
+    font-size: 12px;
+    cursor: pointer;
+    margin: 0 0 14px;
+  }
+  .replay-btn:hover { border-color: var(--inman-blue); color: var(--inman-blue); }
+  .replay-btn[hidden] { display: none; }
+
+  /* Tool body fade — used so it eases in after the overlay fades out. */
+  .tool-body {
+    opacity: 1;
+    transition: opacity 450ms ease;
+  }
+  .tool-body.is-fading-in { opacity: 0; }
+
+  /* ---------------- Controls ---------------- */
+  .controls {
+    display: grid;
+    grid-template-columns: 1fr;
+    gap: 14px;
+    margin-bottom: 20px;
+  }
+  @media (min-width: 600px) {
+    .controls { grid-template-columns: 1.6fr 1fr 1fr; }
+  }
+  fieldset.control {
+    border: none;
+    padding: 0;
+    margin: 0;
+  }
+  .control legend {
+    display: block;
+    font-size: 11.5px;
+    text-transform: uppercase;
+    letter-spacing: 0.08em;
+    color: var(--inman-muted-text);
+    margin-bottom: 6px;
+    padding: 0;
+  }
+  .control-options {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 6px;
+  }
+  .control-options label {
+    display: inline-flex;
+    align-items: center;
+    background: rgba(255, 255, 255, 0.02);
+    color: var(--inman-muted-text);
+    border: 1px solid var(--inman-grid);
+    padding: 6px 12px;
+    border-radius: 4px;
+    cursor: pointer;
+    font-size: 12.5px;
+    line-height: 1.2;
+    user-select: none;
+    transition: all 0.2s cubic-bezier(0.4, 0, 0.2, 1);
+  }
+  .control-options label:hover {
+    border-color: var(--inman-blue-soft);
+    background: rgba(13, 131, 255, 0.08);
+    color: var(--inman-white);
+  }
+  .control-options input { position: absolute; opacity: 0; pointer-events: none; }
+  .control-options input:checked + span { color: var(--inman-blue); }
+  .control-options label:has(input:checked) {
+    border-color: var(--inman-blue);
+    background: var(--inman-blue-faint);
+    color: var(--inman-white);
+    box-shadow: 0 0 10px rgba(13, 131, 255, 0.15);
+  }
+
+  /* ---------------- Axis guideline (above the list) ---------------- */
+  .metric-list-axis {
+    display: grid;
+    grid-template-columns: minmax(0, 1fr);
+    align-items: end;
+    gap: 6px;
+    padding: 0 12px 6px;
+    margin-bottom: 4px;
+    border-bottom: 1px solid var(--inman-grid);
+  }
+  @media (min-width: 520px) {
+    .metric-list-axis {
+      grid-template-columns: minmax(140px, 1.2fr) minmax(160px, 2fr);
+      gap: 12px;
+    }
+  }
+  .axis-label-spacer {
+    font-size: 10.5px;
+    text-transform: uppercase;
+    letter-spacing: 0.08em;
+    color: var(--inman-muted-text);
+  }
+  .axis-track {
+    position: relative;
+    height: 18px;
+  }
+  .axis-track svg { width: 100%; height: 6px; display: block; overflow: visible; position: absolute; bottom: 0; }
+  .axis-track line { stroke: var(--inman-grid); stroke-width: 1; }
+  .axis-track .axis-label {
+    position: absolute;
+    bottom: 6px;
+    font-family: var(--font-body);
+    font-size: 10px;
+    color: var(--inman-muted-text);
+    transform: translateX(-50%);
+    white-space: nowrap;
+  }
+  .axis-track .axis-label.first { transform: translateX(0); }
+  .axis-track .axis-label.last  { transform: translateX(-100%); }
+
+  /* ---------------- Metric rows ---------------- */
+  .metric-list { display: flex; flex-direction: column; gap: 8px; }
+  .metric-row {
+    display: grid;
+    grid-template-columns: minmax(0, 1fr);
+    align-items: center;
+    gap: 6px;
+    padding: 12px 14px;
+    background: rgba(255, 255, 255, 0.02);
+    border: 1px solid transparent;
+    border-radius: 6px;
+    position: relative;
+    transition: all 0.2s cubic-bezier(0.4, 0, 0.2, 1);
+  }
+  @media (min-width: 520px) {
+    .metric-row {
+      grid-template-columns: minmax(140px, 1.2fr) minmax(160px, 2fr);
+      gap: 12px;
+    }
+  }
+  .metric-row:hover {
+    background: rgba(255, 255, 255, 0.04);
+    border-color: rgba(13, 131, 255, 0.15);
+    box-shadow: 0 4px 20px rgba(0, 0, 0, 0.2);
+  }
+  .metric-row .label {
+    font-size: 13.5px;
+    line-height: 1.3;
+    color: var(--inman-white);
+  }
+  .metric-row .new-tag {
+    display: inline-block;
+    margin-left: 6px;
+    padding: 1px 6px;
+    font-size: 10.5px;
+    letter-spacing: 0.04em;
+    text-transform: uppercase;
+    background: var(--inman-blue);
+    color: var(--inman-dark);
+    border-radius: 2px;
+    vertical-align: 1px;
+  }
+
+  /* ---------------- Mini-chart (SVG lines + HTML markers) ----------------
+     SVG draws baseline / ticks / trajectory lines, which look fine when
+     stretched. Markers are absolutely positioned HTML divs so they stay
+     circular at any container width. */
+  .chart-wrap { position: relative; }
+  .chart-inner {
+    position: relative;
+    width: 100%;
+    height: 44px;
+  }
+  .mini-chart {
+    position: absolute;
+    inset: 0;
+    width: 100%;
+    height: 100%;
+    overflow: visible;
+    display: block;
+  }
+  .chart-axis  { stroke: var(--inman-grid); stroke-width: 1; }
+  .traj-line {
+    fill: none;
+    stroke-width: 1.25;
+    opacity: 0;
+    transition: opacity 400ms ease;
+  }
+  .traj-line.is-visible { opacity: 0.55; }
+  .traj-line.power { stroke: var(--inman-blue); }
+  .traj-line.other { stroke: var(--inman-white); }
+
+  .markers {
+    position: absolute;
+    inset: 0;
+    pointer-events: none;
+  }
+  .marker {
+    position: absolute;
+    border-radius: 50%;
+    transform: translate(-50%, -50%);
+    box-shadow: 0 2px 5px rgba(0, 0, 0, 0.4);
+    transition: left 1100ms cubic-bezier(0.4, 0, 0.2, 1),
+                width 250ms ease, height 250ms ease, opacity 250ms ease;
+  }
+  .marker.power { background: var(--inman-blue); box-shadow: 0 2px 6px rgba(13, 131, 255, 0.3); }
+  .marker.other { background: var(--inman-white); box-shadow: 0 2px 6px rgba(255, 255, 255, 0.3); }
+  .marker.wave-dec { width: 6px;  height: 6px;  opacity: 0.45; }
+  .marker.wave-aug { width: 6px;  height: 6px;  opacity: 0.75; }
+  .marker.wave-apr { width: 13px; height: 13px; opacity: 1; }
+
+  /* Animation overlay rows: bigger chart, only the "current" marker visible.
+     Ref dots and the connecting trace are added to the marker layer during
+     the transition between waves. */
+  .anim-row .chart-inner { height: 60px; }
+  .anim-row .marker { opacity: 0; }
+  .anim-row .marker.is-current { opacity: 1; width: 18px; height: 18px; }
+  .anim-row .traj-line { opacity: 0; }
+  .anim-row .marker.power.is-current { box-shadow: 0 0 12px rgba(10, 132, 255, 0.55); }
+  .anim-row .marker.other.is-current { box-shadow: 0 0 10px rgba(255, 255, 255, 0.35); }
+
+  .ref-dot {
+    position: absolute;
+    width: 9px; height: 9px;
+    border-radius: 50%;
+    transform: translate(-50%, -50%);
+    opacity: 0;
+    pointer-events: none;
+    transition: opacity 320ms ease;
+  }
+  .ref-dot.power { background: var(--inman-blue); }
+  .ref-dot.other { background: var(--inman-white); }
+  .ref-dot.is-visible { opacity: 0.55; }
+
+  .ref-line {
+    position: absolute;
+    height: 0;
+    border-top: 1px dashed rgba(255, 255, 255, 0.4);
+    transform: translateY(-50%);
+    opacity: 0;
+    pointer-events: none;
+    /* Width and left transition match the main marker's transition so the
+       line extends in real time with the dot. */
+    transition: opacity 320ms ease,
+                width 1100ms cubic-bezier(0.4, 0, 0.2, 1),
+                left  1100ms cubic-bezier(0.4, 0, 0.2, 1);
+  }
+  .ref-line.power { border-top-color: var(--inman-blue-soft); }
+  .ref-line.other { border-top-color: var(--inman-white-soft); }
+  .ref-line.is-visible { opacity: 0.5; }
+
+  /* ---------------- Gap-only view ---------------- */
+  .gap-bar {
+    height: 4px;
+    border-radius: 2px;
+    background: var(--inman-blue-soft);
+    transform-origin: left center;
+  }
+  .gap-bar-row {
+    display: flex;
+    flex-direction: column;
+    gap: 3px;
+    padding: 4px 0;
+  }
+  .gap-bar-line {
+    display: grid;
+    grid-template-columns: 56px 1fr 48px;
+    align-items: center;
+    gap: 8px;
+    font-size: 11.5px;
+    color: var(--inman-muted-text);
+  }
+  .gap-bar-line .wave-label { color: var(--inman-white-soft); }
+  .gap-bar-line .gap-value  { text-align: right; color: var(--inman-white); }
+  .gap-bar-line .bar-track  { position: relative; height: 6px; background: var(--inman-grid); border-radius: 3px; }
+  .gap-bar-line .bar-fill   { position: absolute; left: 0; top: 0; bottom: 0; background: var(--inman-blue); border-radius: 3px; transition: width 400ms ease; }
+  .gap-bar-line.is-negative .bar-fill { background: var(--inman-white-soft); }
+
+  /* ---------------- Tooltip ---------------- */
+  .row-tooltip {
+    position: absolute;
+    z-index: 20;
+    pointer-events: none;
+    background: rgba(2, 10, 62, 0.95);
+    backdrop-filter: blur(8px);
+    -webkit-backdrop-filter: blur(8px);
+    border: 1px solid rgba(13, 131, 255, 0.35);
+    padding: 12px 14px;
+    border-radius: 6px;
+    font-size: 12px;
+    line-height: 1.4;
+    color: var(--inman-white);
+    box-shadow: 0 10px 30px rgba(0, 0, 0, 0.5), 0 0 0 1px rgba(13, 131, 255, 0.1);
+    width: 240px;
+    opacity: 0;
+    transition: opacity 140ms ease;
+  }
+  .row-tooltip.is-visible { opacity: 1; }
+  .row-tooltip table { width: 100%; border-collapse: collapse; margin-top: 6px; }
+  .row-tooltip th, .row-tooltip td {
+    padding: 2px 4px;
+    text-align: right;
+    font-weight: 400;
+    border-bottom: 1px solid var(--inman-grid);
+  }
+  .row-tooltip th:first-child, .row-tooltip td:first-child { text-align: left; color: var(--inman-muted-text); }
+  .row-tooltip .pu  { color: var(--inman-blue); font-weight: 600; }
+  .row-tooltip .oa  { color: var(--inman-white); font-weight: 600; }
+  .row-tooltip .gap { color: var(--inman-muted-text); }
+  .row-tooltip h4 {
+    font-family: var(--font-display);
+    font-size: 13px;
+    font-weight: 600;
+    margin: 0 0 2px;
+    color: var(--inman-white);
+  }
+  .row-tooltip .src-note {
+    margin-top: 6px;
+    font-size: 11px;
+    color: var(--inman-muted-text);
+    line-height: 1.35;
+  }
+
+  /* ---------------- Legend ---------------- */
+  .legend {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 14px;
+    margin: 4px 0 16px;
+    font-size: 12px;
+    color: var(--inman-muted-text);
+  }
+  .legend .swatch {
+    display: inline-block;
+    width: 10px; height: 10px;
+    border-radius: 50%;
+    margin-right: 5px;
+    vertical-align: middle;
+  }
+  .legend .swatch.power { background: var(--inman-blue); }
+  .legend .swatch.other { background: var(--inman-white); }
+  .legend .wave-sizes { display: inline-flex; align-items: center; gap: 6px; }
+  .legend .wave-sizes .swatch.dec { width: 6px; height: 6px; opacity: 0.45; background: var(--inman-white); }
+  .legend .wave-sizes .swatch.aug { width: 6px; height: 6px; opacity: 0.75; background: var(--inman-white); }
+  .legend .wave-sizes .swatch.apr { width: 13px; height: 13px; background: var(--inman-white); }
+
+  /* ---------------- Footer ---------------- */
+  .tool-footer {
+    margin-top: 26px;
+    padding-top: 14px;
+    border-top: 1px solid var(--inman-grid);
+    font-size: 12px;
+    color: var(--inman-muted-text);
+    line-height: 1.5;
+  }
+  .tool-footer p { margin: 0 0 6px; }
+  .tool-footer .credit {
+    color: var(--inman-white);
+    font-size: 12px;
+    margin-top: 8px;
+  }
+
+  /* ---------------- Reduced motion ---------------- */
+  @media (prefers-reduced-motion: reduce) {
+    .marker { transition: none !important; }
+    .traj-line { transition: none !important; }
+    .phase-caption { transition: none !important; }
+  }
+
+  /* Mobile adjustments */
+  @media (max-width: 480px) {
+    #tool {
+      padding: 16px 12px 16px;
+    }
+    .tool-header {
+      margin-bottom: 16px;
+    }
+    .cohort-callout {
+      padding: 6px 10px;
+      font-size: 12.5px;
+    }
+    .control legend {
+      margin-bottom: 4px;
+    }
+    .control-options label {
+      padding: 4px 8px;
+      font-size: 11.5px;
+    }
+    .metric-row {
+      padding: 8px 10px;
+    }
+  }
+
+  /* Active marker labels during opening animation */
+  .marker-text-label {
+    display: none;
+    position: absolute;
+    white-space: nowrap;
+    font-family: var(--font-body);
+    font-size: 9px;
+    font-weight: 700;
+    text-transform: uppercase;
+    letter-spacing: 0.08em;
+    pointer-events: none;
+  }
+  .anim-row:first-child .marker.is-current .marker-text-label {
+    display: block;
+  }
+  .marker.power .marker-text-label {
+    bottom: 24px;
+    left: 50%;
+    transform: translateX(-50%);
+    color: var(--inman-blue);
+  }
+  .marker.other .marker-text-label {
+    top: 24px;
+    left: 50%;
+    transform: translateX(-50%);
+    color: var(--inman-white);
+  }
+</style>
+</head>
+<body>
+<main id="tool" class="is-animating" aria-label="Interactive: AI power users vs other agents">
+
+  <!-- Animation overlay: full-frame on first view, replaced by the tool body. -->
+  <section class="anim-overlay" id="anim-overlay" aria-label="Opening animation">
+    <div class="anim-inner">
+      <div class="anim-caption-container">
+        <div class="anim-date" id="anim-date">December 2024</div>
+        <div class="anim-commentary" id="anim-commentary">&nbsp;</div>
+      </div>
+      <div class="anim-table-container">
+        <div class="anim-table-header">
+          <div>What agents use AI for</div>
+          <div class="anim-header-right">% of cohort adopting</div>
+        </div>
+        <div class="anim-rows" id="anim-rows"></div>
+      </div>
+      <button class="anim-skip" id="skip-btn" type="button">Skip animation &rarr;</button>
+    </div>
+  </section>
+
+  <!-- Tool body: hidden during the animation. -->
+  <div class="tool-body" id="tool-body">
+    <header class="tool-header">
+      <h1 class="headline">In the brokerage, the gap between AI power users and everyone else is closing</h1>
+      <button class="replay-btn" id="replay-btn" type="button" hidden>&#9658; Replay opening animation</button>
+      <div class="cohort-callout">
+        Power users now make up <strong>28%</strong> of agent respondents, up from <strong>15%</strong> in August &mdash; the cohort itself nearly doubled in eight months.
+      </div>
+    </header>
+
+    <section class="controls" aria-label="Tool controls">
+      <fieldset class="control">
+        <legend>Sort by</legend>
+        <div class="control-options" role="radiogroup">
+          <label><input type="radio" name="sort" value="mainstream_growth" checked /><span>Mainstream growth since Aug '25</span></label>
+          <label><input type="radio" name="sort" value="gap_change" /><span>Gap change since Aug '25</span></label>
+          <label><input type="radio" name="sort" value="current_gap" /><span>Current gap (April '26)</span></label>
+        </div>
+      </fieldset>
+      <fieldset class="control">
+        <legend>View</legend>
+        <div class="control-options" role="radiogroup">
+          <label><input type="radio" name="view" value="cohorts" checked /><span>Show both cohorts</span></label>
+          <label><input type="radio" name="view" value="gap" /><span>Show only the gap</span></label>
+        </div>
+      </fieldset>
+      <fieldset class="control">
+        <legend>Show cohorts</legend>
+        <div class="control-options">
+          <label><input type="checkbox" name="cohort" value="power" checked /><span>Power users</span></label>
+          <label><input type="checkbox" name="cohort" value="other" checked /><span>Everyone else</span></label>
+        </div>
+      </fieldset>
+    </section>
+
+    <div class="legend" id="legend">
+      <span><span class="swatch power"></span>Power users</span>
+      <span><span class="swatch other"></span>Everyone else</span>
+      <span class="wave-sizes">Survey wave:
+        <span class="swatch aug"></span>Aug '25
+        <span class="swatch apr"></span>Apr '26
+      </span>
+    </div>
+
+    <div class="metric-list-axis" aria-hidden="true">
+      <div class="axis-label-spacer">% of cohort using AI for this task</div>
+      <div class="axis-track" id="axis-track"></div>
+    </div>
+
+    <section class="metric-list" id="metric-list" aria-label="All 13 AI use cases"></section>
+
+    <footer class="tool-footer">
+      <p>
+        &ldquo;Power users&rdquo; are agents who self-identified as gaining &ldquo;significant&rdquo; productivity from AI tools.
+      </p>
+      <p class="credit">Source: Inman Intel Index agent responses | Vizualized by Inman with Claude and Gemini</p>
+    </footer>
+  </div>
+
+  <div class="row-tooltip" id="tooltip" role="tooltip"></div>
+</main>
+
+<script>
+/* ============================================================================
+   Embedded data payload — generated by active_workspace/scripts/power_user_gap_clean.R
+   Shares are expressed as fractions (0–1).
+============================================================================ */
+const DATA = {
+  meta: {
+    waves: ["Dec '24", "Aug '25", "Apr '26"],
+    period_of_interest: "Aug '25 → Apr '26"
+  },
+  metrics: [
+    { label: "Generate text for social/marketing",          source: "Generating text for social media or marketing materials",                                    is_new_apr: false, dec24_power: 0.8966, dec24_other: 0.4327, aug25_power: 0.9250, aug25_other: 0.5110, apr26_power: 0.8955, apr26_other: 0.5649 },
+    { label: "Generate images for social/marketing",        source: "Generating images for social media or marketing materials",                                  is_new_apr: false, dec24_power: 0.2414, dec24_other: 0.1020, aug25_power: 0.4750, aug25_other: 0.1233, apr26_power: 0.5373, apr26_other: 0.2532 },
+    { label: "Edit images for social/marketing",            source: "Editing images for social media or marketing materials",                                     is_new_apr: false, dec24_power: 0.2069, dec24_other: 0.0857, aug25_power: 0.4750, aug25_other: 0.0969, apr26_power: 0.5373, apr26_other: 0.2922 },
+    { label: "Generate video for social/marketing",         source: "Generating video for social media or marketing materials",                                   is_new_apr: false, dec24_power: 0.2759, dec24_other: 0.0490, aug25_power: 0.3250, aug25_other: 0.0793, apr26_power: 0.2537, apr26_other: 0.0909 },
+    { label: "Generate text for property descriptions",     source: "Generating text for property descriptions",                                                  is_new_apr: false, dec24_power: 0.8276, dec24_other: 0.5633, aug25_power: 0.9250, aug25_other: 0.6432, apr26_power: 0.8209, apr26_other: 0.7403 },
+    { label: "Edit listing photos (digital staging)",       source: "Editing listing photos with a digital-staging software",                                     is_new_apr: false, dec24_power: 0.1724, dec24_other: 0.1020, aug25_power: 0.3750, aug25_other: 0.1454, apr26_power: 0.4627, apr26_other: 0.2143 },
+    { label: "Automate client communication",               source: "Automating direct communication with clients, such as with a chatbot or other automated communication tool", is_new_apr: false, dec24_power: 0.2414, dec24_other: 0.0776, aug25_power: 0.3500, aug25_other: 0.1145, apr26_power: 0.2537, apr26_other: 0.1299 },
+    { label: "Manage leads/tasks in client database",       source: "Managing leads or tasks in your database",                                                   is_new_apr: false, dec24_power: 0.2069, dec24_other: 0.0857, aug25_power: 0.3500, aug25_other: 0.0881, apr26_power: 0.3433, apr26_other: 0.1558 },
+    { label: "Pull data from property photos",              source: "Pulling data from property photos using image-analysis software",                            is_new_apr: false, dec24_power: 0.0345, dec24_other: 0.0245, aug25_power: 0.2500, aug25_other: 0.0749, apr26_power: 0.1343, apr26_other: 0.0974 },
+    { label: "Generate contracts/business documents",       source: "Generating contracts or other business documents",                                           is_new_apr: false, dec24_power: 0.2414, dec24_other: 0.0367, aug25_power: 0.3500, aug25_other: 0.0573, apr26_power: 0.2985, apr26_other: 0.0844 },
+    { label: "Summarize contracts/business documents",      source: "Summarizing contracts or other business documents",                                          is_new_apr: false, dec24_power: 0.3448, dec24_other: 0.0449, aug25_power: 0.5000, aug25_other: 0.1322, apr26_power: 0.4776, apr26_other: 0.1818 },
+    { label: "Analyze or summarize market data",            source: "Producing analysis or summaries of market data",                                             is_new_apr: false, dec24_power: 0.4483, dec24_other: 0.1551, aug25_power: 0.7000, aug25_other: 0.2203, apr26_power: 0.6418, apr26_other: 0.3312 },
+    { label: "Write code for custom apps/tools",            source: "Writing code for custom apps or tools for specific use cases",                               is_new_apr: true,  dec24_power: null,   dec24_other: null,   aug25_power: null,   aug25_other: null,   apr26_power: 0.1343, apr26_other: 0.0519 }
+  ]
+};
+
+/* Featured metrics for the intro animation, in the order they appear. */
+const SPOTLIGHT_LABELS = [
+  "Analyze or summarize market data",
+  "Edit images for social/marketing",
+  "Pull data from property photos",
+  "Generate text for property descriptions"
+];
+
+/* ============================================================================
+   Helpers
+============================================================================ */
+const fmtPct = (x) => x == null ? "—" : (x * 100).toFixed(1) + "%";
+const fmtPp  = (x, opts = {}) => {
+  if (x == null) return "—";
+  const v = x * 100;
+  const sign = v > 0 ? "+" : (v < 0 ? "−" : "");
+  const num  = Math.abs(v).toFixed(1);
+  return sign + num + (opts.unit === false ? "" : " pp");
+};
+
+function derive(m) {
+  const gap = (p, o) => (p == null || o == null) ? null : p - o;
+  return {
+    ...m,
+    gap_dec24:        gap(m.dec24_power, m.dec24_other),
+    gap_aug25:        gap(m.aug25_power, m.aug25_other),
+    gap_apr26:        gap(m.apr26_power, m.apr26_other),
+    gap_change_aa:    (m.aug25_power == null) ? null : (m.apr26_power - m.apr26_other) - (m.aug25_power - m.aug25_other),
+    other_growth_aa:  (m.aug25_other == null) ? null : m.apr26_other - m.aug25_other,
+    power_growth_aa:  (m.aug25_power == null) ? null : m.apr26_power - m.aug25_power
+  };
+}
+
+const DERIVED = DATA.metrics.map(derive);
+
+function sortMetrics(arr, mode) {
+  const copy = arr.slice();
+  const naLast = (a, b, key) => {
+    if (a[key] == null && b[key] == null) return 0;
+    if (a[key] == null) return 1;
+    if (b[key] == null) return -1;
+    return 0;
+  };
+  switch (mode) {
+    case "mainstream_growth":
+      copy.sort((a, b) => naLast(a, b, "other_growth_aa") || (b.other_growth_aa - a.other_growth_aa));
+      break;
+    case "gap_change":
+      // Descending: widening at top (positive), narrowing at bottom (negative)
+      copy.sort((a, b) => naLast(a, b, "gap_change_aa") || (b.gap_change_aa - a.gap_change_aa));
+      break;
+    case "current_gap":
+      copy.sort((a, b) => (b.gap_apr26 ?? -Infinity) - (a.gap_apr26 ?? -Infinity));
+      break;
+  }
+  return copy;
+}
+
+/* ============================================================================
+   SVG mini-chart construction
+
+   Each row renders a single-row scatterplot. The X axis is adoption (0–100%).
+   Two horizontal lanes:
+     - upper lane: power users (blue)
+     - lower lane: everyone else (white)
+   Three markers per lane (Dec, Aug, Apr) increase in size and opacity to
+   emphasize the most recent wave. Lines connect waves within each lane.
+============================================================================ */
+const CHART = {
+  pad: 6,          // padding inside the SVG, %
+  laneY: {
+    power: 14,
+    other: 30
+  },
+  vbWidth: 100,
+  vbHeight: 44
+};
+
+function chartPath(values, lane) {
+  // values: [dec, aug, apr], any may be null
+  const pts = values.map((v, i) => v == null ? null : [scaleX(v), CHART.laneY[lane]]);
+  const valid = pts.filter(Boolean);
+  if (valid.length < 2) return "";
+  return "M " + valid.map(p => p[0].toFixed(2) + " " + p[1]).join(" L ");
+}
+
+function scaleX(v) {
+  // map 0..1 -> chart x, leaving padding for marker radius
+  return CHART.pad + v * (CHART.vbWidth - 2 * CHART.pad);
+}
+
+// Convert a 0–1 share to a "left: <pct>%" string, accounting for the 6%
+// padding inside the chart's logical track. Returns a string usable as CSS.
+function pctLeft(v) {
+  return (CHART.pad + v * (CHART.vbWidth - 2 * CHART.pad)) + "%";
+}
+
+function buildChart(m, opts = {}) {
+  const spotlight = !!opts.spotlight;
+  // The static metric list focuses on the recent (Aug → Apr) shift, so we
+  // omit Dec '24 from the markers and trajectory line there. The full-frame
+  // animation still uses all three waves.
+  const includeDec = spotlight;
+  const power = [m.dec24_power, m.aug25_power, m.apr26_power];
+  const other = [m.dec24_other, m.aug25_other, m.apr26_other];
+  const waves = ["dec", "aug", "apr"];
+
+  const inner = document.createElement("div");
+  inner.className = "chart-inner";
+
+  // SVG for baseline, ticks, and trajectory lines
+  const svgNS = "http://www.w3.org/2000/svg";
+  const svg = document.createElementNS(svgNS, "svg");
+  svg.setAttribute("class", "mini-chart");
+  svg.setAttribute("viewBox", `0 0 ${CHART.vbWidth} ${CHART.vbHeight}`);
+  svg.setAttribute("preserveAspectRatio", "none");
+  svg.setAttribute("aria-hidden", "true");
+
+  // Baseline at the bottom of the chart
+  const axis = document.createElementNS(svgNS, "line");
+  axis.setAttribute("x1", CHART.pad);
+  axis.setAttribute("x2", CHART.vbWidth - CHART.pad);
+  axis.setAttribute("y1", 42);
+  axis.setAttribute("y2", 42);
+  axis.setAttribute("class", "chart-axis");
+  svg.appendChild(axis);
+
+  [0, 25, 50, 75, 100].forEach(pct => {
+    const x = scaleX(pct / 100);
+    const t = document.createElementNS(svgNS, "line");
+    t.setAttribute("x1", x); t.setAttribute("x2", x);
+    t.setAttribute("y1", 40); t.setAttribute("y2", 43);
+    t.setAttribute("class", "chart-axis");
+    svg.appendChild(t);
+  });
+
+  // Trajectory lines (hidden in spotlight mode). For the static rows we
+  // build the path from Aug → Apr only, so the connector matches what's
+  // shown by the markers below.
+  const lineValuesPower = includeDec ? power : [null, m.aug25_power, m.apr26_power];
+  const lineValuesOther = includeDec ? other : [null, m.aug25_other, m.apr26_other];
+
+  const powerLine = document.createElementNS(svgNS, "path");
+  powerLine.setAttribute("d", chartPath(lineValuesPower, "power"));
+  powerLine.setAttribute("class", "traj-line power" + (spotlight ? "" : " is-visible"));
+  powerLine.dataset.lane = "power";
+  svg.appendChild(powerLine);
+
+  const otherLine = document.createElementNS(svgNS, "path");
+  otherLine.setAttribute("d", chartPath(lineValuesOther, "other"));
+  otherLine.setAttribute("class", "traj-line other" + (spotlight ? "" : " is-visible"));
+  otherLine.dataset.lane = "other";
+  svg.appendChild(otherLine);
+  inner.appendChild(svg);
+
+  // HTML markers (true circles)
+  const markerLayer = document.createElement("div");
+  markerLayer.className = "markers";
+  waves.forEach((w, i) => {
+    if (!includeDec && w === "dec") return;
+    [["power", power[i]], ["other", other[i]]].forEach(([lane, v]) => {
+      if (v == null) return;
+      const dot = document.createElement("div");
+      dot.className = `marker ${lane} wave-${w}`;
+      dot.dataset.wave = w;
+      dot.dataset.lane = lane;
+      dot.style.left = pctLeft(v);
+      // Position vertically as a percentage of the chart height, so this
+      // adapts to the taller anim-row chart automatically.
+      dot.style.top  = ((CHART.laneY[lane] / CHART.vbHeight) * 100) + "%";
+      
+      if (spotlight) {
+        const labelSpan = document.createElement("span");
+        labelSpan.className = "marker-text-label";
+        labelSpan.textContent = lane === "power" ? "Power users" : "Other agents";
+        dot.appendChild(labelSpan);
+      }
+      
+      markerLayer.appendChild(dot);
+    });
+  });
+  inner.appendChild(markerLayer);
+
+  return inner;
+}
+
+/* ============================================================================
+   Row rendering
+============================================================================ */
+function makeRow(m, opts = {}) {
+  const row = document.createElement("div");
+  row.className = "metric-row";
+  row.dataset.label = m.label;
+
+  const labelEl = document.createElement("div");
+  labelEl.className = "label";
+  labelEl.textContent = m.label;
+  if (m.is_new_apr) {
+    const tag = document.createElement("span");
+    tag.className = "new-tag";
+    tag.textContent = "New in April";
+    labelEl.appendChild(tag);
+  }
+  row.appendChild(labelEl);
+
+  const chartWrap = document.createElement("div");
+  chartWrap.className = "chart-wrap";
+  chartWrap.appendChild(buildChart(m, opts));
+  row.appendChild(chartWrap);
+
+  attachTooltip(row, m);
+  return row;
+}
+
+function makeGapBarRow(m) {
+  const row = document.createElement("div");
+  row.className = "metric-row";
+  row.dataset.label = m.label;
+
+  const labelEl = document.createElement("div");
+  labelEl.className = "label";
+  labelEl.textContent = m.label;
+  if (m.is_new_apr) {
+    const tag = document.createElement("span");
+    tag.className = "new-tag";
+    tag.textContent = "New in April";
+    labelEl.appendChild(tag);
+  }
+  row.appendChild(labelEl);
+
+  const wrap = document.createElement("div");
+  wrap.className = "gap-bar-row";
+  const waves = [
+    { label: "Aug '25", gap: m.gap_aug25 },
+    { label: "Apr '26", gap: m.gap_apr26 }
+  ];
+  const maxGap = 0.50;  // ~max observed gap, used to scale bars consistently
+  waves.forEach(w => {
+    const line = document.createElement("div");
+    line.className = "gap-bar-line" + (w.gap != null && w.gap < 0 ? " is-negative" : "");
+    const lbl = document.createElement("span");
+    lbl.className = "wave-label";
+    lbl.textContent = w.label;
+    line.appendChild(lbl);
+    const track = document.createElement("div");
+    track.className = "bar-track";
+    const fill = document.createElement("div");
+    fill.className = "bar-fill";
+    const width = w.gap == null ? 0 : Math.min(100, Math.abs(w.gap) / maxGap * 100);
+    fill.style.width = width.toFixed(1) + "%";
+    track.appendChild(fill);
+    line.appendChild(track);
+    const val = document.createElement("span");
+    val.className = "gap-value";
+    val.textContent = w.gap == null ? "—" : (w.gap * 100).toFixed(1) + " pp";
+    line.appendChild(val);
+    wrap.appendChild(line);
+  });
+  row.appendChild(wrap);
+
+  attachTooltip(row, m);
+  return row;
+}
+
+/* ============================================================================
+   Tooltip
+============================================================================ */
+const tooltip = document.getElementById("tooltip");
+function attachTooltip(row, m) {
+  const show = (ev) => {
+    tooltip.innerHTML = buildTooltipHTML(m);
+    tooltip.classList.add("is-visible");
+    positionTooltip(ev, row);
+  };
+  const hide = () => tooltip.classList.remove("is-visible");
+  const move = (ev) => positionTooltip(ev, row);
+  row.addEventListener("mouseenter", show);
+  row.addEventListener("mousemove",  move);
+  row.addEventListener("mouseleave", hide);
+  row.addEventListener("touchstart", (ev) => { show(ev.touches[0]); }, {passive:true});
+  row.addEventListener("touchend",   hide);
+}
+function positionTooltip(ev, row) {
+  const x = ev.clientX || (ev.touches && ev.touches[0] && ev.touches[0].clientX);
+  const y = ev.clientY || (ev.touches && ev.touches[0] && ev.touches[0].clientY);
+  if (x == null) return;
+  const pad = 14;
+  const tw = tooltip.offsetWidth;
+  const th = tooltip.offsetHeight;
+  const vw = window.innerWidth;
+  const vh = window.innerHeight;
+  
+  let left = x + pad;
+  if (left + tw > vw - 8) {
+    left = x - tw - pad;
+  }
+  if (left < 8) {
+    left = 8;
+  }
+  
+  let top = y + pad;
+  if (top + th > vh - 8) {
+    top = y - th - pad;
+  }
+  if (top < 8) {
+    top = 8;
+  }
+  
+  // Convert to page coordinates
+  tooltip.style.left = (left + window.scrollX) + "px";
+  tooltip.style.top  = (top  + window.scrollY) + "px";
+}
+function buildTooltipHTML(m) {
+  const rowHTML = (label, p, o) => {
+    const gap = (p == null || o == null) ? null : p - o;
+    return `<tr>
+      <td>${label}</td>
+      <td class="pu">${fmtPct(p)}</td>
+      <td class="oa">${fmtPct(o)}</td>
+      <td class="gap">${gap == null ? "—" : fmtPp(gap, {unit:false}) + " pp"}</td>
+    </tr>`;
+  };
+  return `
+    <h4>${m.label}</h4>
+    <table>
+      <thead><tr><th></th><th class="pu">Power</th><th class="oa">Else</th><th class="gap">Gap</th></tr></thead>
+      <tbody>
+        ${rowHTML("Dec '24", m.dec24_power, m.dec24_other)}
+        ${rowHTML("Aug '25", m.aug25_power, m.aug25_other)}
+        ${rowHTML("Apr '26", m.apr26_power, m.apr26_other)}
+      </tbody>
+    </table>
+  `;
+}
+
+/* ============================================================================
+   Render orchestration
+============================================================================ */
+const listEl = document.getElementById("metric-list");
+const state = {
+  sort: "mainstream_growth",
+  view: "cohorts",
+  cohorts: { power: true, other: true }
+};
+
+function applyCohortVisibility() {
+  document.querySelectorAll(".traj-line.power, .marker.power").forEach(el => {
+    el.style.display = state.cohorts.power ? "" : "none";
+  });
+  document.querySelectorAll(".traj-line.other, .marker.other").forEach(el => {
+    el.style.display = state.cohorts.other ? "" : "none";
+  });
+  // Hide blue gap bars when only "other" is selected (the gap is asymmetric);
+  // we still render gap rows the same way — cohort filter is only meaningful
+  // in "cohorts" view.
+}
+
+function renderList() {
+  listEl.innerHTML = "";
+  const sorted = sortMetrics(DERIVED, state.sort);
+  sorted.forEach(m => {
+    const row = state.view === "gap" ? makeGapBarRow(m) : makeRow(m);
+    listEl.appendChild(row);
+  });
+  applyCohortVisibility();
+}
+
+/* ============================================================================
+   Full-frame animation overlay
+
+   On first view the tool starts with #tool.is-animating, which hides
+   .tool-body and reveals .anim-overlay. The overlay shows a centered caption
+   plus four big metric rows; the apr-marker on each row slides between Dec /
+   Aug / Apr positions through the animation. When the animation completes
+   (or is skipped), the overlay fades out and the tool body fades in. The
+   Replay button — only visible after the first run — re-enters animation mode.
+============================================================================ */
+const toolEl       = document.getElementById("tool");
+const animOverlay  = document.getElementById("anim-overlay");
+const animRows     = document.getElementById("anim-rows");
+const animDateEl   = document.getElementById("anim-date");
+const animCommentaryEl = document.getElementById("anim-commentary");
+const toolBody     = document.getElementById("tool-body");
+const skipBtn      = document.getElementById("skip-btn");
+const replayBtn    = document.getElementById("replay-btn");
+let animationPlaying = false;
+let animationToken   = 0;  // increments on cancel; checked between async steps
+
+function spotlightMetrics() {
+  return SPOTLIGHT_LABELS.map(lbl => DERIVED.find(m => m.label === lbl));
+}
+
+function buildAnimRows() {
+  animRows.innerHTML = "";
+  spotlightMetrics().forEach(m => {
+    const row = makeRow(m, { spotlight: true });
+    row.classList.add("anim-row");
+    animRows.appendChild(row);
+  });
+}
+
+function setMarkerPositions(wave) {
+  // wave: "dec", "aug", "apr". The "apr" marker is the one we animate; we
+  // reposition it to whichever wave we're on so a single dot per cohort
+  // visibly slides across the track.
+  const fieldP = wave === "dec" ? "dec24_power" : (wave === "aug" ? "aug25_power" : "apr26_power");
+  const fieldO = wave === "dec" ? "dec24_other" : (wave === "aug" ? "aug25_other" : "apr26_other");
+
+  spotlightMetrics().forEach((m, idx) => {
+    const row = animRows.children[idx];
+    if (!row) return;
+    const aprP = row.querySelector('.marker.power.wave-apr');
+    const aprO = row.querySelector('.marker.other.wave-apr');
+    const targetP = m[fieldP];
+    const targetO = m[fieldO];
+    if (aprP && targetP != null) {
+      aprP.style.left = pctLeft(targetP);
+      aprP.classList.add("is-current");
+    }
+    if (aprO && targetO != null) {
+      aprO.style.left = pctLeft(targetO);
+      aprO.classList.add("is-current");
+    }
+  });
+}
+
+/* For each spotlight metric, drop a small reference dot at the "from" wave's
+   position and a zero-width line at the same spot. On the next frame we
+   expand the line out to the "to" position so it grows alongside the main
+   marker's transition. */
+function placeRefDotsAndLines(fromWave, toWave) {
+  const fieldFromP = fromWave === "dec" ? "dec24_power" : (fromWave === "aug" ? "aug25_power" : "apr26_power");
+  const fieldFromO = fromWave === "dec" ? "dec24_other" : (fromWave === "aug" ? "aug25_other" : "apr26_other");
+  const fieldToP   = toWave   === "dec" ? "dec24_power" : (toWave   === "aug" ? "aug25_power" : "apr26_power");
+  const fieldToO   = toWave   === "dec" ? "dec24_other" : (toWave   === "aug" ? "aug25_other" : "apr26_other");
+
+  // Width as a percentage (matching pctLeft's track scaling: 88% range).
+  const trackPct = (CHART.vbWidth - 2 * CHART.pad); // 88
+  const widthPct = (delta) => (Math.abs(delta) * trackPct) + "%";
+
+  spotlightMetrics().forEach((m, idx) => {
+    const row = animRows.children[idx];
+    if (!row) return;
+    const layer = row.querySelector(".markers");
+    if (!layer) return;
+
+    [
+      ["power", m[fieldFromP], m[fieldToP]],
+      ["other", m[fieldFromO], m[fieldToO]]
+    ].forEach(([lane, fromV, toV]) => {
+      if (fromV == null || toV == null) return;
+
+      // Reference dot at the "from" position
+      const refDot = document.createElement("div");
+      refDot.className = `ref-dot ${lane}`;
+      refDot.dataset.fromWave = fromWave;
+      refDot.style.left = pctLeft(fromV);
+      refDot.style.top  = ((CHART.laneY[lane] / CHART.vbHeight) * 100) + "%";
+      layer.appendChild(refDot);
+
+      // Line: starts as zero-width at the "from" position, then grows.
+      const line = document.createElement("div");
+      line.className = `ref-line ${lane}`;
+      line.dataset.fromWave = fromWave;
+      line.style.left  = pctLeft(fromV);
+      line.style.width = "0%";
+      line.style.top   = ((CHART.laneY[lane] / CHART.vbHeight) * 100) + "%";
+      layer.appendChild(line);
+
+      // Next frame: fade them in, and set the line's final position/width so
+      // its CSS transition runs in sync with the main marker.
+      requestAnimationFrame(() => {
+        refDot.classList.add("is-visible");
+        line.classList.add("is-visible");
+        requestAnimationFrame(() => {
+          if (toV >= fromV) {
+            // line stays anchored at "from", grows rightward
+            line.style.width = widthPct(toV - fromV);
+          } else {
+            // line's left shifts to "to" position, width grows leftward
+            line.style.left  = pctLeft(toV);
+            line.style.width = widthPct(fromV - toV);
+          }
+        });
+      });
+    });
+  });
+}
+
+function fadeRefsAndLines() {
+  const els = animRows.querySelectorAll(".ref-dot, .ref-line");
+  els.forEach(el => el.classList.remove("is-visible"));
+  // Remove from DOM after fade-out completes.
+  setTimeout(() => {
+    els.forEach(el => el.remove());
+  }, 400);
+}
+
+function setAnimCaption(dateText, commentaryText = "") {
+  animDateEl.classList.add("is-fading");
+  animCommentaryEl.classList.add("is-fading");
+  setTimeout(() => {
+    animDateEl.innerHTML = dateText;
+    animCommentaryEl.innerHTML = commentaryText || "&nbsp;";
+    animDateEl.classList.remove("is-fading");
+    animCommentaryEl.classList.remove("is-fading");
+  }, 200);
+}
+
+function sleep(ms) {
+  return new Promise(res => setTimeout(res, ms));
+}
+
+function showAnimation() {
+  toolEl.classList.add("is-animating");
+}
+
+async function endAnimation() {
+  // Fade the overlay, then swap to the tool body and fade it in.
+  animOverlay.style.opacity = "0";
+  await sleep(450);
+  toolEl.classList.remove("is-animating");
+  // Reset overlay opacity for the next play
+  animOverlay.style.opacity = "";
+  // Fade-in tool body
+  toolBody.classList.add("is-fading-in");
+  // Force reflow so the next class change actually transitions
+  void toolBody.offsetWidth;
+  toolBody.classList.remove("is-fading-in");
+  replayBtn.hidden = false;
+}
+
+async function runAnimation() {
+  if (animationPlaying) return;
+  animationPlaying = true;
+  animationToken += 1;
+  const myToken = animationToken;
+  const guard = () => myToken === animationToken;
+
+  showAnimation();
+  buildAnimRows();
+
+  // Reduced motion: skip the animated transitions but still show a brief
+  // captioned summary, then hand off to the tool body.
+  const prefersReduced = window.matchMedia("(prefers-reduced-motion: reduce)").matches;
+  if (prefersReduced) {
+    setAnimCaption("Dec '24 &rarr; Apr '26", "Power users pulled ahead, then everyone else caught up.");
+    setMarkerPositions("apr");
+    await sleep(1500); if (!guard()) return;
+    await endAnimation();
+    animationPlaying = false;
+    return;
+  }
+
+  // Phase 0 — December baseline (markers at Dec positions, others hidden).
+  setMarkerPositions("dec");
+  setAnimCaption("December 2024", "Intel's first AI adoption survey");
+  await sleep(1100); if (!guard()) return;
+
+  // Phase 1 — drop Dec reference dot + line, animate main marker to Aug.
+  setAnimCaption("August 2025", "Power users pull ahead significantly");
+  placeRefDotsAndLines("dec", "aug");
+  setMarkerPositions("aug");
+  // Hold at Aug long enough for the reader to register the new position
+  // before we fade the Dec references for the next leg.
+  await sleep(2100); if (!guard()) return;
+
+  // Fade the Dec ref dot + line out before starting the Aug → Apr leg.
+  fadeRefsAndLines();
+  await sleep(400); if (!guard()) return;
+
+  // Phase 2 — drop Aug reference dot + line, animate main marker to Apr.
+  setAnimCaption("April 2026", "Everyone else begins catching up");
+  placeRefDotsAndLines("aug", "apr");
+  setMarkerPositions("apr");
+  await sleep(2100); if (!guard()) return;
+
+  // Brief hold at end state, then fade out the Aug references with the
+  // overlay (endAnimation handles the overlay fade).
+  await sleep(400); if (!guard()) return;
+
+  await endAnimation();
+  animationPlaying = false;
+}
+
+function skipAnimation() {
+  animationToken += 1;  // cancels any in-flight runAnimation
+  animationPlaying = false;
+  endAnimation();
+}
+
+/* ============================================================================
+   Wire-up
+============================================================================ */
+function initControls() {
+  document.querySelectorAll('input[name="sort"]').forEach(r => {
+    r.addEventListener("change", () => {
+      state.sort = document.querySelector('input[name="sort"]:checked').value;
+      renderList();
+    });
+  });
+  document.querySelectorAll('input[name="view"]').forEach(r => {
+    r.addEventListener("change", () => {
+      state.view = document.querySelector('input[name="view"]:checked').value;
+      renderList();
+    });
+  });
+  document.querySelectorAll('input[name="cohort"]').forEach(c => {
+    c.addEventListener("change", () => {
+      state.cohorts.power = document.querySelector('input[name="cohort"][value="power"]').checked;
+      state.cohorts.other = document.querySelector('input[name="cohort"][value="other"]').checked;
+      applyCohortVisibility();
+    });
+  });
+  skipBtn.addEventListener("click", skipAnimation);
+  replayBtn.addEventListener("click", runAnimation);
+}
+
+function initObserver() {
+  // Render the overlay's animation rows in their initial Dec state right
+  // away, so the layout is in place before the IntersectionObserver fires.
+  buildAnimRows();
+  setMarkerPositions("dec");
+
+  let hasTriggered = false;
+  const io = new IntersectionObserver((entries) => {
+    entries.forEach(e => {
+      if (e.isIntersecting && !hasTriggered) {
+        hasTriggered = true;
+        io.disconnect();
+        runAnimation();
+      }
+    });
+  }, { threshold: 0.3 });
+  io.observe(toolEl);
+}
+
+function renderAxis() {
+  // Percentage scale sitting above the metric list. The tick lines are SVG
+  // (which stretches cleanly), the % labels are HTML (so the glyphs don't
+  // get squished by the SVG aspect ratio).
+  const track = document.getElementById("axis-track");
+  if (!track) return;
+  const svgNS = "http://www.w3.org/2000/svg";
+  const svg = document.createElementNS(svgNS, "svg");
+  svg.setAttribute("viewBox", `0 0 ${CHART.vbWidth} 6`);
+  svg.setAttribute("preserveAspectRatio", "none");
+  const baseline = document.createElementNS(svgNS, "line");
+  baseline.setAttribute("x1", CHART.pad);
+  baseline.setAttribute("x2", CHART.vbWidth - CHART.pad);
+  baseline.setAttribute("y1", 5);
+  baseline.setAttribute("y2", 5);
+  svg.appendChild(baseline);
+  [0, 25, 50, 75, 100].forEach(pct => {
+    const x = scaleX(pct / 100);
+    const tick = document.createElementNS(svgNS, "line");
+    tick.setAttribute("x1", x); tick.setAttribute("x2", x);
+    tick.setAttribute("y1", 0); tick.setAttribute("y2", 5);
+    svg.appendChild(tick);
+  });
+  track.appendChild(svg);
+
+  // HTML labels positioned by percentage of track width.
+  [0, 25, 50, 75, 100].forEach(pct => {
+    const lbl = document.createElement("div");
+    lbl.className = "axis-label" + (pct === 0 ? " first" : (pct === 100 ? " last" : ""));
+    lbl.style.left = pctLeft(pct / 100);
+    lbl.textContent = pct + "%";
+    track.appendChild(lbl);
+  });
+}
+
+initControls();
+initObserver();
+renderAxis();
+renderList();
+</script>
+</body>
+</html>
