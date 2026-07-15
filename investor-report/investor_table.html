@@ -21,13 +21,22 @@
   .inman-inv-table table { width: 100%; border-collapse: collapse;
     font-size: 14.5px; }
   .inman-inv-table th { background: #0a84ff; color: #ffffff;
-    text-align: left; font-weight: 700; padding: 12px 14px; line-height: 1.3; }
+    text-align: left; font-weight: 700; padding: 12px 14px; line-height: 1.3;
+    cursor: pointer; user-select: none; }
+  .inman-inv-table th:hover, .inman-inv-table th:focus-visible {
+    background: #0871dd; outline: none; }
+  /* sort indicator: dimmed both-ways hint, solid arrow when active */
+  .inman-inv-table th .arrow { font-size: 10px; opacity: .55;
+    display: inline-block; margin-left: 5px; }
+  .inman-inv-table th[aria-sort] .arrow { opacity: 1; }
   .inman-inv-table td { padding: 10px 14px; border-bottom: 1px solid #e3e5ee; }
   .inman-inv-table tbody tr:nth-child(even) td { background: #f5f6fa; }
   .inman-inv-table td:nth-child(n+2), .inman-inv-table th:nth-child(n+2) {
     text-align: right; font-variant-numeric: tabular-nums; }
   .inman-inv-table .credit { font-size: 12px; color: #6a6f8a;
     padding: 10px 14px 6px; }
+  .inman-inv-table .hint { font-size: 12px; color: #6a6f8a;
+    padding: 8px 14px 0; margin: 0; }
 </style>
 </head>
 <body>
@@ -41,61 +50,94 @@
     stepped up their buying in pricey coastal markets like San Francisco and
     Seattle and affordable Midwest metros like Milwaukee.</p>
   </div>
+  <p class="hint">Click a column header to sort.</p>
   <table>
     <thead>
       <tr>
-        <th>Metro area</th>
-        <th>Investor purchases,<br>Oct. 2024&ndash;March 2025</th>
-        <th>Investor purchases,<br>Oct. 2025&ndash;March 2026</th>
-        <th>Year-over-year change</th>
-        <th>Change compared to U.S. average (pts)</th>
+        <th data-type="text" scope="col" tabindex="0" role="button">Metro area<span class="arrow" aria-hidden="true">&#8597;</span></th>
+        <th data-type="num" scope="col" tabindex="0" role="button">Investor purchases,<br>Oct. 2024&ndash;March 2025<span class="arrow" aria-hidden="true">&#8597;</span></th>
+        <th data-type="num" scope="col" tabindex="0" role="button">Investor purchases,<br>Oct. 2025&ndash;March 2026<span class="arrow" aria-hidden="true">&#8597;</span></th>
+        <th data-type="num" scope="col" tabindex="0" role="button">Year-over-year change<span class="arrow" aria-hidden="true">&#8597;</span></th>
       </tr>
     </thead>
     <tbody>
-      <tr><td>San Francisco, CA</td><td>1,038</td><td>1,269</td><td>+22.3%</td><td>+23.9</td></tr>
-      <tr><td>Seattle, WA</td><td>1,344</td><td>1,591</td><td>+18.4%</td><td>+20.0</td></tr>
-      <tr><td>Virginia Beach, VA</td><td>1,312</td><td>1,513</td><td>+15.3%</td><td>+17.0</td></tr>
-      <tr><td>Milwaukee, WI</td><td>1,165</td><td>1,334</td><td>+14.5%</td><td>+16.2</td></tr>
-      <tr><td>Portland, OR</td><td>1,219</td><td>1,394</td><td>+14.4%</td><td>+16.0</td></tr>
-      <tr><td>Oakland, CA</td><td>1,600</td><td>1,823</td><td>+13.9%</td><td>+15.6</td></tr>
-      <tr><td>San Jose, CA</td><td>1,008</td><td>1,124</td><td>+11.5%</td><td>+13.2</td></tr>
-      <tr><td>San Diego, CA</td><td>2,580</td><td>2,813</td><td>+9.0%</td><td>+10.7</td></tr>
-      <tr><td>Cincinnati, OH</td><td>1,617</td><td>1,738</td><td>+7.5%</td><td>+9.2</td></tr>
-      <tr><td>West Palm Beach, FL</td><td>2,290</td><td>2,437</td><td>+6.4%</td><td>+8.1</td></tr>
-      <tr><td>New York, NY</td><td>4,854</td><td>5,155</td><td>+6.2%</td><td>+7.9</td></tr>
-      <tr><td>Los Angeles, CA</td><td>5,463</td><td>5,769</td><td>+5.6%</td><td>+7.3</td></tr>
-      <tr><td>Newark, NJ</td><td>1,377</td><td>1,447</td><td>+5.1%</td><td>+6.8</td></tr>
-      <tr><td>Miami, FL</td><td>3,693</td><td>3,862</td><td>+4.6%</td><td>+6.2</td></tr>
-      <tr><td>Anaheim, CA</td><td>2,433</td><td>2,544</td><td>+4.6%</td><td>+6.2</td></tr>
-      <tr><td>Providence, RI</td><td>414</td><td>424</td><td>+2.4%</td><td>+4.1</td></tr>
-      <tr><td>Minneapolis, MN</td><td>1,999</td><td>2,029</td><td>+1.5%</td><td>+3.2</td></tr>
-      <tr><td>New Brunswick, NJ</td><td>1,903</td><td>1,930</td><td>+1.4%</td><td>+3.1</td></tr>
-      <tr><td>Atlanta, GA</td><td>6,165</td><td>6,202</td><td>+0.6%</td><td>+2.3</td></tr>
-      <tr><td>Denver, CO</td><td>2,193</td><td>2,201</td><td>+0.4%</td><td>+2.0</td></tr>
-      <tr><td>Phoenix, AZ</td><td>6,079</td><td>5,985</td><td>-1.5%</td><td>+0.1</td></tr>
-      <tr><td>Chicago, IL</td><td>3,932</td><td>3,864</td><td>-1.7%</td><td>-0.1</td></tr>
-      <tr><td>Riverside, CA</td><td>3,477</td><td>3,402</td><td>-2.2%</td><td>-0.5</td></tr>
-      <tr><td>Philadelphia, PA</td><td>1,884</td><td>1,836</td><td>-2.5%</td><td>-0.9</td></tr>
-      <tr><td>Warren, MI</td><td>1,435</td><td>1,392</td><td>-3.0%</td><td>-1.3</td></tr>
-      <tr><td>Columbus, OH</td><td>1,645</td><td>1,571</td><td>-4.5%</td><td>-2.8</td></tr>
-      <tr><td>Sacramento, CA</td><td>2,104</td><td>1,989</td><td>-5.5%</td><td>-3.8</td></tr>
-      <tr><td>Cleveland, OH</td><td>2,530</td><td>2,338</td><td>-7.6%</td><td>-5.9</td></tr>
-      <tr><td>Fort Lauderdale, FL</td><td>2,487</td><td>2,275</td><td>-8.5%</td><td>-6.9</td></tr>
-      <tr><td>Baltimore, MD</td><td>2,990</td><td>2,719</td><td>-9.1%</td><td>-7.4</td></tr>
-      <tr><td>Montgomery County, PA</td><td>991</td><td>897</td><td>-9.5%</td><td>-7.8</td></tr>
-      <tr><td>Washington, DC</td><td>2,712</td><td>2,432</td><td>-10.3%</td><td>-8.7</td></tr>
-      <tr><td>Tampa, FL</td><td>4,383</td><td>3,884</td><td>-11.4%</td><td>-9.7</td></tr>
-      <tr><td>Las Vegas, NV</td><td>3,232</td><td>2,863</td><td>-11.4%</td><td>-9.7</td></tr>
-      <tr><td>Nashville, TN</td><td>1,978</td><td>1,724</td><td>-12.8%</td><td>-11.2</td></tr>
-      <tr><td>Charlotte, NC</td><td>2,882</td><td>2,509</td><td>-12.9%</td><td>-11.3</td></tr>
-      <tr><td>Jacksonville, FL</td><td>1,978</td><td>1,716</td><td>-13.2%</td><td>-11.6</td></tr>
-      <tr><td>Orlando, FL</td><td>3,668</td><td>2,908</td><td>-20.7%</td><td>-19.1</td></tr>
-      <tr><td>Detroit, MI</td><td>2,011</td><td>1,526</td><td>-24.1%</td><td>-22.4</td></tr>
+      <tr><td data-value="San Francisco, CA">San Francisco, CA</td><td data-value="1038">1,038</td><td data-value="1269">1,269</td><td data-value="0.222543">+22.3%</td></tr>
+      <tr><td data-value="Seattle, WA">Seattle, WA</td><td data-value="1344">1,344</td><td data-value="1591">1,591</td><td data-value="0.18378">+18.4%</td></tr>
+      <tr><td data-value="Virginia Beach, VA">Virginia Beach, VA</td><td data-value="1312">1,312</td><td data-value="1513">1,513</td><td data-value="0.153201">+15.3%</td></tr>
+      <tr><td data-value="Milwaukee, WI">Milwaukee, WI</td><td data-value="1165">1,165</td><td data-value="1334">1,334</td><td data-value="0.145064">+14.5%</td></tr>
+      <tr><td data-value="Portland, OR">Portland, OR</td><td data-value="1219">1,219</td><td data-value="1394">1,394</td><td data-value="0.14356">+14.4%</td></tr>
+      <tr><td data-value="Oakland, CA">Oakland, CA</td><td data-value="1600">1,600</td><td data-value="1823">1,823</td><td data-value="0.139375">+13.9%</td></tr>
+      <tr><td data-value="San Jose, CA">San Jose, CA</td><td data-value="1008">1,008</td><td data-value="1124">1,124</td><td data-value="0.115079">+11.5%</td></tr>
+      <tr><td data-value="San Diego, CA">San Diego, CA</td><td data-value="2580">2,580</td><td data-value="2813">2,813</td><td data-value="0.09031">+9.0%</td></tr>
+      <tr><td data-value="Cincinnati, OH">Cincinnati, OH</td><td data-value="1617">1,617</td><td data-value="1738">1,738</td><td data-value="0.07483">+7.5%</td></tr>
+      <tr><td data-value="West Palm Beach, FL">West Palm Beach, FL</td><td data-value="2290">2,290</td><td data-value="2437">2,437</td><td data-value="0.064192">+6.4%</td></tr>
+      <tr><td data-value="New York, NY">New York, NY</td><td data-value="4854">4,854</td><td data-value="5155">5,155</td><td data-value="0.062011">+6.2%</td></tr>
+      <tr><td data-value="Los Angeles, CA">Los Angeles, CA</td><td data-value="5463">5,463</td><td data-value="5769">5,769</td><td data-value="0.056013">+5.6%</td></tr>
+      <tr><td data-value="Newark, NJ">Newark, NJ</td><td data-value="1377">1,377</td><td data-value="1447">1,447</td><td data-value="0.050835">+5.1%</td></tr>
+      <tr><td data-value="Miami, FL">Miami, FL</td><td data-value="3693">3,693</td><td data-value="3862">3,862</td><td data-value="0.045762">+4.6%</td></tr>
+      <tr><td data-value="Anaheim, CA">Anaheim, CA</td><td data-value="2433">2,433</td><td data-value="2544">2,544</td><td data-value="0.045623">+4.6%</td></tr>
+      <tr><td data-value="Providence, RI">Providence, RI</td><td data-value="414">414</td><td data-value="424">424</td><td data-value="0.024155">+2.4%</td></tr>
+      <tr><td data-value="Minneapolis, MN">Minneapolis, MN</td><td data-value="1999">1,999</td><td data-value="2029">2,029</td><td data-value="0.015008">+1.5%</td></tr>
+      <tr><td data-value="New Brunswick, NJ">New Brunswick, NJ</td><td data-value="1903">1,903</td><td data-value="1930">1,930</td><td data-value="0.014188">+1.4%</td></tr>
+      <tr><td data-value="Atlanta, GA">Atlanta, GA</td><td data-value="6165">6,165</td><td data-value="6202">6,202</td><td data-value="0.006002">+0.6%</td></tr>
+      <tr><td data-value="Denver, CO">Denver, CO</td><td data-value="2193">2,193</td><td data-value="2201">2,201</td><td data-value="0.003648">+0.4%</td></tr>
+      <tr><td data-value="Phoenix, AZ">Phoenix, AZ</td><td data-value="6079">6,079</td><td data-value="5985">5,985</td><td data-value="-0.015463">-1.5%</td></tr>
+      <tr><td data-value="Chicago, IL">Chicago, IL</td><td data-value="3932">3,932</td><td data-value="3864">3,864</td><td data-value="-0.017294">-1.7%</td></tr>
+      <tr><td data-value="Riverside, CA">Riverside, CA</td><td data-value="3477">3,477</td><td data-value="3402">3,402</td><td data-value="-0.02157">-2.2%</td></tr>
+      <tr><td data-value="Philadelphia, PA">Philadelphia, PA</td><td data-value="1884">1,884</td><td data-value="1836">1,836</td><td data-value="-0.025478">-2.5%</td></tr>
+      <tr><td data-value="Warren, MI">Warren, MI</td><td data-value="1435">1,435</td><td data-value="1392">1,392</td><td data-value="-0.029965">-3.0%</td></tr>
+      <tr><td data-value="Columbus, OH">Columbus, OH</td><td data-value="1645">1,645</td><td data-value="1571">1,571</td><td data-value="-0.044985">-4.5%</td></tr>
+      <tr><td data-value="Sacramento, CA">Sacramento, CA</td><td data-value="2104">2,104</td><td data-value="1989">1,989</td><td data-value="-0.054658">-5.5%</td></tr>
+      <tr><td data-value="Cleveland, OH">Cleveland, OH</td><td data-value="2530">2,530</td><td data-value="2338">2,338</td><td data-value="-0.075889">-7.6%</td></tr>
+      <tr><td data-value="Fort Lauderdale, FL">Fort Lauderdale, FL</td><td data-value="2487">2,487</td><td data-value="2275">2,275</td><td data-value="-0.085243">-8.5%</td></tr>
+      <tr><td data-value="Baltimore, MD">Baltimore, MD</td><td data-value="2990">2,990</td><td data-value="2719">2,719</td><td data-value="-0.090635">-9.1%</td></tr>
+      <tr><td data-value="Montgomery County, PA">Montgomery County, PA</td><td data-value="991">991</td><td data-value="897">897</td><td data-value="-0.094854">-9.5%</td></tr>
+      <tr><td data-value="Washington, DC">Washington, DC</td><td data-value="2712">2,712</td><td data-value="2432">2,432</td><td data-value="-0.103245">-10.3%</td></tr>
+      <tr><td data-value="Tampa, FL">Tampa, FL</td><td data-value="4383">4,383</td><td data-value="3884">3,884</td><td data-value="-0.113849">-11.4%</td></tr>
+      <tr><td data-value="Las Vegas, NV">Las Vegas, NV</td><td data-value="3232">3,232</td><td data-value="2863">2,863</td><td data-value="-0.114171">-11.4%</td></tr>
+      <tr><td data-value="Nashville, TN">Nashville, TN</td><td data-value="1978">1,978</td><td data-value="1724">1,724</td><td data-value="-0.128413">-12.8%</td></tr>
+      <tr><td data-value="Charlotte, NC">Charlotte, NC</td><td data-value="2882">2,882</td><td data-value="2509">2,509</td><td data-value="-0.129424">-12.9%</td></tr>
+      <tr><td data-value="Jacksonville, FL">Jacksonville, FL</td><td data-value="1978">1,978</td><td data-value="1716">1,716</td><td data-value="-0.132457">-13.2%</td></tr>
+      <tr><td data-value="Orlando, FL">Orlando, FL</td><td data-value="3668">3,668</td><td data-value="2908">2,908</td><td data-value="-0.207197">-20.7%</td></tr>
+      <tr><td data-value="Detroit, MI">Detroit, MI</td><td data-value="2011">2,011</td><td data-value="1526">1,526</td><td data-value="-0.241174">-24.1%</td></tr>
     </tbody>
   </table>
   <p class="credit">Source: Redfin | Visualized by Inman</p>
 </div>
 <script>
+  // Column sorting: first activation sorts descending, repeat toggles.
+  // Sort keys come from data-value attributes, never the displayed text.
+  (function () {
+    var ths = Array.prototype.slice.call(document.querySelectorAll("th"));
+    var tbody = document.querySelector("tbody");
+
+    function sortBy(th) {
+      var idx = ths.indexOf(th);
+      var numeric = th.getAttribute("data-type") === "num";
+      var dir = th.getAttribute("aria-sort") === "descending" ? 1 : -1; // first click: descending
+      ths.forEach(function (h) { h.removeAttribute("aria-sort");
+        h.querySelector(".arrow").innerHTML = "&#8597;"; });
+      th.setAttribute("aria-sort", dir === -1 ? "descending" : "ascending");
+      th.querySelector(".arrow").innerHTML = dir === -1 ? "&#9660;" : "&#9650;";
+      var rows = Array.prototype.slice.call(tbody.querySelectorAll("tr"));
+      rows.sort(function (a, b) {
+        var va = a.children[idx].getAttribute("data-value");
+        var vb = b.children[idx].getAttribute("data-value");
+        var cmp = numeric ? (parseFloat(va) - parseFloat(vb))
+                          : va.localeCompare(vb);
+        return dir * cmp;
+      });
+      rows.forEach(function (r) { tbody.appendChild(r); });
+    }
+
+    ths.forEach(function (th) {
+      th.addEventListener("click", function () { sortBy(th); });
+      th.addEventListener("keydown", function (e) {
+        if (e.key === "Enter" || e.key === " ") { e.preventDefault(); sortBy(th); }
+      });
+    });
+  })();
+
   // Report rendered height to the parent page so the WordPress embed can size
   // the iframe to always show the full table (see the matching embed snippet).
   (function () {
