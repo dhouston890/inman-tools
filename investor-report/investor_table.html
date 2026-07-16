@@ -142,16 +142,21 @@
 
   // Report rendered height to the parent page so the WordPress embed can size
   // the iframe to always show the full table (see the matching embed snippet).
+  // Measure the content wrapper, NOT document.documentElement.scrollHeight:
+  // scrollHeight is floored at the iframe viewport height, so it would echo
+  // the fallback iframe height back and the iframe could grow but never
+  // shrink (leaving a dead gap below the table).
   (function () {
+    var content = document.querySelector(".inman-inv-table");
     function postHeight() {
-      var h = document.documentElement.scrollHeight;
+      var h = Math.ceil(content.getBoundingClientRect().height);
       parent.postMessage(
         { type: "inman-embed-height", id: "investor_table", height: h },
         "*"  // height is not sensitive; host page validates our origin instead
       );
     }
     if ("ResizeObserver" in window) {
-      new ResizeObserver(postHeight).observe(document.body);
+      new ResizeObserver(postHeight).observe(content);
     }
     window.addEventListener("load", postHeight);
     window.addEventListener("resize", postHeight);
