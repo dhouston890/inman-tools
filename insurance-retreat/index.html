@@ -156,8 +156,10 @@ const METRICS = {
     level : { field:'nr_lvl', vlab:'Level',  title:'Insurance non-renewals', sub:'2023 rate (% of policies)', type:'seq', pal:SEQ_RISK, fmt:pct  },
     change: { field:'nr_chg', vlab:'Change', title:'Insurance non-renewals', sub:'change in rate, 2018→2023',  type:'div', pal:DIV, flip:true,  fmt:pts } },
   price: { label:'Home-price growth',
+    // Both price windows use SEQUENTIAL shading (single intensity ramp) rather than a
+    // diverging split for the recent window -- clearer for readers per editorial call.
     level : { field:'pr_lvl', vlab:'Since 2018', title:'Home-price growth', sub:'cumulative gain, 2018→2025', type:'seq', pal:SEQ_BUPU, fmt:pctS },
-    change: { field:'pr_chg', vlab:'Since 2023', title:'Home-price growth', sub:'recent change, 2023→2025',   type:'div', pal:DIV, flip:false, fmt:pctS } },
+    change: { field:'pr_chg', vlab:'Since 2023', title:'Home-price growth', sub:'recent change, 2023→2025',   type:'seq', pal:SEQ_BUPU, fmt:pctS } },
   permits: { label:'New-home construction',
     level : { field:'pm_lvl', vlab:'Level',  title:'New-home permits', sub:'per 1,000 residents, 2024–25', type:'seq', pal:SEQ_BUPU, fmt:num1 },
     change: { field:'pm_chg', vlab:'Change', title:'New-home permits', sub:'change vs 2018–23',             type:'div', pal:DIV, flip:false, fmt:pctS } }
