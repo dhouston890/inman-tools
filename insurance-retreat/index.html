@@ -92,7 +92,7 @@
       <label for="metric">Show on map</label>
       <select id="metric">
         <option value="non_renewal">Insurance non-renewals</option>
-        <option value="price">Home prices</option>
+        <option value="price">Home-price growth</option>
         <option value="permits">New-home construction (permits)</option>
       </select>
     </div>
@@ -148,16 +148,19 @@ const pctS = v => (v>=0?'+':'') + v.toFixed(1) + '%';
 const num1 = v => v.toFixed(1);
 
 /* ---------- metric registry: metric -> view -> spec ---------- */
+// vlab = the view-toggle button label for this metric+view. Prices have no true
+// "level" (FHFA is an index with per-county base years), so BOTH price views are
+// appreciation windows -> labeled by their start year instead of Level/Change.
 const METRICS = {
   non_renewal: { label:'Insurance non-renewals',
-    level : { field:'nr_lvl', title:'Insurance non-renewals', sub:'2023 rate (% of policies)',      type:'seq', pal:SEQ_RISK, fmt:pct  },
-    change: { field:'nr_chg', title:'Insurance non-renewals', sub:'change in rate, 2018→2023',        type:'div', pal:DIV, flip:true,  fmt:pts } },
-  price: { label:'Home prices',
-    level : { field:'pr_lvl', title:'Home-price appreciation', sub:'cumulative, 2018→2025',           type:'seq', pal:SEQ_BUPU, fmt:pctS },
-    change: { field:'pr_chg', title:'Home-price appreciation', sub:'recent, 2023→2025',               type:'div', pal:DIV, flip:false, fmt:pctS } },
+    level : { field:'nr_lvl', vlab:'Level',  title:'Insurance non-renewals', sub:'2023 rate (% of policies)', type:'seq', pal:SEQ_RISK, fmt:pct  },
+    change: { field:'nr_chg', vlab:'Change', title:'Insurance non-renewals', sub:'change in rate, 2018→2023',  type:'div', pal:DIV, flip:true,  fmt:pts } },
+  price: { label:'Home-price growth',
+    level : { field:'pr_lvl', vlab:'Since 2018', title:'Home-price growth', sub:'cumulative gain, 2018→2025', type:'seq', pal:SEQ_BUPU, fmt:pctS },
+    change: { field:'pr_chg', vlab:'Since 2023', title:'Home-price growth', sub:'recent change, 2023→2025',   type:'div', pal:DIV, flip:false, fmt:pctS } },
   permits: { label:'New-home construction',
-    level : { field:'pm_lvl', title:'New-home permits', sub:'per 1,000 residents, 2024–25',           type:'seq', pal:SEQ_BUPU, fmt:num1 },
-    change: { field:'pm_chg', title:'New-home permits', sub:'change vs 2018–23',                      type:'div', pal:DIV, flip:false, fmt:pctS } }
+    level : { field:'pm_lvl', vlab:'Level',  title:'New-home permits', sub:'per 1,000 residents, 2024–25', type:'seq', pal:SEQ_BUPU, fmt:num1 },
+    change: { field:'pm_chg', vlab:'Change', title:'New-home permits', sub:'change vs 2018–23',             type:'div', pal:DIV, flip:false, fmt:pctS } }
 };
 
 let state = { metric:'non_renewal', view:'level' };
@@ -311,12 +314,20 @@ function renderLegend(){
 }
 
 /* ---------- controls ---------- */
-document.getElementById('metric').addEventListener('change',e=>{ state.metric=e.target.value; render(); });
+// Toggle-button labels are metric-specific (e.g. prices use "Since 2018"/"Since 2023"
+// because neither price view is a true level).
+function syncViewLabels(){
+  const M=METRICS[state.metric];
+  document.querySelector('#view button[data-view="level"]').textContent=M.level.vlab;
+  document.querySelector('#view button[data-view="change"]').textContent=M.change.vlab;
+}
+document.getElementById('metric').addEventListener('change',e=>{ state.metric=e.target.value; syncViewLabels(); render(); });
 document.querySelectorAll('#view button').forEach(b=>b.addEventListener('click',()=>{
   document.querySelectorAll('#view button').forEach(x=>x.classList.remove('active'));
   b.classList.add('active'); state.view=b.dataset.view; render();
 }));
 
+syncViewLabels();
 initLayer();
 
 /* ---------- self-sizing embed (verbatim pattern from the Inman dashboard) ---------- */
