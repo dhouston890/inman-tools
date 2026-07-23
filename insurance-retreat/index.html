@@ -172,8 +172,11 @@ function getQuantile(sorted, q){
 function seqBreaks(vals){
   const vs=vals.filter(v=>v!=null&&isFinite(v)).sort((a,b)=>a-b);
   if(!vs.length) return null;
-  // 8 septile edges (min + 6 interior + max) -> 7 equal-count bins, all 7 palette colors used.
-  return [0,1/7,2/7,3/7,4/7,5/7,6/7,1].map(q=>getQuantile(vs,q));
+  // Tail-weighted cut points (bucket shares ~25/20/18/15/11/8/3%). These metrics are
+  // heavily right-skewed, so equal-count septiles dump ~1/7 of counties into a top bin
+  // spanning a huge range (e.g. non-renewal 1.6%–16%). Weighting toward the tail reserves
+  // the darkest shade for only the top ~3% while still using all 7 palette colors.
+  return [0,0.25,0.45,0.63,0.78,0.89,0.97,1].map(q=>getQuantile(vs,q));
 }
 function divBreaks(vals){                               // verbatim from the Inman dashboard
   const vs=vals.filter(v=>v!=null&&isFinite(v));
@@ -282,10 +285,25 @@ function render(){
   renderLegend();
 }
 function renderLegend(){
-  const {spec}=scale, el=document.getElementById('legend');
+  const {spec,breaks}=scale, el=document.getElementById('legend');
   const pal = (spec.type==='div' && spec.flip) ? spec.pal.slice().reverse() : spec.pal;
   const bins = pal.map(c=>'<span class="bin" style="background:'+c+'"></span>').join('');
-  const lo = isFinite(scale.min)? spec.fmt(scale.min):'', hi = isFinite(scale.max)? spec.fmt(scale.max):'';
+  // Range labels mark where each EXTREME bucket BEGINS (its lower bound) with "and up"/
+  // "and down", so the ends reflect where most of the darkest polygons sit rather than a
+  // lone outlier min/max. Seq: bottom-bucket floor + top-bucket lower bound. Div: the two
+  // outer thresholds where extreme shading starts.
+  let lo='', hi='';
+  if(breaks && breaks.length){
+    if(spec.type==='seq'){
+      lo = spec.fmt(breaks[0]);
+      hi = spec.fmt(breaks[breaks.length-2]) + ' and up';
+    } else {
+      lo = spec.fmt(breaks[0]) + ' and down';
+      hi = spec.fmt(breaks[breaks.length-1]) + ' and up';
+    }
+  } else {
+    lo = isFinite(scale.min)? spec.fmt(scale.min):''; hi = isFinite(scale.max)? spec.fmt(scale.max):'';
+  }
   el.innerHTML = '<p class="lg-title">'+spec.title+'</p><p class="lg-sub">'+spec.sub+'</p>'
     + '<div class="bins">'+bins+'</div>'
     + '<div class="lg-range"><span>'+lo+'</span><span>'+hi+'</span></div>'
