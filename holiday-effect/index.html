@@ -229,12 +229,12 @@ function fmtPct(v){ return (v>0?"+":"") + v.toFixed(1) + "%"; }
 
 // -------------------------------------------------------- data accessors
 function natSeries(key, metric){ return D.national[metric][key]; }
-// metro payload row: 17 means, then 17 SEs, then the year count
+// metro payload row: 17 means, 17 SEs, 17 per-offset year counts
 function metroSeries(id, key, metric){
   var pack = METRO_CACHE[metric];
   if (!pack || !pack[id] || !pack[id][key]) return null;
   var v = pack[id][key];
-  return { m: v.slice(0,17), s: v.slice(17,34), yrs: v[34] };
+  return { m: v.slice(0,17), s: v.slice(17,34), y: v.slice(34,51) };
 }
 function loadMetros(metric){
   if (METRO_CACHE[metric]) return Promise.resolve(METRO_CACHE[metric]);
@@ -313,8 +313,10 @@ function syncBoth(){
 }
 
 // ----------------------------------------------------------------- chart
+var YEARS = {};   // series name -> per-offset year counts, for the tooltip
 function lineSeries(name, key, data, opts){
   opts = opts || {};
+  if (opts.years) YEARS[name] = opts.years;
   return {
     name: name, type:"line", data: data, smooth:false,
     symbol: opts.symbol || "none", symbolSize:5,
@@ -329,9 +331,10 @@ function lineSeries(name, key, data, opts){
   };
 }
 function ciBand(name, mean, se, color){
-  var lo = mean.map(function(m,i){ return +(m - 1.96*se[i]).toFixed(2); });
-  var hi = mean.map(function(m,i){ return +(m + 1.96*se[i]).toFixed(2); });
-  var span = hi.map(function(h,i){ return +(h - lo[i]).toFixed(2); });
+  var ok = function(i){ return mean[i] != null && se[i] != null; };
+  var lo = mean.map(function(m,i){ return ok(i) ? +(m - 1.96*se[i]).toFixed(2) : null; });
+  var hi = mean.map(function(m,i){ return ok(i) ? +(m + 1.96*se[i]).toFixed(2) : null; });
+  var span = hi.map(function(h,i){ return ok(i) ? +(h - lo[i]).toFixed(2) : null; });
   return [
     { name:name+"__lo", type:"line", stack:name+"ci", stackStrategy:"all",
       data:lo, symbol:"none", lineStyle:{opacity:0}, silent:true, z:1,
@@ -344,6 +347,8 @@ function ciBand(name, mean, se, color){
 }
 
 function niceBounds(vals){
+  vals = vals.filter(function(v){ return v != null && isFinite(v); });
+  if (!vals.length) vals = [0];
   var lo = Math.min.apply(null, vals), hi = Math.max.apply(null, vals);
   var span = Math.max(hi - lo, 22);              // floor keeps small effects calm
   var pad  = span * 0.12;
@@ -353,7 +358,7 @@ function niceBounds(vals){
 }
 
 function render(){
-  paintLegend(); syncBoth();
+  paintLegend(); syncBoth(); YEARS = {};
   var series = [], other = S.metric==="p" ? "l" : "p";
   var selLabel = hol(S.holiday).label;
   var scaleVals = [];
@@ -364,21 +369,21 @@ function render(){
     var nat = natSeries(S.holiday, S.metric);
     var mt  = metroSeries(S.metro, S.holiday, S.metric);
     series.push(lineSeries("National — "+METRIC_NAME[S.metric], S.holiday, nat.m,
-      { color:"#6b7390", width:2.4 }));
+      { color:"#6b7390", width:2.4, years:nat.y }));
     scaleVals = scaleVals.concat(nat.m);
     if (mt){
       series = series.concat(ciBand(m.n, mt.m, mt.s, COLOR[S.holiday]));
       // the band, not just the line, has to fit inside the axis
       mt.m.forEach(function(v,i){ scaleVals.push(v - 1.96*mt.s[i], v + 1.96*mt.s[i]); });
       series.push(lineSeries(m.n+" — "+METRIC_NAME[S.metric], S.holiday, mt.m,
-        { color:COLOR[S.holiday], width:2.8, symbol:"circle", z:4 }));
+        { color:COLOR[S.holiday], width:2.8, symbol:"circle", z:4, years:mt.y }));
     }
     if (S.both){
       var natO = natSeries(S.holiday, other), mtO = metroSeries(S.metro, S.holiday, other);
       series.push(lineSeries("National — "+METRIC_NAME[other], S.holiday, natO.m,
-        { color:"#6b7390", width:1.8, dashed:true, opacity:.85 }));
+        { color:"#6b7390", width:1.8, dashed:true, opacity:.85, years:natO.y }));
       if (mtO){ series.push(lineSeries(m.n+" — "+METRIC_NAME[other], S.holiday, mtO.m,
-        { color:COLOR[S.holiday], width:2, dashed:true, z:3 }));
+        { color:COLOR[S.holiday], width:2, dashed:true, z:3, years:mtO.y }));
         scaleVals = scaleVals.concat(mtO.m); }
       scaleVals = scaleVals.concat(natO.m);
     }
@@ -386,22 +391,23 @@ function render(){
     // States A/B: all ten holidays for the chosen measure; selected one in front.
     D.holidays.forEach(function(h){
       var isSel = h.key === S.holiday;
-      var sm = natSeries(h.key, S.metric).m;
+      var ns = natSeries(h.key, S.metric), sm = ns.m;
       if (isSel) scaleVals = scaleVals.concat(sm);
       series.push(lineSeries(h.label, h.key, sm, {
         color: COLOR[h.key], width: isSel ? 3 : 1.2,
         opacity: isSel ? 1 : 0.22, z: isSel ? 5 : 2,
-        symbol: isSel ? "circle" : "none"
+        symbol: isSel ? "circle" : "none", years: ns.y
       }));
     });
     if (S.both){
-      var oth = natSeries(S.holiday, other).m;
+      var othS = natSeries(S.holiday, other), oth = othS.m;
       scaleVals = scaleVals.concat(oth);
       series.push(lineSeries(selLabel+" — "+METRIC_NAME[other], S.holiday, oth,
-        { color: COLOR[S.holiday], width:2.2, dashed:true, z:4 }));
+        { color: COLOR[S.holiday], width:2.2, dashed:true, z:4, years:othS.y }));
     }
   }
 
+  var YB = niceBounds(scaleVals);
   chart.setOption({
     animationDuration: 300,
     grid:{ left:52, right:18, top:26, bottom:44 },
@@ -414,11 +420,16 @@ function render(){
         var off = OFFSETS[ps[0].dataIndex];
         var head = off===0 ? "<b>Holiday week</b>"
                  : "<b>Week " + (off>0?"+":"") + off + "</b>";
-        var rows = ps.filter(function(p){ return p.seriesName.indexOf("__")<0; })
-          .map(function(p){
+        var rows = ps.filter(function(p){
+            return p.seriesName.indexOf("__")<0 && p.value != null;
+          }).map(function(p){
+            var yy = YEARS[p.seriesName], n = yy ? yy[p.dataIndex] : null;
+            // year counts vary along a curve under the anchored rule, so the
+            // support for each individual point is stated rather than implied
+            var note = n ? ' <span style="color:#8b91ad">('+n+' yr'+(n===1?'':'s')+')</span>' : '';
             return '<div style="display:flex;justify-content:space-between;gap:16px">' +
                    '<span>'+p.marker+' '+p.seriesName+'</span>' +
-                   '<b style="font-variant-numeric:tabular-nums">'+fmtPct(p.value)+'</b></div>';
+                   '<b style="font-variant-numeric:tabular-nums">'+fmtPct(p.value)+note+'</b></div>';
           }).join("");
         return head + rows;
       }
@@ -429,11 +440,11 @@ function render(){
       axisLine:{ lineStyle:{ color:"#ccd2e2" } },
       axisLabel:{ color:"#5b6180", fontFamily:"Libre Franklin", fontSize:11,
                   interval:function(i){ return i%2===0; } },
-      name:"weeks from the holiday week", nameLocation:"middle", nameGap:28,
+      name:"Weeks from the holiday week", nameLocation:"middle", nameGap:28,
       nameTextStyle:{ color:"#8b91ad", fontFamily:"Libre Franklin", fontSize:10.5 }
     },
     yAxis:(function(){
-      var b = niceBounds(scaleVals);
+      var b = YB;
       return { type:"value", min:b.min, max:b.max, interval:b.step,
         splitLine:{ lineStyle:{ color:"#eef0f6" } },
         axisLabel:{ color:"#5b6180", fontFamily:"Libre Franklin", fontSize:11,
@@ -442,11 +453,11 @@ function render(){
     series: series.concat([{
       // holiday-week band + zero reference, drawn once via a dummy series
       type:"line", data:[], silent:true,
-      markArea:{ silent:true, itemStyle:{ color:"rgba(22,26,72,.055)" },
+      markArea:{ silent:true, itemStyle:{ color:"rgba(22,26,72,.06)" },
         label:{ show:true, position:"insideTop", formatter:"Holiday week",
                 color:"#6f76a8", fontFamily:"Libre Franklin", fontSize:11,
                 fontWeight:600, distance:5 },
-        data:[[{xAxis:"-1"},{xAxis:"+1"}]] },
+        data:[[{coord:[7.5, YB.min]},{coord:[8.5, YB.max]}]] },
       markLine:{ silent:true, symbol:"none",
         lineStyle:{ color:"#aab3cf", type:"dashed", width:1 },
         label:{show:false}, data:[{ yAxis:0 }] }
@@ -472,11 +483,12 @@ function refresh(){
 function paintReadout(){
   var el = document.getElementById("readout");
   var nat = natSeries(S.holiday, S.metric), i0 = 8;   // offset 0 sits at index 8
+  var natYrs = nat.y ? nat.y[i0] : null;
   var h = hol(S.holiday);
   var html = '<div class="ro nat"><div class="k">' + h.label + ' week — national</div>' +
              '<div class="v">' + fmtPct(nat.m[i0]) + '</div>' +
              '<div class="sub">' + METRIC_NAME[S.metric].toLowerCase() +
-             ' vs. the week before · ' + nat.yrs + ' years</div></div>';
+             ' vs. the week before · ' + natYrs + ' years</div></div>';
   if (S.metro){
     var m = metroById(S.metro), mt = metroSeries(S.metro, S.holiday, S.metric);
     if (mt){
@@ -485,7 +497,7 @@ function paintReadout(){
               '<div class="v">' + fmtPct(mt.m[i0]) +
               ' <span style="font-size:13px;font-weight:600;color:#5b6180">±' +
               margin.toFixed(1) + '</span></div>' +
-              '<div class="sub">' + mt.yrs + ' years · margin of error at 95%</div></div>';
+              '<div class="sub">' + mt.y[i0] + ' years · margin of error at 95%</div></div>';
     }
   }
   el.innerHTML = html;
@@ -497,8 +509,11 @@ function paintMethod(){
     : "";
   document.getElementById("method").textContent =
     "Percent change in weekly activity versus the week before each holiday week, averaged across " +
-    "years. The national line is the average across exactly the markets offered in the dropdown for " +
-    "that holiday, so it weights small metros more heavily than a true national total would. " +
+    "years. The national line is a volume-weighted aggregate of about 200 metro markets with " +
+    "continuous weekly history since 2018, checked against Zillow's own national series on every " +
+    "holiday where that series is complete enough to use (it agrees within about one percentage " +
+    "point). A year counts toward a point whenever the week before the holiday and that week are " +
+    "both reported, so the number of years behind each point can vary; the tooltip states it. " +
     "Neighbouring holidays are not screened out, so some lines carry a second " +
     "notch — Labor Day at +5/+6 is Columbus Day; Memorial Day at +2/+3 is Juneteenth. Juneteenth " +
     "covers 2021 onward. New Year is excluded: it falls directly after Christmas, so its base week " +
