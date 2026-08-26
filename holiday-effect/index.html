@@ -55,12 +55,13 @@
     background:#fff;border:1px solid var(--line);border-radius:14px;padding:4px 11px 4px 8px;
     color:var(--muted);cursor:pointer;transition:border-color .12s,color .12s}
   .hol .sw{width:11px;height:11px;border-radius:50%;flex:none}
-  .hol .rule{display:none;font-size:10.5px;color:var(--muted);font-weight:400;white-space:nowrap}
   .hol:hover{border-color:#aab3cf;color:var(--ink)}
-  .hol:hover .rule{display:inline}
   .hol.sel{border-color:var(--inman-blue);color:var(--ink);font-weight:600;box-shadow:0 0 0 1px var(--inman-blue) inset}
-  .hol.sel .rule{display:inline;font-weight:400}
   .hol.na{opacity:.38;cursor:not-allowed}
+  /* fixed-height detail row: reserving the space is what stops any reflow */
+  .lg-detail{width:100%;margin-top:8px;font-size:11.5px;color:var(--muted);
+    min-height:16px;line-height:16px}
+  .lg-detail b{color:var(--ink);font-weight:600}
 
   /* Readout */
   .readout{display:flex;flex-wrap:wrap;gap:0;padding:0 18px;border-bottom:1px solid var(--line)}
@@ -88,14 +89,13 @@
     .masthead h1{font-size:19px}
     .ro .v{font-size:18px}
     .ro{min-width:120px;padding-right:16px}
-    .hol .rule{display:none !important}
   }
 </style>
 </head>
 <body>
 <div class="wrap">
   <div class="masthead">
-    <p class="kicker">Inman Intel</p>
+    <p class="kicker">Inman Analysis</p>
     <h1>What holidays actually do to the housing market</h1>
     <p>Every federal holiday slows deal-making — but not equally, and not for the reasons the trade
        assumes. Pick a holiday to see how activity moves in the eight weeks either side of it.</p>
@@ -122,6 +122,7 @@
 
   <div class="legend" id="legend">
     <span class="lg-lab">Holiday — click to select</span>
+    <div class="lg-detail" id="lg-detail"></div>
   </div>
 
   <div class="readout" id="readout"></div>
@@ -130,7 +131,7 @@
   <div class="loading" id="loading">Loading…</div>
 
   <div class="foot">
-    <div class="credit">Source: Zillow research data | Visualized by Inman</div>
+    <div class="credit">Source: Zillow Research data | Visualized by Inman</div>
     <div class="method" id="method"></div>
   </div>
 </div>
@@ -251,27 +252,35 @@ function buildLegend(){
     var b = document.createElement("button");
     b.className = "hol"; b.dataset.key = h.key;
     b.innerHTML = '<span class="sw" style="background:'+COLOR[h.key]+'"></span>' +
-                  '<span class="nm">'+h.label+'</span>' +
-                  '<span class="rule">'+h.rule+'</span>';
+                  '<span class="nm">'+h.label+'</span>';
     b.addEventListener("click", function(){
       if (b.classList.contains("na")) return;
       S.holiday = h.key;
       if (S.metro && !metroHas(metroById(S.metro), h.key, S.metric)) S.metro = null;
       syncMetroPicker(); refresh();
     });
-    el.appendChild(b);
+    b.addEventListener("mouseenter", function(){ showDetail(h.key); });
+    b.addEventListener("mouseleave", function(){ showDetail(S.holiday); });
+    el.insertBefore(b, document.getElementById("lg-detail"));
   });
+}
+function showDetail(key){
+  var h = hol(key), d = document.getElementById("lg-detail");
+  d.innerHTML = h.rule.indexOf(h.label) === 0
+    ? "<b>" + h.label + "</b>" + h.rule.slice(h.label.length)
+    : "<b>" + h.label + "</b> — " + h.rule;
 }
 function paintLegend(){
   document.querySelectorAll(".hol").forEach(function(b){
     b.classList.toggle("sel", b.dataset.key === S.holiday);
   });
+  showDetail(S.holiday);
 }
 
 // ----------------------------------------------------- market dropdown
 function eligibleMetros(){
-  return D.metros.filter(function(m){ return metroHas(m, S.holiday, S.metric); })
-                 .sort(function(a,b){ return a.n.localeCompare(b.n); });
+  // D.metros arrives ordered by household count, descending - keep that order
+  return D.metros.filter(function(m){ return metroHas(m, S.holiday, S.metric); });
 }
 function syncMetroPicker(){
   var list = eligibleMetros();
@@ -434,7 +443,10 @@ function render(){
       // holiday-week band + zero reference, drawn once via a dummy series
       type:"line", data:[], silent:true,
       markArea:{ silent:true, itemStyle:{ color:"rgba(22,26,72,.055)" },
-        data:[[{xAxis:7.5},{xAxis:8.5}]] },
+        label:{ show:true, position:"insideTop", formatter:"Holiday week",
+                color:"#6f76a8", fontFamily:"Libre Franklin", fontSize:11,
+                fontWeight:600, distance:5 },
+        data:[[{xAxis:"-1"},{xAxis:"+1"}]] },
       markLine:{ silent:true, symbol:"none",
         lineStyle:{ color:"#aab3cf", type:"dashed", width:1 },
         label:{show:false}, data:[{ yAxis:0 }] }
@@ -485,9 +497,9 @@ function paintMethod(){
     : "";
   document.getElementById("method").textContent =
     "Percent change in weekly activity versus the week before each holiday week, averaged across " +
-    "years and (for the national line) across metro markets with continuous weekly history since 2018. " +
-    "National is an average across markets, which weights small metros more heavily than a true " +
-    "national total would. Neighbouring holidays are not screened out, so some lines carry a second " +
+    "years. The national line is the average across exactly the markets offered in the dropdown for " +
+    "that holiday, so it weights small metros more heavily than a true national total would. " +
+    "Neighbouring holidays are not screened out, so some lines carry a second " +
     "notch — Labor Day at +5/+6 is Columbus Day; Memorial Day at +2/+3 is Juneteenth. Juneteenth " +
     "covers 2021 onward. New Year is excluded: it falls directly after Christmas, so its base week " +
     "would be Christmas week. Data through " + D.vintage + "." + extra;
