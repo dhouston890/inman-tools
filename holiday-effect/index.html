@@ -152,6 +152,8 @@ var COLOR = {
   thanks:"#BCBD22", christmas:"#2CA02C"
 };
 var OFFSETS = []; for (var i=-8;i<=8;i++) OFFSETS.push(i);
+// series data as [offset, value] pairs, required by the value x axis
+function pairs(arr){ return OFFSETS.map(function(o,i){ return [o, arr[i]]; }); }
 var METRIC_NAME = { p:"Pending sales", l:"New listings" };
 
 // ------------------------------------------------- holiday date arithmetic
@@ -318,7 +320,7 @@ function lineSeries(name, key, data, opts){
   opts = opts || {};
   if (opts.years) YEARS[name] = opts.years;
   return {
-    name: name, type:"line", data: data, smooth:false,
+    name: name, type:"line", data: pairs(data), smooth:false,
     symbol: opts.symbol || "none", symbolSize:5,
     triggerLineEvent: true,
     z: opts.z || 2,
@@ -331,19 +333,32 @@ function lineSeries(name, key, data, opts){
   };
 }
 function ciBand(name, mean, se, color){
+  // Drawn as an explicit polygon, not as two stacked line series. ECharts only
+  // honours `stack` when the stacking axis is a category/time axis; on the value
+  // axis this chart now uses, the stack is silently ignored and the upper series
+  // renders at the SPAN height from the baseline instead of at lo+span. The
+  // numbers were right and the picture was wrong. api.coord() on a value axis
+  // gives exact pixel positions, so a polygon needs no stacking at all.
   var ok = function(i){ return mean[i] != null && se[i] != null; };
-  var lo = mean.map(function(m,i){ return ok(i) ? +(m - 1.96*se[i]).toFixed(2) : null; });
-  var hi = mean.map(function(m,i){ return ok(i) ? +(m + 1.96*se[i]).toFixed(2) : null; });
-  var span = hi.map(function(h,i){ return ok(i) ? +(h - lo[i]).toFixed(2) : null; });
-  return [
-    { name:name+"__lo", type:"line", stack:name+"ci", stackStrategy:"all",
-      data:lo, symbol:"none", lineStyle:{opacity:0}, silent:true, z:1,
-      tooltip:{show:false} },
-    { name:name+"__band", type:"line", stack:name+"ci", stackStrategy:"all",
-      data:span, symbol:"none", lineStyle:{opacity:0},
-      areaStyle:{color:color, opacity:0.15}, silent:true, z:1,
-      tooltip:{show:false} }
-  ];
+  var lo = mean.map(function(m,i){ return ok(i) ? m - 1.96*se[i] : null; });
+  var hi = mean.map(function(m,i){ return ok(i) ? m + 1.96*se[i] : null; });
+  var bounds = [];
+  for (var i=0;i<OFFSETS.length;i++) if (ok(i)) bounds.push(lo[i], hi[i]);
+  return {
+    series: {
+      name: name + "__band", type: "custom", silent: true, z: 1,
+      tooltip: { show: false }, data: [0],
+      renderItem: function(params, api){
+        var pts = [], i;
+        for (i=0;i<OFFSETS.length;i++) if (hi[i]!=null) pts.push(api.coord([OFFSETS[i], hi[i]]));
+        for (i=OFFSETS.length-1;i>=0;i--) if (lo[i]!=null) pts.push(api.coord([OFFSETS[i], lo[i]]));
+        if (pts.length < 3) return;
+        return { type:"polygon", shape:{ points: pts },
+                 style:{ fill: color, opacity: 0.15 }, silent:true };
+      }
+    },
+    bounds: bounds
+  };
 }
 
 function niceBounds(vals){
@@ -372,9 +387,10 @@ function render(){
       { color:"#6b7390", width:2.4, years:nat.y }));
     scaleVals = scaleVals.concat(nat.m);
     if (mt){
-      series = series.concat(ciBand(m.n, mt.m, mt.s, COLOR[S.holiday]));
+      var band = ciBand(m.n, mt.m, mt.s, COLOR[S.holiday]);
+      series.push(band.series);
       // the band, not just the line, has to fit inside the axis
-      mt.m.forEach(function(v,i){ scaleVals.push(v - 1.96*mt.s[i], v + 1.96*mt.s[i]); });
+      scaleVals = scaleVals.concat(band.bounds);
       series.push(lineSeries(m.n+" — "+METRIC_NAME[S.metric], S.holiday, mt.m,
         { color:COLOR[S.holiday], width:2.8, symbol:"circle", z:4, years:mt.y }));
     }
@@ -417,29 +433,31 @@ function render(){
       textStyle:{ color:"#1b1f3b", fontFamily:"Libre Franklin", fontSize:12 },
       formatter: function(ps){
         if (!ps.length) return "";
-        var off = OFFSETS[ps[0].dataIndex];
+        var off = ps[0].value[0];
         var head = off===0 ? "<b>Holiday week</b>"
                  : "<b>Week " + (off>0?"+":"") + off + "</b>";
         var rows = ps.filter(function(p){
-            return p.seriesName.indexOf("__")<0 && p.value != null;
+            return p.seriesName.indexOf("__")<0 && p.value && p.value[1] != null;
           }).map(function(p){
             var yy = YEARS[p.seriesName], n = yy ? yy[p.dataIndex] : null;
+            var val = p.value[1];
             // year counts vary along a curve under the anchored rule, so the
             // support for each individual point is stated rather than implied
             var note = n ? ' <span style="color:#8b91ad">('+n+' yr'+(n===1?'':'s')+')</span>' : '';
             return '<div style="display:flex;justify-content:space-between;gap:16px">' +
                    '<span>'+p.marker+' '+p.seriesName+'</span>' +
-                   '<b style="font-variant-numeric:tabular-nums">'+fmtPct(p.value)+note+'</b></div>';
+                   '<b style="font-variant-numeric:tabular-nums">'+fmtPct(val)+note+'</b></div>';
           }).join("");
         return head + rows;
       }
     },
     xAxis:{
-      type:"category", data: OFFSETS.map(function(o){ return o===0?"0":(o>0?"+"+o:""+o); }),
-      boundaryGap:false, axisTick:{show:false},
+      type:"value", min:-8, max:8, interval:2,
+      axisTick:{show:false},
       axisLine:{ lineStyle:{ color:"#ccd2e2" } },
+      splitLine:{ lineStyle:{ color:"#f4f6fa" } },
       axisLabel:{ color:"#5b6180", fontFamily:"Libre Franklin", fontSize:11,
-                  interval:function(i){ return i%2===0; } },
+                  formatter:function(v){ return v===0?"0":(v>0?"+"+v:""+v); } },
       name:"Weeks from the holiday week", nameLocation:"middle", nameGap:28,
       nameTextStyle:{ color:"#8b91ad", fontFamily:"Libre Franklin", fontSize:10.5 }
     },
@@ -457,7 +475,7 @@ function render(){
         label:{ show:true, position:"insideTop", formatter:"Holiday week",
                 color:"#6f76a8", fontFamily:"Libre Franklin", fontSize:11,
                 fontWeight:600, distance:5 },
-        data:[[{coord:[7.5, YB.min]},{coord:[8.5, YB.max]}]] },
+        data:[[{xAxis:-0.5},{xAxis:0.5}]] },
       markLine:{ silent:true, symbol:"none",
         lineStyle:{ color:"#aab3cf", type:"dashed", width:1 },
         label:{show:false}, data:[{ yAxis:0 }] }
