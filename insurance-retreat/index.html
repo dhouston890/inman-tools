@@ -222,16 +222,25 @@ function getColor(value, scale){
   return pal[6];
 }
 
+/* ---------- basemap ---------- */
+/* CARTO now requires a key on its raster basemap tiles — unkeyed requests come
+   back HTTP 200 with the image stamped "API KEY REQUIRED".
+   Free key: carto.com/basemaps/apikey
+   Public by design (it ships in client-side source); rotate via this one line. */
+const CARTO_KEY = 'cb1_28ib_1_1877b9e111d662d09146e64b';
+const cartoTiles = (style) =>
+  `https://{s}.basemaps.cartocdn.com/rastertiles/${style}/{z}/{x}/{y}{r}.png?key=${CARTO_KEY}`;
+
 /* ---------- map ---------- */
 const fc = topojson.feature(TOPO, TOPO.objects.counties);
 const map = L.map('map',{attributionControl:true, zoomControl:false, minZoom:3, maxZoom:9})
              .setView([38.5,-96],4);
 map.attributionControl.setPrefix(false);
 L.control.zoom({position:'topright'}).addTo(map);
-L.tileLayer('https://{s}.basemaps.cartocdn.com/rastertiles/light_nolabels/{z}/{x}/{y}{r}.png',
+L.tileLayer(cartoTiles('light_nolabels'),
   {subdomains:'abcd',maxZoom:9,attribution:'&copy; OpenStreetMap &copy; CARTO'}).addTo(map);
 map.createPane('labels'); map.getPane('labels').style.zIndex=450; map.getPane('labels').style.pointerEvents='none';
-L.tileLayer('https://{s}.basemaps.cartocdn.com/rastertiles/light_only_labels/{z}/{x}/{y}{r}.png',
+L.tileLayer(cartoTiles('light_only_labels'),
   {subdomains:'abcd',maxZoom:9,pane:'labels'}).addTo(map);
 
 let scale = null, geoLayer = null;
