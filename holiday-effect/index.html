@@ -454,7 +454,7 @@ function render(){
     xAxis:{
       type:"value", min:-8, max:8, interval:2,
       axisTick:{show:false},
-      axisLine:{ lineStyle:{ color:"#ccd2e2" } },
+      axisLine:{ onZero:false, lineStyle:{ color:"#ccd2e2" } },
       splitLine:{ lineStyle:{ color:"#f4f6fa" } },
       axisLabel:{ color:"#5b6180", fontFamily:"Libre Franklin", fontSize:11,
                   formatter:function(v){ return v===0?"0":(v>0?"+"+v:""+v); } },
@@ -464,6 +464,7 @@ function render(){
     yAxis:(function(){
       var b = YB;
       return { type:"value", min:b.min, max:b.max, interval:b.step,
+        axisLine:{ show:false }, axisTick:{ show:false },
         splitLine:{ lineStyle:{ color:"#eef0f6" } },
         axisLabel:{ color:"#5b6180", fontFamily:"Libre Franklin", fontSize:11,
                     formatter:function(v){ return (v>0?"+":"")+v+"%"; } } };
