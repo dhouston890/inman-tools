@@ -1,0 +1,610 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<title>What holidays do to the housing market — Inman</title>
+<!-- Detect iframe/embed context early so the page flows to its true height -->
+<script>
+  if (window.self !== window.top || /[?&]embed\b/.test(location.search)) {
+    document.documentElement.classList.add("embed");
+  }
+</script>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Libre+Franklin:wght@400;500;600;700&family=Newsreader:opsz,wght@6..72,500;6..72,600&display=swap" rel="stylesheet">
+<link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/choices.js@11.2.3/public/assets/styles/choices.min.css">
+<style>
+  :root{
+    --inman-blue:#0a84ff; --inman-dark:#161a48; --inman-dark-2:#20275c;
+    --inman-red:#da3832; --ink:#1b1f3b; --muted:#5b6180; --line:#e5e8f0;
+    --font-ui:"Libre Franklin","HEX Franklin","Helvetica Neue",Arial,sans-serif;
+    --font-head:"Newsreader","Harriet Display",Georgia,serif;
+  }
+  *{box-sizing:border-box}
+  html,body{margin:0;padding:0}
+  html:not(.embed),html:not(.embed) body{height:100%}
+  html.embed,html.embed body{height:auto}
+  body{font-family:var(--font-ui);color:var(--ink);background:#fff;-webkit-font-smoothing:antialiased}
+  .wrap{max-width:960px;margin:0 auto;display:flex;flex-direction:column}
+
+  .masthead{background:var(--inman-dark);border-bottom:2px solid var(--inman-blue);padding:14px 18px 16px}
+  .masthead .kicker{color:#8ea2c8;font-size:11px;letter-spacing:.09em;text-transform:uppercase;font-weight:600;margin:0 0 4px}
+  .masthead h1{font-family:var(--font-head);color:#fff;font-size:23px;line-height:1.15;margin:0;font-weight:600}
+  .masthead p{color:#c7cef0;font-size:13px;line-height:1.45;margin:7px 0 0}
+
+  .controls{display:flex;flex-wrap:wrap;gap:14px;align-items:flex-end;padding:12px 18px;border-bottom:1px solid var(--line)}
+  .ctl{display:flex;flex-direction:column;gap:4px}
+  .ctl label{font-size:10.5px;letter-spacing:.06em;text-transform:uppercase;color:var(--muted);font-weight:600}
+  .seg{display:inline-flex;border:1px solid #ccd2e2;border-radius:3px;overflow:hidden}
+  .seg button{font-family:var(--font-ui);font-size:13px;padding:7px 13px;border:0;background:#fff;color:var(--muted);cursor:pointer}
+  .seg button.active{background:var(--inman-blue);color:#fff;font-weight:600}
+  .seg button+button{border-left:1px solid #ccd2e2}
+  .seg button:disabled{opacity:.4;cursor:not-allowed}
+  .ctl.market{min-width:250px}
+  .chk{display:flex;align-items:center;gap:7px;font-size:13px;color:var(--ink);cursor:pointer;padding-bottom:7px}
+  .chk input{width:15px;height:15px;accent-color:var(--inman-blue);cursor:pointer}
+  .chk.off{opacity:.45;cursor:not-allowed}
+  .clearbtn{font-family:var(--font-ui);font-size:12px;color:var(--inman-blue);background:none;border:0;
+    cursor:pointer;padding:0 0 9px;text-decoration:underline}
+
+  /* Holiday legend — calendar order, click to select, date rule on hover/select */
+  .legend{display:flex;flex-wrap:wrap;gap:5px;padding:11px 18px 12px;border-bottom:1px solid var(--line)}
+  .legend .lg-lab{width:100%;font-size:10.5px;letter-spacing:.06em;text-transform:uppercase;color:var(--muted);font-weight:600;margin-bottom:2px}
+  .hol{display:flex;align-items:center;gap:6px;font-family:var(--font-ui);font-size:12.5px;
+    background:#fff;border:1px solid var(--line);border-radius:14px;padding:4px 11px 4px 8px;
+    color:var(--muted);cursor:pointer;transition:border-color .12s,color .12s}
+  .hol .sw{width:11px;height:11px;border-radius:50%;flex:none}
+  .hol .rule{display:none;font-size:10.5px;color:var(--muted);font-weight:400;white-space:nowrap}
+  .hol:hover{border-color:#aab3cf;color:var(--ink)}
+  .hol:hover .rule{display:inline}
+  .hol.sel{border-color:var(--inman-blue);color:var(--ink);font-weight:600;box-shadow:0 0 0 1px var(--inman-blue) inset}
+  .hol.sel .rule{display:inline;font-weight:400}
+  .hol.na{opacity:.38;cursor:not-allowed}
+
+  /* Readout */
+  .readout{display:flex;flex-wrap:wrap;gap:0;padding:0 18px;border-bottom:1px solid var(--line)}
+  .ro{padding:11px 22px 12px 0;min-width:150px}
+  .ro .k{font-size:10.5px;letter-spacing:.06em;text-transform:uppercase;color:var(--muted);font-weight:600;margin-bottom:3px}
+  .ro .v{font-size:22px;font-weight:700;font-variant-numeric:tabular-nums;line-height:1.1}
+  .ro .sub{font-size:11px;color:var(--muted);margin-top:2px}
+  .ro.nat .v{color:var(--inman-dark)}
+  .ro.metro .v{color:var(--inman-blue)}
+
+  #chart{width:100%;height:430px}
+  html.embed #chart{height:78vw;max-height:460px;min-height:330px}
+
+  .foot{background:var(--inman-dark);color:#aab2da;padding:11px 18px 14px;font-size:11px;line-height:1.55}
+  .foot .credit{color:#c7cef0}
+  .foot .method{margin-top:5px;color:#8ea2c8}
+  .loading{padding:40px 18px;color:var(--muted);font-size:13px}
+
+  .choices{margin-bottom:0;font-size:14px}
+  .choices__inner{background:#fff;border:1px solid #ccd2e2;border-radius:3px;min-height:36px;padding:4px 7px 3px;font-size:14px}
+  .choices__list--dropdown{border-color:#ccd2e2;font-size:13.5px}
+  .choices[data-type*=select-one] .choices__inner{padding-bottom:3px}
+
+  @media (max-width:620px){
+    .masthead h1{font-size:19px}
+    .ro .v{font-size:18px}
+    .ro{min-width:120px;padding-right:16px}
+    .hol .rule{display:none !important}
+  }
+</style>
+</head>
+<body>
+<div class="wrap">
+  <div class="masthead">
+    <p class="kicker">Inman Intel</p>
+    <h1>What holidays actually do to the housing market</h1>
+    <p>Every federal holiday slows deal-making — but not equally, and not for the reasons the trade
+       assumes. Pick a holiday to see how activity moves in the eight weeks either side of it.</p>
+  </div>
+
+  <div class="controls">
+    <div class="ctl">
+      <label>Measure</label>
+      <div class="seg" id="metric-seg">
+        <button data-metric="p" class="active">Pending sales</button>
+        <button data-metric="l">New listings</button>
+      </div>
+    </div>
+    <div class="ctl market">
+      <label>Compare a market</label>
+      <select id="metro-select"></select>
+    </div>
+    <label class="chk" id="both-wrap">
+      <input type="checkbox" id="both-toggle">
+      <span id="both-label">Add new listings</span>
+    </label>
+    <button class="clearbtn" id="reset" hidden>Back to all holidays</button>
+  </div>
+
+  <div class="legend" id="legend">
+    <span class="lg-lab">Holiday — click to select</span>
+  </div>
+
+  <div class="readout" id="readout"></div>
+
+  <div id="chart"></div>
+  <div class="loading" id="loading">Loading…</div>
+
+  <div class="foot">
+    <div class="credit">Source: Zillow research data | Visualized by Inman</div>
+    <div class="method" id="method"></div>
+  </div>
+</div>
+
+<script src="https://cdn.jsdelivr.net/npm/echarts@5.5.0/dist/echarts.min.js"></script>
+<script src="https://cdn.jsdelivr.net/npm/choices.js@11.2.3/public/assets/scripts/choices.min.js"></script>
+<script>
+(function(){
+"use strict";
+
+// ---------------------------------------------------------------- palette
+// Ten hues that stay distinguishable on white. Labor Day keeps Inman blue: it is
+// the holiday the accompanying story is about. Unselected lines are drawn in a
+// light tint of their own colour so the legend still maps to the chart.
+var COLOR = {
+  mlk:"#6A3D9A", pres:"#7F7F7F", memorial:"#D62728", juneteenth:"#E377C2",
+  july4:"#FF7F0E", labor:"#0a84ff", columbus:"#8C6D31", veterans:"#17838C",
+  thanks:"#BCBD22", christmas:"#2CA02C"
+};
+var OFFSETS = []; for (var i=-8;i<=8;i++) OFFSETS.push(i);
+var METRIC_NAME = { p:"Pending sales", l:"New listings" };
+
+// ------------------------------------------------- holiday date arithmetic
+// Mirrors the rules in holiday_tool_data.R. Kept in JS so the tool can pick a
+// default from the viewer's own date with no server call.
+function nthDow(y, m, dow, n){            // m 1-12, dow 1=Mon..7=Sun
+  var d = new Date(y, m-1, 1);
+  while (((d.getDay()+6)%7)+1 !== dow) d.setDate(d.getDate()+1);
+  d.setDate(d.getDate() + 7*(n-1));
+  return d;
+}
+function lastMon(y, m){
+  var d = new Date(y, m, 0);              // last day of month m
+  while (d.getDay() !== 1) d.setDate(d.getDate()-1);
+  return d;
+}
+function holidayDate(key, y){
+  switch(key){
+    case "mlk":        return nthDow(y,1,1,3);
+    case "pres":       return nthDow(y,2,1,3);
+    case "memorial":   return lastMon(y,5);
+    // Juneteenth became a federal holiday in 2021; not treated as one before.
+    case "juneteenth": return y >= 2021 ? new Date(y,5,19) : null;
+    case "july4":      return new Date(y,6,4);
+    case "labor":      return nthDow(y,9,1,1);
+    case "columbus":   return nthDow(y,10,1,2);
+    case "veterans":   return new Date(y,10,11);
+    case "thanks":     return nthDow(y,11,4,4);
+    case "christmas":  return new Date(y,11,25);
+  }
+  return null;
+}
+// New Year is deliberately absent everywhere in this tool: it falls directly
+// after Christmas, so its base week would be Christmas week.
+function pickDefault(today, keys){
+  var y = today.getFullYear(), list = [], DAY = 864e5;
+  [y-1, y, y+1].forEach(function(yy){
+    keys.forEach(function(k){
+      var d = holidayDate(k, yy);
+      if (d) list.push({ key:k, t:d.getTime() });
+    });
+  });
+  list.sort(function(a,b){ return a.t - b.t; });
+  var T = new Date(today.getFullYear(), today.getMonth(), today.getDate()).getTime();
+  var prev = null, next = null;
+  for (var i=0;i<list.length;i++){
+    if (list[i].t <= T) prev = list[i];
+    else { next = list[i]; break; }
+  }
+  // Rule: default to the next holiday, EXCEPT when one has just passed (within
+  // two weeks) and the next is still more than two weeks out - then look back.
+  if (prev && next && (T - prev.t) <= 14*DAY && (next.t - T) > 14*DAY) return prev.key;
+  return next ? next.key : (prev ? prev.key : "labor");
+}
+
+// ------------------------------------------------------------------ state
+var D = null, chart = null, metroChoices = null;
+var METRO_CACHE = { p:null, l:null }, METRO_PENDING = { p:null, l:null };
+var S = { metric:"p", holiday:null, metro:null, both:false };
+
+function hol(key){ return D.holidays.filter(function(h){ return h.key===key; })[0]; }
+function holIndex(key){
+  for (var i=0;i<D.holidays.length;i++) if (D.holidays[i].key===key) return i;
+  return -1;
+}
+function metroHas(m, key, metric){
+  var mask = metric==="p" ? m.pm : m.lm;
+  return (mask & (1 << holIndex(key))) !== 0;
+}
+function metroById(id){
+  for (var i=0;i<D.metros.length;i++) if (D.metros[i].id===id) return D.metros[i];
+  return null;
+}
+function fmtPct(v){ return (v>0?"+":"") + v.toFixed(1) + "%"; }
+
+// -------------------------------------------------------- data accessors
+function natSeries(key, metric){ return D.national[metric][key]; }
+// metro payload row: 17 means, then 17 SEs, then the year count
+function metroSeries(id, key, metric){
+  var pack = METRO_CACHE[metric];
+  if (!pack || !pack[id] || !pack[id][key]) return null;
+  var v = pack[id][key];
+  return { m: v.slice(0,17), s: v.slice(17,34), yrs: v[34] };
+}
+function loadMetros(metric){
+  if (METRO_CACHE[metric]) return Promise.resolve(METRO_CACHE[metric]);
+  if (METRO_PENDING[metric]) return METRO_PENDING[metric];
+  var file = metric==="p" ? "data/metros-pending.json" : "data/metros-listings.json";
+  METRO_PENDING[metric] = fetch(file).then(function(r){ return r.json(); })
+    .then(function(j){ METRO_CACHE[metric] = j; return j; });
+  return METRO_PENDING[metric];
+}
+
+// ----------------------------------------------------------------- legend
+function buildLegend(){
+  var el = document.getElementById("legend");
+  D.holidays.forEach(function(h){
+    var b = document.createElement("button");
+    b.className = "hol"; b.dataset.key = h.key;
+    b.innerHTML = '<span class="sw" style="background:'+COLOR[h.key]+'"></span>' +
+                  '<span class="nm">'+h.label+'</span>' +
+                  '<span class="rule">'+h.rule+'</span>';
+    b.addEventListener("click", function(){
+      if (b.classList.contains("na")) return;
+      S.holiday = h.key;
+      if (S.metro && !metroHas(metroById(S.metro), h.key, S.metric)) S.metro = null;
+      syncMetroPicker(); refresh();
+    });
+    el.appendChild(b);
+  });
+}
+function paintLegend(){
+  document.querySelectorAll(".hol").forEach(function(b){
+    b.classList.toggle("sel", b.dataset.key === S.holiday);
+  });
+}
+
+// ----------------------------------------------------- market dropdown
+function eligibleMetros(){
+  return D.metros.filter(function(m){ return metroHas(m, S.holiday, S.metric); })
+                 .sort(function(a,b){ return a.n.localeCompare(b.n); });
+}
+function syncMetroPicker(){
+  var list = eligibleMetros();
+  var opts = [{ value:"", label:"All holidays — no market", selected: !S.metro }]
+    .concat(list.map(function(m){
+      return { value:m.id, label:m.n, selected: m.id===S.metro };
+    }));
+  metroChoices.clearStore();
+  metroChoices.setChoices(opts, "value", "label", true);
+  document.getElementById("reset").hidden = !S.metro;
+}
+
+// ------------------------------------------------------------ both-toggle
+function syncBoth(){
+  var other = S.metric==="p" ? "l" : "p";
+  var wrap = document.getElementById("both-wrap");
+  var box  = document.getElementById("both-toggle");
+  document.getElementById("both-label").textContent =
+    "Add " + METRIC_NAME[other].toLowerCase();
+  // Disabled only where the comparison genuinely has no data, rather than
+  // silently drawing an empty series.
+  var ok = true;
+  if (S.metro){
+    var m = metroById(S.metro);
+    ok = metroHas(m, S.holiday, other);
+  }
+  box.disabled = !ok;
+  wrap.classList.toggle("off", !ok);
+  if (!ok){ box.checked = false; S.both = false; }
+}
+
+// ----------------------------------------------------------------- chart
+function lineSeries(name, key, data, opts){
+  opts = opts || {};
+  return {
+    name: name, type:"line", data: data, smooth:false,
+    symbol: opts.symbol || "none", symbolSize:5,
+    triggerLineEvent: true,
+    z: opts.z || 2,
+    lineStyle:{ width: opts.width||1.5, color: opts.color,
+                opacity: opts.opacity==null?1:opts.opacity,
+                type: opts.dashed ? "dashed" : "solid" },
+    itemStyle:{ color: opts.color },
+    emphasis:{ focus:"series", lineStyle:{ width:(opts.width||1.5)+1 } },
+    holidayKey: key
+  };
+}
+function ciBand(name, mean, se, color){
+  var lo = mean.map(function(m,i){ return +(m - 1.96*se[i]).toFixed(2); });
+  var hi = mean.map(function(m,i){ return +(m + 1.96*se[i]).toFixed(2); });
+  var span = hi.map(function(h,i){ return +(h - lo[i]).toFixed(2); });
+  return [
+    { name:name+"__lo", type:"line", stack:name+"ci", stackStrategy:"all",
+      data:lo, symbol:"none", lineStyle:{opacity:0}, silent:true, z:1,
+      tooltip:{show:false} },
+    { name:name+"__band", type:"line", stack:name+"ci", stackStrategy:"all",
+      data:span, symbol:"none", lineStyle:{opacity:0},
+      areaStyle:{color:color, opacity:0.15}, silent:true, z:1,
+      tooltip:{show:false} }
+  ];
+}
+
+function niceBounds(vals){
+  var lo = Math.min.apply(null, vals), hi = Math.max.apply(null, vals);
+  var span = Math.max(hi - lo, 22);              // floor keeps small effects calm
+  var pad  = span * 0.12;
+  lo = lo - pad; hi = hi + pad;
+  var step = span > 90 ? 20 : (span > 45 ? 10 : 5);
+  return { min: Math.floor(lo/step)*step, max: Math.ceil(hi/step)*step, step: step };
+}
+
+function render(){
+  paintLegend(); syncBoth();
+  var series = [], other = S.metric==="p" ? "l" : "p";
+  var selLabel = hol(S.holiday).label;
+  var scaleVals = [];
+
+  if (S.metro){
+    // State C: one holiday, national vs one market. Other holidays drop away.
+    var m = metroById(S.metro);
+    var nat = natSeries(S.holiday, S.metric);
+    var mt  = metroSeries(S.metro, S.holiday, S.metric);
+    series.push(lineSeries("National — "+METRIC_NAME[S.metric], S.holiday, nat.m,
+      { color:"#6b7390", width:2.4 }));
+    scaleVals = scaleVals.concat(nat.m);
+    if (mt){
+      series = series.concat(ciBand(m.n, mt.m, mt.s, COLOR[S.holiday]));
+      // the band, not just the line, has to fit inside the axis
+      mt.m.forEach(function(v,i){ scaleVals.push(v - 1.96*mt.s[i], v + 1.96*mt.s[i]); });
+      series.push(lineSeries(m.n+" — "+METRIC_NAME[S.metric], S.holiday, mt.m,
+        { color:COLOR[S.holiday], width:2.8, symbol:"circle", z:4 }));
+    }
+    if (S.both){
+      var natO = natSeries(S.holiday, other), mtO = metroSeries(S.metro, S.holiday, other);
+      series.push(lineSeries("National — "+METRIC_NAME[other], S.holiday, natO.m,
+        { color:"#6b7390", width:1.8, dashed:true, opacity:.85 }));
+      if (mtO){ series.push(lineSeries(m.n+" — "+METRIC_NAME[other], S.holiday, mtO.m,
+        { color:COLOR[S.holiday], width:2, dashed:true, z:3 }));
+        scaleVals = scaleVals.concat(mtO.m); }
+      scaleVals = scaleVals.concat(natO.m);
+    }
+  } else {
+    // States A/B: all ten holidays for the chosen measure; selected one in front.
+    D.holidays.forEach(function(h){
+      var isSel = h.key === S.holiday;
+      var sm = natSeries(h.key, S.metric).m;
+      if (isSel) scaleVals = scaleVals.concat(sm);
+      series.push(lineSeries(h.label, h.key, sm, {
+        color: COLOR[h.key], width: isSel ? 3 : 1.2,
+        opacity: isSel ? 1 : 0.22, z: isSel ? 5 : 2,
+        symbol: isSel ? "circle" : "none"
+      }));
+    });
+    if (S.both){
+      var oth = natSeries(S.holiday, other).m;
+      scaleVals = scaleVals.concat(oth);
+      series.push(lineSeries(selLabel+" — "+METRIC_NAME[other], S.holiday, oth,
+        { color: COLOR[S.holiday], width:2.2, dashed:true, z:4 }));
+    }
+  }
+
+  chart.setOption({
+    animationDuration: 300,
+    grid:{ left:52, right:18, top:26, bottom:44 },
+    tooltip:{
+      trigger:"axis", confine:true,
+      backgroundColor:"#fff", borderColor:"#ccd2e2", borderWidth:1,
+      textStyle:{ color:"#1b1f3b", fontFamily:"Libre Franklin", fontSize:12 },
+      formatter: function(ps){
+        if (!ps.length) return "";
+        var off = OFFSETS[ps[0].dataIndex];
+        var head = off===0 ? "<b>Holiday week</b>"
+                 : "<b>Week " + (off>0?"+":"") + off + "</b>";
+        var rows = ps.filter(function(p){ return p.seriesName.indexOf("__")<0; })
+          .map(function(p){
+            return '<div style="display:flex;justify-content:space-between;gap:16px">' +
+                   '<span>'+p.marker+' '+p.seriesName+'</span>' +
+                   '<b style="font-variant-numeric:tabular-nums">'+fmtPct(p.value)+'</b></div>';
+          }).join("");
+        return head + rows;
+      }
+    },
+    xAxis:{
+      type:"category", data: OFFSETS.map(function(o){ return o===0?"0":(o>0?"+"+o:""+o); }),
+      boundaryGap:false, axisTick:{show:false},
+      axisLine:{ lineStyle:{ color:"#ccd2e2" } },
+      axisLabel:{ color:"#5b6180", fontFamily:"Libre Franklin", fontSize:11,
+                  interval:function(i){ return i%2===0; } },
+      name:"weeks from the holiday week", nameLocation:"middle", nameGap:28,
+      nameTextStyle:{ color:"#8b91ad", fontFamily:"Libre Franklin", fontSize:10.5 }
+    },
+    yAxis:(function(){
+      var b = niceBounds(scaleVals);
+      return { type:"value", min:b.min, max:b.max, interval:b.step,
+        splitLine:{ lineStyle:{ color:"#eef0f6" } },
+        axisLabel:{ color:"#5b6180", fontFamily:"Libre Franklin", fontSize:11,
+                    formatter:function(v){ return (v>0?"+":"")+v+"%"; } } };
+    })(),
+    series: series.concat([{
+      // holiday-week band + zero reference, drawn once via a dummy series
+      type:"line", data:[], silent:true,
+      markArea:{ silent:true, itemStyle:{ color:"rgba(22,26,72,.055)" },
+        data:[[{xAxis:7.5},{xAxis:8.5}]] },
+      markLine:{ silent:true, symbol:"none",
+        lineStyle:{ color:"#aab3cf", type:"dashed", width:1 },
+        label:{show:false}, data:[{ yAxis:0 }] }
+    }])
+  }, { replaceMerge:["series"] });
+
+  // ECharts can paint against a stale layout after a state transition (lines
+  // bunched at the left edge, doubled axis labels). An explicit resize clears
+  // it and is cheap.
+  chart.resize();
+  paintReadout();
+  document.getElementById("reset").hidden = !S.metro;
+}
+
+// Single entry point for any state change: redraw, rewrite the footnote, and
+// only then report height, since both of those can change the page height.
+function refresh(){
+  render();
+  paintMethod();
+  if (window.__inmanEmbedSend) window.__inmanEmbedSend();
+}
+
+function paintReadout(){
+  var el = document.getElementById("readout");
+  var nat = natSeries(S.holiday, S.metric), i0 = 8;   // offset 0 sits at index 8
+  var h = hol(S.holiday);
+  var html = '<div class="ro nat"><div class="k">' + h.label + ' week — national</div>' +
+             '<div class="v">' + fmtPct(nat.m[i0]) + '</div>' +
+             '<div class="sub">' + METRIC_NAME[S.metric].toLowerCase() +
+             ' vs. the week before · ' + nat.yrs + ' years</div></div>';
+  if (S.metro){
+    var m = metroById(S.metro), mt = metroSeries(S.metro, S.holiday, S.metric);
+    if (mt){
+      var margin = 1.96 * mt.s[i0];
+      html += '<div class="ro metro"><div class="k">' + m.n + '</div>' +
+              '<div class="v">' + fmtPct(mt.m[i0]) +
+              ' <span style="font-size:13px;font-weight:600;color:#5b6180">±' +
+              margin.toFixed(1) + '</span></div>' +
+              '<div class="sub">' + mt.yrs + ' years · margin of error at 95%</div></div>';
+    }
+  }
+  el.innerHTML = html;
+}
+
+function paintMethod(){
+  var extra = S.metro
+    ? " A single market rests on six to nine annual observations, so its margin of error is wide — the shaded band is the 95% range. Treat a market's figure as a rough read, not a precise one."
+    : "";
+  document.getElementById("method").textContent =
+    "Percent change in weekly activity versus the week before each holiday week, averaged across " +
+    "years and (for the national line) across metro markets with continuous weekly history since 2018. " +
+    "National is an average across markets, which weights small metros more heavily than a true " +
+    "national total would. Neighbouring holidays are not screened out, so some lines carry a second " +
+    "notch — Labor Day at +5/+6 is Columbus Day; Memorial Day at +2/+3 is Juneteenth. Juneteenth " +
+    "covers 2021 onward. New Year is excluded: it falls directly after Christmas, so its base week " +
+    "would be Christmas week. Data through " + D.vintage + "." + extra;
+}
+
+// ------------------------------------------------------------------- init
+function init(data){
+  D = data;
+  document.getElementById("loading").remove();
+  var keys = D.holidays.map(function(h){ return h.key; });
+
+  // ?today=YYYY-MM-DD overrides the clock so the default-selection rule can be
+  // tested without waiting for the calendar.
+  var q = new URLSearchParams(location.search), forced = q.get("today");
+  var today = forced && /^\d{4}-\d{2}-\d{2}$/.test(forced)
+    ? new Date(+forced.slice(0,4), +forced.slice(5,7)-1, +forced.slice(8,10))
+    : new Date();
+  S.holiday = pickDefault(today, keys);
+  if (q.get("holiday") && keys.indexOf(q.get("holiday"))>=0) S.holiday = q.get("holiday");
+
+  chart = echarts.init(document.getElementById("chart"));
+  buildLegend();
+
+  var sel = document.getElementById("metro-select");
+  metroChoices = new Choices(sel, {
+    searchEnabled:true, searchResultLimit:20, shouldSort:false,
+    itemSelectText:"", placeholder:true, placeholderValue:"Search a market…",
+    allowHTML:false
+  });
+  sel.addEventListener("change", function(e){
+    var id = e.detail && e.detail.value !== undefined ? e.detail.value : sel.value;
+    if (!id){ S.metro = null; refresh(); return; }
+    loadMetros(S.metric).then(function(){
+      var other = S.metric==="p" ? "l" : "p";
+      var m = metroById(id);
+      var need = S.both && m && metroHas(m, S.holiday, other)
+        ? loadMetros(other) : Promise.resolve();
+      return need.then(function(){ S.metro = id; refresh(); });
+    });
+  });
+  syncMetroPicker();
+
+  document.querySelectorAll("#metric-seg button").forEach(function(b){
+    b.addEventListener("click", function(){
+      if (b.dataset.metric === S.metric) return;
+      S.metric = b.dataset.metric;
+      document.querySelectorAll("#metric-seg button").forEach(function(x){
+        x.classList.toggle("active", x.dataset.metric===S.metric);
+      });
+      // dropping a market that has no data for the new measure
+      if (S.metro && !metroHas(metroById(S.metro), S.holiday, S.metric)) S.metro = null;
+      var p = S.metro ? loadMetros(S.metric) : Promise.resolve();
+      p.then(function(){ syncMetroPicker(); refresh(); });
+    });
+  });
+
+  document.getElementById("both-toggle").addEventListener("change", function(e){
+    S.both = e.target.checked;
+    var other = S.metric==="p" ? "l" : "p";
+    var p = (S.both && S.metro) ? loadMetros(other) : Promise.resolve();
+    p.then(function(){ refresh(); });
+  });
+
+  document.getElementById("reset").addEventListener("click", function(){
+    S.metro = null; syncMetroPicker(); refresh();
+  });
+
+  // Clicking a line selects that holiday, same as clicking its legend chip.
+  chart.on("click", function(p){
+    var s = (chart.getOption().series || [])[p.seriesIndex];
+    if (s && s.holidayKey && s.holidayKey !== S.holiday){
+      S.holiday = s.holidayKey;
+      if (S.metro && !metroHas(metroById(S.metro), S.holiday, S.metric)) S.metro = null;
+      syncMetroPicker(); refresh();
+    }
+  });
+
+  refresh();
+
+  window.addEventListener("resize", function(){ chart.resize(); });
+  if (window.ResizeObserver) new ResizeObserver(function(){ chart.resize(); })
+    .observe(document.getElementById("chart"));
+}
+
+fetch("data/inline.json").then(function(r){ return r.json(); }).then(init)
+  .catch(function(e){
+    var l = document.getElementById("loading");
+    if (l) l.textContent = "Could not load the data for this chart.";
+    console.error(e);
+  });
+
+/* ---------- self-sizing embed ----------
+   Based on the house pattern in insurance_map/index.html, with one fix. That
+   version routes EVERY height report through requestAnimationFrame. Browsers
+   throttle rAF in an iframe that is not being painted, so with the
+   loading="lazy" attribute the snippet uses, a below-the-fold embed can sit at
+   its fallback height and never report. Verified here: in a real iframe the
+   message never arrived until send() was called outside rAF.
+   Fix: the timed retries and the initial report call send() DIRECTLY. rAF is
+   kept only where it belongs - coalescing high-frequency resize/observer
+   events. */
+function initEmbedHeight(){
+  if(!document.documentElement.classList.contains('embed')) return;
+  let last=0, raf=0;
+  const send=()=>{ const h=Math.ceil(document.documentElement.getBoundingClientRect().height);
+    if(h && Math.abs(h-last)>1){ last=h; try{ window.parent.postMessage({type:'inman-embed-height',height:h},'*'); }catch(e){} } };
+  const schedule=()=>{ cancelAnimationFrame(raf); raf=requestAnimationFrame(send); };
+  window.addEventListener('resize',schedule);
+  if(window.ResizeObserver) new ResizeObserver(schedule).observe(document.body);
+  if(document.fonts&&document.fonts.ready) document.fonts.ready.then(send);
+  [0,300,800,1800,3000].forEach(ms=>setTimeout(send,ms));
+  // exposed so a state change that alters page height can report immediately
+  window.__inmanEmbedSend = send;
+  send();
+}
+initEmbedHeight();
+})();
+</script>
+</body>
+</html>

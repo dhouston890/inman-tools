@@ -1,0 +1,27 @@
+<!-- =====================================================================
+     Inman — "What holidays actually do to the housing market"
+     WordPress paste-in snippet (use a "Custom HTML" block, not the visual editor).
+     Live tool: https://dhouston890.github.io/inman-tools/holiday-effect/
+     The ?embed flag makes the tool report its rendered height via postMessage;
+     the listener below resizes the iframe so there is never an inner scrollbar.
+     ===================================================================== -->
+<div style="max-width:960px;margin:0 auto;">
+  <iframe
+    id="inman-holiday-effect"
+    src="https://dhouston890.github.io/inman-tools/holiday-effect/?embed"
+    title="What holidays actually do to the housing market — Inman"
+    style="width:100%;border:0;height:980px;display:block;"
+    loading="lazy"
+    scrolling="no"></iframe>
+</div>
+<script>
+(function(){
+  var frame = document.getElementById('inman-holiday-effect');
+  window.addEventListener('message', function(e){
+    var d = e.data;
+    if (d && d.type === 'inman-embed-height' && d.height && frame){
+      frame.style.height = d.height + 'px';
+    }
+  });
+})();
+</script>
