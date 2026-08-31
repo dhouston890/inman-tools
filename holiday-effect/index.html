@@ -314,10 +314,8 @@ function syncBoth(){
 }
 
 // ----------------------------------------------------------------- chart
-var YEARS = {};   // series name -> per-offset year counts, for the tooltip
 function lineSeries(name, key, data, opts){
   opts = opts || {};
-  if (opts.years) YEARS[name] = opts.years;
   return {
     name: name, type:"line", data: pairs(data), smooth:false,
     symbol: opts.symbol || "none", symbolSize:5,
@@ -346,8 +344,10 @@ function ciBand(name, mean, se, color){
   return {
     series: {
       name: name + "__band", type: "custom", silent: true, z: 1,
-      tooltip: { show: false }, data: [0],
+      tooltip: { show: false },
+      data: OFFSETS.map(function(o){ return [o, 0]; }),
       renderItem: function(params, api){
+        if (params.dataIndex !== 0) return;   // one polygon, drawn once
         var pts = [], i;
         for (i=0;i<OFFSETS.length;i++) if (hi[i]!=null) pts.push(api.coord([OFFSETS[i], hi[i]]));
         for (i=OFFSETS.length-1;i>=0;i--) if (lo[i]!=null) pts.push(api.coord([OFFSETS[i], lo[i]]));
@@ -372,7 +372,7 @@ function niceBounds(vals){
 }
 
 function render(){
-  paintLegend(); syncBoth(); YEARS = {};
+  paintLegend(); syncBoth();
   var series = [], other = S.metric==="p" ? "l" : "p";
   var selLabel = hol(S.holiday).label;
   var scaleVals = [];
@@ -383,7 +383,7 @@ function render(){
     var nat = natSeries(S.holiday, S.metric);
     var mt  = metroSeries(S.metro, S.holiday, S.metric);
     series.push(lineSeries("National — "+METRIC_NAME[S.metric], S.holiday, nat.m,
-      { color:"#6b7390", width:2.4, years:nat.y }));
+      { color:"#6b7390", width:2.4 }));
     scaleVals = scaleVals.concat(nat.m);
     if (mt){
       var band = ciBand(m.n, mt.m, mt.s, COLOR[S.holiday]);
@@ -391,14 +391,14 @@ function render(){
       // the band, not just the line, has to fit inside the axis
       scaleVals = scaleVals.concat(band.bounds);
       series.push(lineSeries(m.n+" — "+METRIC_NAME[S.metric], S.holiday, mt.m,
-        { color:COLOR[S.holiday], width:2.8, symbol:"circle", z:4, years:mt.y }));
+        { color:COLOR[S.holiday], width:2.8, symbol:"circle", z:4 }));
     }
     if (S.both){
       var natO = natSeries(S.holiday, other), mtO = metroSeries(S.metro, S.holiday, other);
       series.push(lineSeries("National — "+METRIC_NAME[other], S.holiday, natO.m,
-        { color:"#6b7390", width:1.8, dashed:true, opacity:.85, years:natO.y }));
+        { color:"#6b7390", width:1.8, dashed:true, opacity:.85 }));
       if (mtO){ series.push(lineSeries(m.n+" — "+METRIC_NAME[other], S.holiday, mtO.m,
-        { color:COLOR[S.holiday], width:2, dashed:true, z:3, years:mtO.y }));
+        { color:COLOR[S.holiday], width:2, dashed:true, z:3 }));
         scaleVals = scaleVals.concat(mtO.m); }
       scaleVals = scaleVals.concat(natO.m);
     }
@@ -411,41 +411,67 @@ function render(){
       series.push(lineSeries(h.label, h.key, sm, {
         color: COLOR[h.key], width: isSel ? 3 : 1.2,
         opacity: isSel ? 1 : 0.22, z: isSel ? 5 : 2,
-        symbol: isSel ? "circle" : "none", years: ns.y
+        symbol: isSel ? "circle" : "none"
       }));
     });
     if (S.both){
       var othS = natSeries(S.holiday, other), oth = othS.m;
       scaleVals = scaleVals.concat(oth);
       series.push(lineSeries(selLabel+" — "+METRIC_NAME[other], S.holiday, oth,
-        { color: COLOR[S.holiday], width:2.2, dashed:true, z:4, years:othS.y }));
+        { color: COLOR[S.holiday], width:2.2, dashed:true, z:4 }));
     }
   }
 
   var YB = niceBounds(scaleVals);
+  // Toggling a market or the second metric changes the series COUNT. Any tooltip
+  // or axis-pointer state left over from the previous option can then reference a
+  // series index that no longer exists, which surfaced as a getDataParams error
+  // on hover. Hide the tip first, and replace the option outright rather than
+  // merging - the full option is rebuilt on every render anyway.
+  chart.dispatchAction({ type: "hideTip" });
   chart.setOption({
     animationDuration: 300,
-    grid:{ left:52, right:18, top:26, bottom:44 },
+    grid:{ left:70, right:18, top:26, bottom:44 },
     tooltip:{
       trigger:"axis", confine:true,
       backgroundColor:"#fff", borderColor:"#ccd2e2", borderWidth:1,
       textStyle:{ color:"#1b1f3b", fontFamily:"Libre Franklin", fontSize:12 },
       formatter: function(ps){
         if (!ps.length) return "";
-        var off = ps[0].value[0];
-        var head = off===0 ? "<b>Holiday week</b>"
-                 : "<b>Week " + (off>0?"+":"") + off + "</b>";
-        var rows = ps.filter(function(p){
+        var off  = ps[0].value[0];
+        var week = off===0 ? "Holiday week"
+                 : "Week " + (off>0?"+":"") + off;
+        var other = S.metric==="p" ? "l" : "p";
+        var metric = S.both
+          ? METRIC_NAME[S.metric] + " and " + METRIC_NAME[other].toLowerCase()
+          : METRIC_NAME[S.metric];
+        // With a market selected the rows are National vs that market, so the
+        // holiday has to be named in the header. Without one the rows ARE the
+        // holidays, and naming a single holiday up top would misdescribe them.
+        var head = '<div style="font-weight:700">' +
+                   (S.metro ? hol(S.holiday).label + " · " + week : week) +
+                   '</div>' +
+                   '<div style="color:#1b1f3b">' + metric + '</div>' +
+                   '<div style="color:#8b91ad;font-size:11px;margin:1px 0 5px">' +
+                   'Level compared to the week before selected holiday' + '</div>';
+        var items = ps.filter(function(p){
             return p.seriesName.indexOf("__")<0 && p.value && p.value[1] != null;
-          }).map(function(p){
-            var yy = YEARS[p.seriesName], n = yy ? yy[p.dataIndex] : null;
-            var val = p.value[1];
-            // year counts vary along a curve under the anchored rule, so the
-            // support for each individual point is stated rather than implied
-            var note = n ? ' <span style="color:#8b91ad">('+n+' yr'+(n===1?'':'s')+')</span>' : '';
-            return '<div style="display:flex;justify-content:space-between;gap:16px">' +
-                   '<span>'+p.marker+' '+p.seriesName+'</span>' +
-                   '<b style="font-variant-numeric:tabular-nums">'+fmtPct(val)+note+'</b></div>';
+          });
+        if (!S.metro) items.sort(function(a,b){ return b.value[1] - a.value[1]; });
+        var selLabel = hol(S.holiday).label;
+        var rows = items.map(function(p){
+            var isSel = !S.metro && p.seriesName === selLabel;
+            var wt = isSel ? "700" : "400";
+            var col = isSel ? "#1b1f3b" : "#5b6180";
+            // the metric is stated once above, so strip it from each row unless
+            // both metrics are drawn and the rows need to be told apart
+            var label = S.both ? p.seriesName
+                               : p.seriesName.replace(/ — (Pending sales|New listings)$/, "");
+            return '<div style="display:flex;justify-content:space-between;gap:16px;' +
+                   'font-weight:'+wt+';color:'+col+'">' +
+                   '<span>'+p.marker+' '+label+'</span>' +
+                   '<span style="font-variant-numeric:tabular-nums;font-weight:'+
+                   (isSel?"700":"600")+'">'+fmtPct(p.value[1])+'</span></div>';
           }).join("");
         return head + rows;
       }
@@ -465,6 +491,8 @@ function render(){
       return { type:"value", min:b.min, max:b.max, interval:b.step,
         axisLine:{ show:false }, axisTick:{ show:false },
         splitLine:{ lineStyle:{ color:"#eef0f6" } },
+        name:"Level compared to the week before selected holiday", nameLocation:"middle", nameGap:50, nameRotate:90,
+        nameTextStyle:{ color:"#8b91ad", fontFamily:"Libre Franklin", fontSize:10.5 },
         axisLabel:{ color:"#5b6180", fontFamily:"Libre Franklin", fontSize:11,
                     formatter:function(v){ return (v>0?"+":"")+v+"%"; } } };
     })(),
@@ -480,7 +508,7 @@ function render(){
         lineStyle:{ color:"#aab3cf", type:"dashed", width:1 },
         label:{show:false}, data:[{ yAxis:0 }] }
     }])
-  }, { replaceMerge:["series"] });
+  }, { notMerge: true });
 
   // ECharts can paint against a stale layout after a state transition (lines
   // bunched at the left edge, doubled axis labels). An explicit resize clears
