@@ -3,7 +3,7 @@
 <head>
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width,initial-scale=1">
-<title>What holidays do to the housing market — Inman</title>
+<title>Only 5 holidays make a dent in housing market activity — Inman</title>
 <!-- Detect iframe/embed context early so the page flows to its true height -->
 <script>
   if (window.self !== window.top || /[?&]embed\b/.test(location.search)) {
@@ -96,9 +96,8 @@
 <div class="wrap">
   <div class="masthead">
     <p class="kicker">Inman Analysis</p>
-    <h1>What holidays actually do to the housing market</h1>
-    <p>Every federal holiday slows deal-making — but not equally, and not for the reasons the trade
-       assumes. Pick a holiday to see how activity moves in the eight weeks either side of it.</p>
+    <h1>Only 5 holidays make a dent in housing market activity</h1>
+    <p>Clients take a step back from their home search on the week of Memorial Day, the Fourth of July, Labor Day, Thanksgiving and Christmas, a review of weekly Zillow pending sales data suggests. On other holidays, it’s business as usual for buyers.</p>
   </div>
 
   <div class="controls">
@@ -131,7 +130,7 @@
   <div class="loading" id="loading">Loading…</div>
 
   <div class="foot">
-    <div class="credit">Source: Zillow Research data | Visualized by Inman</div>
+    <div class="credit">Source: Zillow Research data | Visualized by Inman with Claude</div>
     <div class="method" id="method"></div>
   </div>
 </div>
@@ -523,20 +522,14 @@ function paintReadout(){
 }
 
 function paintMethod(){
-  var extra = S.metro
-    ? " A single market rests on six to nine annual observations, so its margin of error is wide — the shaded band is the 95% range. Treat a market's figure as a rough read, not a precise one."
-    : "";
   document.getElementById("method").textContent =
-    "Percent change in weekly activity versus the week before each holiday week, averaged across " +
-    "years. The national line is a volume-weighted aggregate of about 200 metro markets with " +
-    "continuous weekly history since 2018, checked against Zillow's own national series on every " +
-    "holiday where that series is complete enough to use (it agrees within about one percentage " +
-    "point). A year counts toward a point whenever the week before the holiday and that week are " +
-    "both reported, so the number of years behind each point can vary; the tooltip states it. " +
-    "Neighbouring holidays are not screened out, so some lines carry a second " +
-    "notch — Labor Day at +5/+6 is Columbus Day; Memorial Day at +2/+3 is Juneteenth. Juneteenth " +
-    "covers 2021 onward. New Year is excluded: it falls directly after Christmas, so its base week " +
-    "would be Christmas week. Data through " + D.vintage + "." + extra;
+    'This chart compares volume levels on a given week to levels from the week before the ' +
+    'selected holiday during a period from 2018-2026. To account for unreported national ' +
+    'data on certain low-volume holiday weeks, national pending sales and new listing levels ' +
+    'were determined by a volume-weighted average of about 200 metro markets with continuous ' +
+    'weekly history since the start of the period. The resulting numbers agreed with ' +
+    'Zillow’s national series, where available, within less than a percentage point in the ' +
+    'vast majority of cases.';
 }
 
 // ------------------------------------------------------------------- init
