@@ -1,0 +1,255 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<title>How immigrants and their children have boosted the housing market — Inman</title>
+<!-- Detect iframe/embed context early so the page flows to its true height -->
+<script>
+  if (window.self !== window.top || /[?&]embed\b/.test(location.search)) {
+    document.documentElement.classList.add("embed");
+  }
+</script>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Libre+Franklin:wght@400;500;600;700&family=Newsreader:opsz,wght@6..72,500;6..72,600&display=swap" rel="stylesheet">
+<style>
+  :root{
+    --inman-blue:#0a84ff; --inman-dark:#161a48; --inman-red:#da3832;
+    --ink:#1b1f3b; --muted:#5b6180; --line:#e5e8f0;
+    --b1:#0a84ff; --b2:#64a9f2; --b3:#a9cbef; --b4:#d8dfea;
+    --font-ui:"Libre Franklin","HEX Franklin","Helvetica Neue",Arial,sans-serif;
+    --font-head:"Newsreader","Harriet Display",Georgia,serif;
+  }
+  *{box-sizing:border-box}
+  html,body{margin:0;padding:0}
+  html:not(.embed),html:not(.embed) body{height:100%}
+  html.embed,html.embed body{height:auto}
+  body{font-family:var(--font-ui);color:var(--ink);background:#fff;-webkit-font-smoothing:antialiased}
+  .wrap{max-width:960px;margin:0 auto;display:flex;flex-direction:column}
+
+  .masthead{background:var(--inman-dark);border-bottom:2px solid var(--inman-blue);padding:14px 18px 16px}
+  .kicker{font-size:10.5px;letter-spacing:.1em;text-transform:uppercase;color:#7f8ad0;font-weight:600;margin:0 0 6px}
+  .masthead h1{font-family:var(--font-head);color:#fff;font-size:23px;line-height:1.15;margin:0;font-weight:600}
+  .standfirst{color:#aab2da;font-size:13px;line-height:1.5;margin:8px 0 0}
+
+  .controls{display:flex;flex-wrap:wrap;gap:16px;align-items:flex-end;padding:12px 18px;border-bottom:1px solid var(--line)}
+  .ctl{display:flex;flex-direction:column;gap:5px}
+  .ctl label{font-size:10.5px;letter-spacing:.06em;text-transform:uppercase;color:var(--muted);font-weight:600}
+  .seg{display:flex;border:1px solid var(--line);border-radius:4px;overflow:hidden}
+  .seg button{font-family:var(--font-ui);font-size:13px;padding:7px 13px;border:0;background:#fff;color:var(--muted);cursor:pointer}
+  .seg button+button{border-left:1px solid var(--line)}
+  .seg button.active{background:var(--inman-blue);color:#fff;font-weight:600}
+
+  .legend{display:flex;flex-wrap:wrap;gap:14px;padding:11px 18px 0}
+  .lg{display:flex;align-items:center;gap:7px;font-size:12.5px;color:var(--ink)}
+  .lg .sw{width:13px;height:13px;border-radius:2px;flex:none;border:1px solid rgba(27,31,59,.12)}
+
+  #chart{width:100%;height:420px}
+
+  .foot{background:var(--inman-dark);color:#aab2da;padding:11px 18px 14px;font-size:11px;line-height:1.55;margin-top:10px}
+  .credit{color:#fff;font-weight:600;margin-bottom:5px}
+  @media (max-width:640px){
+    .masthead h1{font-size:19px}
+    #chart{height:330px}
+    .controls{gap:12px}
+  }
+</style>
+</head>
+<body>
+<div class="wrap">
+  <div class="masthead">
+    <p class="kicker">Inman Analysis</p>
+    <h1>How immigrants and their children have boosted the housing market</h1>
+    <p class="standfirst">First- and second-generation immigrants now account for more than 1 in 5 owner-occupied households in the United States. Few immigrant homeowners moved here recently.</p>
+  </div>
+
+  <div class="controls">
+    <div class="ctl">
+      <label>Measure</label>
+      <div class="seg" id="seg-measure">
+        <button data-v="count" class="active">Households</button>
+        <button data-v="share">Share of all homeowners</button>
+      </div>
+    </div>
+    <div class="ctl">
+      <label>Show</label>
+      <div class="seg" id="seg-scope">
+        <button data-v="imm" class="active">Immigrant generations only</button>
+        <button data-v="all">All generations</button>
+      </div>
+    </div>
+  </div>
+
+  <div class="legend" id="legend"></div>
+  <div id="chart"></div>
+
+
+  <div class="foot">
+    <div class="credit">Source: U.S. Census Bureau, Current Population Survey | Visualized by Inman with Claude</div>
+    <div>Each household’s generation corresponds to that of the adult identified as the householder. Second-generation householders each have at least one parent who was born abroad. Third-generation householders each have two U.S.-born parents. Counts come from CPS tables, and the six-year-tenure breakdown of first-generation immigrants was computed from CPS microdata. Pandemic-era response trends make comparison of data from before and after 2020 more difficult. Household totals from the CPS don't precisely match tallies from other government surveys.</div>
+  </div>
+</div>
+
+<script src="https://cdn.jsdelivr.net/npm/echarts@5.5.0/dist/echarts.min.js"></script>
+<script>
+(function(){
+"use strict";
+var D = {"meta":{"bands":[{"key":"b1","label":"First generation, here 6 years or less"},{"key":"b2","label":"First generation, here more than 6 years"},{"key":"b3","label":"Second generation"},{"key":"b4","label":"Third generation and higher"}],"years":[2005,2006,2007,2008,2009,2010,2011,2012,2013,2014,2015,2016,2017,2018,2019,2020,2021,2022,2023,2024,2025],"vintage":"March of each year (CPS ASEC, collected February-April)"},"years":[2005,2006,2007,2008,2009,2010,2011,2012,2013,2014,2015,2016,2017,2018,2019,2020,2021,2022,2023,2024,2025],"window":[6,7,6,7,6,7,6,7,6,7,6,7,6,7,6,7,6,7,6,7,6],"b1":[488.3,573.3,349.2,464,326.2,432.6,352.7,418.9,308,393.2,326.5,435,379.2,520.7,467.9,593.5,406.9,575.1,444.7,636.9,459.6],"b2":[7054.7,7222.7,7900.8,7810,7741.8,7659.4,8275.3,8370.1,8439,8525.8,8832.5,8914,9313.8,9699.3,9822.1,9936.5,10123.1,10364.9,10925.3,11043.1,11590.4],"b3":[6396,6271,6382,6474,6311,6241,6002,5997,6020,6002,5932,6069,5956,6025,6295,6694,6438,6559,6923,6630,7141],"b4":[64600,64260,64630,64580,64450,64450,64710,64390,64710,64680,64090,64490,64630,65920,66370,68150,67920,68410,68490,68560,68660],"total":[78539,78327,79262,79328,78829,78783,79340,79176,79477,79601,79181,79908,80279,82165,82955,85374,84888,85909,86783,86870,87851],"moe":{"first":[196.4,224.8,213.9,197.4,188.7,200.4,216.5,207.4,229.8,234.5,209.2,240.6,212.3,230,262.7,274.3,267.9,258.4,261,266.7,300],"second":[216.1,192.1,186.9,196.9,205.7,216.1,182.6,205.2,181.3,192.4,196.3,204.6,216.8,192.2,199.3,227.2,237.2,237.5,237.8,230.9,206.6],"third":[524.6,488.7,457.4,494.1,555.1,564.2,516.9,484.7,517.8,495.9,489.3,499.4,512.9,540.7,491.5,535.2,577.1,594.3,661.7,648.3,614.3]}};
+
+var BANDS = [
+  {key:"b1", label:"First generation, here 6 years or less",  color:"#0a84ff"},
+  {key:"b2", label:"First generation, here more than 6 years", color:"#64a9f2"},
+  {key:"b3", label:"Second generation",                        color:"#a9cbef"},
+  {key:"b4", label:"Third generation and higher",              color:"#d8dfea"}
+];
+
+// The arrival-date split is only drawn where it can actually be drawn. On the
+// full stack the "6 years or less" band is 0.5% of the total -- 1.7px of a
+// 376px plot in 2025 -- which is below the width a browser can paint: the fill
+// spreads across two partial-opacity rows and reads as half-empty. Measured at a
+// 956px plot the same band renders solid at 5px, so the geometry is right and
+// the limit is purely pixels. Rather than draw a band that cannot be seen, the
+// all-generations view shows the first generation whole. It keeps b2's colour
+// because b2 is 96% of it, so toggling between views changes nothing except a
+// hairline appearing at the bottom.
+var FIRST_GEN = {key:"b12", label:"First generation", color:"#64a9f2"};
+
+var state = { measure:"count", scope:"imm" };
+var chart;
+
+function activeBands(){
+  return state.scope === "imm" ? BANDS.slice(0, 3)
+                               : [FIRST_GEN, BANDS[2], BANDS[3]];
+}
+
+// Values arrive in thousands. Counts render as millions; shares are always
+// against the SAME denominator (all owner households) in both scopes, so the
+// immigrant-only view is a magnified slice of the full stack rather than a
+// re-based one.
+function bandRaw(key, i){
+  return key === "b12" ? D.b1[i] + D.b2[i] : D[key][i];
+}
+function seriesValues(key){
+  return D.years.map(function(_, i){
+    var v = bandRaw(key, i);
+    return state.measure === "share" ? +(100 * v / D.total[i]).toFixed(3)
+                                     : +(v / 1000).toFixed(3);
+  });
+}
+
+function fmtVal(v){
+  return state.measure === "share" ? v.toFixed(2) + "%" : v.toFixed(2) + "M";
+}
+
+function buildLegend(){
+  document.getElementById("legend").innerHTML = activeBands().map(function(b){
+    return '<span class="lg"><span class="sw" style="background:'+b.color+'"></span>'+b.label+'</span>';
+  }).join("");
+}
+
+function tooltip(params){
+  if(!params.length) return "";
+  var i = params[0].dataIndex;
+  var rows = params.slice().reverse().map(function(p){
+    return '<div style="display:flex;justify-content:space-between;gap:16px">'
+         + '<span>'+p.marker+' '+p.seriesName+'</span>'
+         + '<b style="white-space:nowrap">'+fmtVal(p.value)+'</b></div>';
+  }).join("");
+  var imm = D.b1[i] + D.b2[i] + D.b3[i];
+  var foot = '<div style="margin-top:6px;padding-top:5px;border-top:1px solid #e5e8f0;'
+           + 'display:flex;justify-content:space-between;gap:16px">'
+           + '<span>Immigrant-connected</span><b>'
+           + (100*imm/D.total[i]).toFixed(1) + '% &middot; ' + (imm/1000).toFixed(2) + 'M</b></div>'
+           + '<div style="display:flex;justify-content:space-between;gap:16px;color:#5b6180">'
+           + '<span>All owner households</span><b>'+(D.total[i]/1000).toFixed(2)+'M</b></div>';
+  return '<div style="font-weight:600;margin-bottom:5px">March '+D.years[i]+'</div>'+rows+foot;
+}
+
+function mainOption(){
+  var bands = activeBands();
+  var maxY = state.measure === "share"
+    ? (state.scope === "imm" ? 25 : 100)
+    : null;
+  return {
+    animationDuration: 320,
+    grid:{ left:56, right:18, top:14, bottom:30 },
+    tooltip:{ trigger:"axis", confine:true, backgroundColor:"#fff", borderColor:"#e5e8f0",
+      borderWidth:1, padding:10, extraCssText:"box-shadow:0 2px 10px rgba(22,26,72,.14)",
+      textStyle:{ color:"#1b1f3b", fontFamily:'Libre Franklin, Arial, sans-serif', fontSize:12.5 },
+      formatter: tooltip },
+    xAxis:{ type:"category", data:D.years, boundaryGap:false,
+      axisLine:{ lineStyle:{ color:"#c9cfdf" } }, axisTick:{ show:false },
+      axisLabel:{ color:"#5b6180", fontSize:11.5, fontFamily:'Libre Franklin, Arial, sans-serif' } },
+    yAxis:{ type:"value", max:maxY,
+      axisLabel:{ color:"#5b6180", fontSize:11.5, fontFamily:'Libre Franklin, Arial, sans-serif',
+        formatter: state.measure === "share" ? "{value}%" : "{value}M" },
+      splitLine:{ lineStyle:{ color:"#eef1f6" } } },
+    series: bands.map(function(b){
+      // Uniform white separators. b1 needed a self-coloured rule while it was drawn
+      // on the full stack at under 2px, where the 1px white line covered the whole
+      // band; it is now drawn only in the immigrant view at roughly 8px, so the
+      // separator is safe and consistent with every other boundary.
+      return { name:b.label, type:"line", stack:"s", smooth:false, symbol:"none",
+               lineStyle:{ width:1, color:"#fff" },
+               areaStyle:{ color:b.color, opacity:1 },
+               // itemStyle too, not just areaStyle: the tooltip marker inherits
+               // from itemStyle and would otherwise fall back to the default
+               // ECharts palette, colouring the key red/yellow/green.
+               itemStyle:{ color:b.color },
+               emphasis:{ focus:"series" },
+               data: seriesValues(b.key) };
+    })
+  };
+}
+
+
+// Single refresh path: redraw, rewrite the dynamic footnote, THEN report height.
+// A footnote that grows after the height report leaves the iframe short.
+function refresh(){
+  buildLegend();
+  chart.setOption(mainOption(), true);
+
+  if(window.__inmanEmbedSend) window.__inmanEmbedSend();
+}
+
+function wireSeg(id, key){
+  var el = document.getElementById(id);
+  el.addEventListener("click", function(e){
+    var b = e.target.closest("button"); if(!b) return;
+    if(state[key] === b.dataset.v) return;
+    state[key] = b.dataset.v;
+    Array.prototype.forEach.call(el.querySelectorAll("button"), function(x){
+      x.classList.toggle("active", x === b);
+    });
+    refresh();
+  });
+}
+
+function initEmbedHeight(){
+  if(!document.documentElement.classList.contains('embed')) return;
+  var last=0, raf=0;
+  var send=function(){ var h=Math.ceil(document.documentElement.getBoundingClientRect().height);
+    if(h && Math.abs(h-last)>1){ last=h; try{ window.parent.postMessage({type:'inman-embed-height',height:h},'*'); }catch(e){} } };
+  var schedule=function(){ cancelAnimationFrame(raf); raf=requestAnimationFrame(send); };
+  window.addEventListener('resize',schedule);
+  if(window.ResizeObserver) new ResizeObserver(schedule).observe(document.body);
+  if(document.fonts&&document.fonts.ready) document.fonts.ready.then(send);
+  // Direct send, not via rAF: a lazy-loaded iframe below the fold is not painted,
+  // so rAF is throttled and the height would never be reported.
+  [0,300,800,1800,3000].forEach(function(ms){ setTimeout(send,ms); });
+  window.__inmanEmbedSend = send;
+  send();
+}
+
+chart  = echarts.init(document.getElementById("chart"));
+wireSeg("seg-measure","measure");
+wireSeg("seg-scope","scope");
+window.addEventListener("resize", function(){ chart.resize(); });
+if(document.fonts && document.fonts.ready) document.fonts.ready.then(function(){ chart.resize(); });
+refresh();
+initEmbedHeight();
+})();
+</script>
+</body>
+</html>
