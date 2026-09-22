@@ -142,7 +142,7 @@ function seriesValues(key){
 }
 
 function fmtVal(v){
-  return state.measure === "share" ? v.toFixed(2) + "%" : v.toFixed(2) + "M";
+  return state.measure === "share" ? v.toFixed(1) + "%" : v.toFixed(1) + "M";
 }
 
 function buildLegend(){
@@ -163,9 +163,9 @@ function tooltip(params){
   var foot = '<div style="margin-top:6px;padding-top:5px;border-top:1px solid #e5e8f0;'
            + 'display:flex;justify-content:space-between;gap:16px">'
            + '<span>Immigrant-connected</span><b>'
-           + (100*imm/D.total[i]).toFixed(1) + '% &middot; ' + (imm/1000).toFixed(2) + 'M</b></div>'
+           + (100*imm/D.total[i]).toFixed(1) + '% &middot; ' + (imm/1000).toFixed(1) + 'M</b></div>'
            + '<div style="display:flex;justify-content:space-between;gap:16px;color:#5b6180">'
-           + '<span>All owner households</span><b>'+(D.total[i]/1000).toFixed(2)+'M</b></div>';
+           + '<span>All owner households</span><b>'+(D.total[i]/1000).toFixed(1)+'M</b></div>';
   return '<div style="font-weight:600;margin-bottom:5px">March '+D.years[i]+'</div>'+rows+foot;
 }
 
