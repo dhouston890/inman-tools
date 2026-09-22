@@ -29,16 +29,16 @@
   .wrap{max-width:960px;margin:0 auto;display:flex;flex-direction:column}
 
   .masthead{background:var(--inman-dark);border-bottom:2px solid var(--inman-blue);padding:14px 18px 16px}
-  .kicker{font-size:10.5px;letter-spacing:.1em;text-transform:uppercase;color:#7f8ad0;font-weight:600;margin:0 0 6px}
+  .kicker{font-size:11px;letter-spacing:.09em;text-transform:uppercase;color:#8ea2c8;font-weight:600;margin:0 0 4px}
   .masthead h1{font-family:var(--font-head);color:#fff;font-size:23px;line-height:1.15;margin:0;font-weight:600}
-  .standfirst{color:#aab2da;font-size:13px;line-height:1.5;margin:8px 0 0}
+  .standfirst{color:#c7cef0;font-size:13px;line-height:1.4;margin:7px 0 0}
 
   .controls{display:flex;flex-wrap:wrap;gap:16px;align-items:flex-end;padding:12px 18px;border-bottom:1px solid var(--line)}
   .ctl{display:flex;flex-direction:column;gap:5px}
   .ctl label{font-size:10.5px;letter-spacing:.06em;text-transform:uppercase;color:var(--muted);font-weight:600}
-  .seg{display:flex;border:1px solid var(--line);border-radius:4px;overflow:hidden}
-  .seg button{font-family:var(--font-ui);font-size:13px;padding:7px 13px;border:0;background:#fff;color:var(--muted);cursor:pointer}
-  .seg button+button{border-left:1px solid var(--line)}
+  .seg{display:flex;border:1px solid #ccd2e2;border-radius:3px;overflow:hidden}
+  .seg button{font-family:var(--font-ui);font-size:13px;padding:7px 12px;border:0;background:#fff;color:var(--muted);cursor:pointer;white-space:nowrap}
+  .seg button+button{border-left:1px solid #ccd2e2}
   .seg button.active{background:var(--inman-blue);color:#fff;font-weight:600}
 
   .legend{display:flex;flex-wrap:wrap;gap:14px;padding:11px 18px 0}
@@ -47,12 +47,15 @@
 
   #chart{width:100%;height:420px}
 
-  .foot{background:var(--inman-dark);color:#aab2da;padding:11px 18px 14px;font-size:11px;line-height:1.55;margin-top:10px}
-  .credit{color:#fff;font-weight:600;margin-bottom:5px}
-  @media (max-width:640px){
-    .masthead h1{font-size:19px}
+  .foot{background:var(--inman-dark);color:#aab2da;padding:11px 18px 14px;font-size:11px;line-height:1.5;margin-top:10px}
+  .foot .credit{color:#c7cef0}
+  .foot .method{margin-top:5px;color:#8ea2c8}
+  @media (max-width:560px){
+    .controls{padding:10px 14px;gap:12px}
+    .ctl{width:100%}
+    .seg{width:100%}
+    .seg button{flex:1;font-size:12.5px;padding:7px 8px}
     #chart{height:330px}
-    .controls{gap:12px}
   }
 </style>
 </head>
@@ -87,7 +90,7 @@
 
   <div class="foot">
     <div class="credit">Source: U.S. Census Bureau, Current Population Survey | Visualized by Inman with Claude</div>
-    <div>Each household’s generation corresponds to that of the adult identified as the householder. Second-generation householders each have at least one parent who was born abroad. Third-generation householders each have two U.S.-born parents. Counts come from CPS tables, and the six-year-tenure breakdown of first-generation immigrants was computed from CPS microdata. Pandemic-era response trends make comparison of data from before and after 2020 more difficult. Household totals from the CPS don't precisely match tallies from other government surveys.</div>
+    <div class="method">Each household’s generation corresponds to that of the adult identified as the householder. Second-generation householders each have at least one parent who was born abroad. Third-generation householders each have two U.S.-born parents. Counts come from CPS tables, and the six-year-tenure breakdown of first-generation immigrants was computed from CPS microdata. Pandemic-era response trends make comparison of data from before and after 2020 more difficult. Household totals from the CPS don't precisely match tallies from other government surveys.</div>
   </div>
 </div>
 
