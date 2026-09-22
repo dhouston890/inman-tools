@@ -4,13 +4,15 @@
      Live tool: https://dhouston890.github.io/inman-tools/immigrant-homeowners/generations-chart.html
      The ?embed flag makes the tool report its rendered height via postMessage;
      the listener below resizes the iframe so there is never an inner scrollbar.
+     Measured rendered heights: 788px in a 960px column, 802px at 600px, 960px at 380px.
+     The 800px fallback only shows for the instant before the first message lands.
      ===================================================================== -->
 <div style="max-width:960px;margin:0 auto;">
   <iframe
     id="inman-immigrant-generations"
     src="https://dhouston890.github.io/inman-tools/immigrant-homeowners/generations-chart.html?embed"
     title="How immigrants and their children have boosted the housing market — Inman"
-    style="width:100%;border:0;height:780px;display:block;"
+    style="width:100%;border:0;height:800px;display:block;"
     loading="lazy"
     scrolling="no"></iframe>
 </div>
