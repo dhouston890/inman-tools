@@ -12,12 +12,12 @@
   }
 </script>
 
-<!-- House stack per .claude/inman_branding.md: Libre Franklin for UI, Newsreader
-     for headings. Without these the page silently fell back to Helvetica Neue and
-     Georgia, which is what it had been serving. -->
+<!-- Libre Franklin for UI, per CLAUDE.md. Headings use Georgia, which ships with
+     macOS, Windows and iOS and so needs no webfont; see the house-stack note in
+     CLAUDE.md for why it supersedes inman_branding.md here. -->
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-<link href="https://fonts.googleapis.com/css2?family=Libre+Franklin:wght@400;500;600;700&family=Newsreader:opsz,wght@6..72,500;6..72,600&display=swap" rel="stylesheet">
+<link href="https://fonts.googleapis.com/css2?family=Libre+Franklin:wght@400;500;600;700&display=swap" rel="stylesheet">
 <link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css" />
 <style>
   :root{
@@ -25,7 +25,7 @@
     --ink:#1b1f3b; --muted:#5b6180; --line:#e5e8f0;
     --map-bg:#e9eef4; --no-data:#cccccc;
     --font-ui:"Libre Franklin","HEX Franklin","Helvetica Neue",Arial,sans-serif;
-    --font-head:"Newsreader","Harriet Display",Georgia,serif;
+    --font-head:Georgia,serif;
   }
   *{box-sizing:border-box}
   html,body{margin:0;padding:0}
