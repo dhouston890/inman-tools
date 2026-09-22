@@ -64,7 +64,7 @@
   <div class="masthead">
     <p class="kicker">Inman Analysis</p>
     <h1>How immigrants and their children have boosted the housing market</h1>
-    <p class="standfirst">First- and second-generation immigrants now account for more than 1 in 5 owner-occupied households in the United States. Few immigrant homeowners moved here recently.</p>
+    <p class="standfirst">Immigrants and their children now account for more than 1 in 5 owner-occupied households in the United States. Few immigrant homeowners moved here recently.</p>
   </div>
 
   <div class="controls">
@@ -78,8 +78,8 @@
     <div class="ctl">
       <label>Show</label>
       <div class="seg" id="seg-scope">
-        <button data-v="imm" class="active">Immigrant generations only</button>
-        <button data-v="all">All generations</button>
+        <button data-v="imm" class="active">Immigrants and their children</button>
+        <button data-v="all">All households</button>
       </div>
     </div>
   </div>
@@ -90,7 +90,7 @@
 
   <div class="foot">
     <div class="credit">Source: U.S. Census Bureau, Current Population Survey | Visualized by Inman with Claude</div>
-    <div class="method">Each household’s generation corresponds to that of the adult identified as the householder. Second-generation householders each have at least one parent who was born abroad. Third-generation householders each have two U.S.-born parents. Counts come from CPS tables, and the six-year-tenure breakdown of first-generation immigrants was computed from CPS microdata. Pandemic-era response trends make comparison of data from before and after 2020 more difficult. Household totals from the CPS don't precisely match tallies from other government surveys.</div>
+    <div class="method">Each household is classified by the adult identified as the householder. Immigrant householders were born abroad. Householders counted as children of immigrants were born in the U.S. with at least one parent who was born abroad. The rest were born in the U.S. to two U.S.-born parents. Counts come from CPS tables, and the six-year-tenure breakdown of immigrant householders was computed from CPS microdata. Pandemic-era response trends make comparison of data from before and after 2020 more difficult. Household totals from the CPS don't precisely match tallies from other government surveys.</div>
   </div>
 </div>
 
@@ -101,10 +101,10 @@
 var D = {"meta":{"bands":[{"key":"b1","label":"First generation, here 6 years or less"},{"key":"b2","label":"First generation, here more than 6 years"},{"key":"b3","label":"Second generation"},{"key":"b4","label":"Third generation and higher"}],"years":[2005,2006,2007,2008,2009,2010,2011,2012,2013,2014,2015,2016,2017,2018,2019,2020,2021,2022,2023,2024,2025],"vintage":"March of each year (CPS ASEC, collected February-April)"},"years":[2005,2006,2007,2008,2009,2010,2011,2012,2013,2014,2015,2016,2017,2018,2019,2020,2021,2022,2023,2024,2025],"window":[6,7,6,7,6,7,6,7,6,7,6,7,6,7,6,7,6,7,6,7,6],"b1":[488.3,573.3,349.2,464,326.2,432.6,352.7,418.9,308,393.2,326.5,435,379.2,520.7,467.9,593.5,406.9,575.1,444.7,636.9,459.6],"b2":[7054.7,7222.7,7900.8,7810,7741.8,7659.4,8275.3,8370.1,8439,8525.8,8832.5,8914,9313.8,9699.3,9822.1,9936.5,10123.1,10364.9,10925.3,11043.1,11590.4],"b3":[6396,6271,6382,6474,6311,6241,6002,5997,6020,6002,5932,6069,5956,6025,6295,6694,6438,6559,6923,6630,7141],"b4":[64600,64260,64630,64580,64450,64450,64710,64390,64710,64680,64090,64490,64630,65920,66370,68150,67920,68410,68490,68560,68660],"total":[78539,78327,79262,79328,78829,78783,79340,79176,79477,79601,79181,79908,80279,82165,82955,85374,84888,85909,86783,86870,87851],"moe":{"first":[196.4,224.8,213.9,197.4,188.7,200.4,216.5,207.4,229.8,234.5,209.2,240.6,212.3,230,262.7,274.3,267.9,258.4,261,266.7,300],"second":[216.1,192.1,186.9,196.9,205.7,216.1,182.6,205.2,181.3,192.4,196.3,204.6,216.8,192.2,199.3,227.2,237.2,237.5,237.8,230.9,206.6],"third":[524.6,488.7,457.4,494.1,555.1,564.2,516.9,484.7,517.8,495.9,489.3,499.4,512.9,540.7,491.5,535.2,577.1,594.3,661.7,648.3,614.3]}};
 
 var BANDS = [
-  {key:"b1", label:"First generation, here 6 years or less",  color:"#0a84ff"},
-  {key:"b2", label:"First generation, here more than 6 years", color:"#64a9f2"},
-  {key:"b3", label:"Second generation",                        color:"#a9cbef"},
-  {key:"b4", label:"Third generation and higher",              color:"#d8dfea"}
+  {key:"b1", label:"Immigrants, here 6 years or less",  color:"#0a84ff"},
+  {key:"b2", label:"Immigrants, here more than 6 years", color:"#64a9f2"},
+  {key:"b3", label:"Children of immigrants",                        color:"#a9cbef"},
+  {key:"b4", label:"Children of U.S.-born parents",              color:"#d8dfea"}
 ];
 
 // The arrival-date split is only drawn where it can actually be drawn. On the
@@ -116,7 +116,7 @@ var BANDS = [
 // all-generations view shows the first generation whole. It keeps b2's colour
 // because b2 is 96% of it, so toggling between views changes nothing except a
 // hairline appearing at the bottom.
-var FIRST_GEN = {key:"b12", label:"First generation", color:"#64a9f2"};
+var FIRST_GEN = {key:"b12", label:"Immigrants", color:"#64a9f2"};
 
 var state = { measure:"count", scope:"imm" };
 var chart;
@@ -162,7 +162,7 @@ function tooltip(params){
   var imm = D.b1[i] + D.b2[i] + D.b3[i];
   var foot = '<div style="margin-top:6px;padding-top:5px;border-top:1px solid #e5e8f0;'
            + 'display:flex;justify-content:space-between;gap:16px">'
-           + '<span>Immigrant-connected</span><b>'
+           + '<span>Immigrants and their children</span><b>'
            + (100*imm/D.total[i]).toFixed(1) + '% &middot; ' + (imm/1000).toFixed(1) + 'M</b></div>'
            + '<div style="display:flex;justify-content:space-between;gap:16px;color:#5b6180">'
            + '<span>All owner households</span><b>'+(D.total[i]/1000).toFixed(1)+'M</b></div>';
