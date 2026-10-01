@@ -1,0 +1,39 @@
+<!-- =====================================================================
+     Inman — Condo vs. single-family home values, days to pending, new listings and sales
+     (single-family reweighted to the same markets as condos)
+     WordPress paste-in snippet (use a "Custom HTML" block, not the visual editor).
+     Live tool: https://dhouston890.github.io/inman-tools/condo-house-comparison/
+     The ?embed flag makes the tool report its rendered height via postMessage;
+     the listener below resizes the iframe so there is never an inner scrollbar.
+     Fallback height (730px) matches the desktop opening view (Prices and DOM,
+     United States: about 725px at 960px wide); phones run taller.
+     With a metro or a Florida-split option selected the page grows a little
+     (notes appear over panels that can't be charted); the New listings and sales view
+     is slightly shorter. The listener handles every change.
+     Optional: add &view=supply to the src to open on New listings and sales
+     (&view=dtp still opens the default Prices and DOM view),
+     and/or &metro=<CBSA code> to open on a metro (e.g. &metro=45300 for
+     Tampa), &metro=us-xfl for "United States, minus Florida" or &metro=fl
+     for "Florida markets only"; view and metro can be combined
+     (e.g. ?embed&metro=fl&view=supply).
+     ===================================================================== -->
+<div style="max-width:960px;margin:0 auto;">
+  <iframe
+    id="inman-condo-house-comparison"
+    src="https://dhouston890.github.io/inman-tools/condo-house-comparison/?embed"
+    title="Condo vs. single-family home values, days to pending, new listings and sales — Inman"
+    style="width:100%;border:0;height:730px;display:block;"
+    loading="lazy"
+    scrolling="no"></iframe>
+</div>
+<script>
+(function(){
+  var frame = document.getElementById('inman-condo-house-comparison');
+  window.addEventListener('message', function(e){
+    var d = e.data;
+    if (d && d.type === 'inman-embed-height' && d.height && frame && e.source === frame.contentWindow){
+      frame.style.height = d.height + 'px';
+    }
+  });
+})();
+</script>
