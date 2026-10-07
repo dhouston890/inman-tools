@@ -214,6 +214,17 @@ var METRO_CACHE = { p:null, l:null }, METRO_PENDING = { p:null, l:null };
 var S = { metric:"p", holiday:null, metro:null, both:false };
 
 function hol(key){ return D.holidays.filter(function(h){ return h.key===key; })[0]; }
+// Display name. A holiday with an alternate observance (Columbus Day / Indigenous
+// Peoples Day, same date) carries it in `alt`; every on-screen mention goes through
+// here so the dual name is defined once, in the data. When both names end in "Day"
+// the suffix is shared: "Columbus / Indigenous Peoples Day", not "Columbus Day / ...".
+// `label` itself stays the holiday's plain name (it is the series identity).
+function nm(h){
+  if (!h.alt) return h.label;
+  return /Day$/.test(h.label) && /Day$/.test(h.alt)
+    ? h.label.replace(/ Day$/, "") + " / " + h.alt
+    : h.label + " / " + h.alt;
+}
 function holIndex(key){
   for (var i=0;i<D.holidays.length;i++) if (D.holidays[i].key===key) return i;
   return -1;
@@ -253,7 +264,7 @@ function buildLegend(){
     var b = document.createElement("button");
     b.className = "hol"; b.dataset.key = h.key;
     b.innerHTML = '<span class="sw" style="background:'+COLOR[h.key]+'"></span>' +
-                  '<span class="nm">'+h.label+'</span>';
+                  '<span class="nm">'+nm(h)+'</span>';
     b.addEventListener("click", function(){
       if (b.classList.contains("na")) return;
       S.holiday = h.key;
@@ -268,8 +279,8 @@ function buildLegend(){
 function showDetail(key){
   var h = hol(key), d = document.getElementById("lg-detail");
   d.innerHTML = h.rule.indexOf(h.label) === 0
-    ? "<b>" + h.label + "</b>" + h.rule.slice(h.label.length)
-    : "<b>" + h.label + "</b> — " + h.rule;
+    ? "<b>" + nm(h) + "</b>" + h.rule.slice(h.label.length)
+    : "<b>" + nm(h) + "</b> — " + h.rule;
 }
 function paintLegend(){
   document.querySelectorAll(".hol").forEach(function(b){
@@ -374,7 +385,7 @@ function niceBounds(vals){
 function render(){
   paintLegend(); syncBoth();
   var series = [], other = S.metric==="p" ? "l" : "p";
-  var selLabel = hol(S.holiday).label;
+  var selLabel = nm(hol(S.holiday));
   var scaleVals = [];
 
   if (S.metro){
@@ -408,7 +419,7 @@ function render(){
       var isSel = h.key === S.holiday;
       var ns = natSeries(h.key, S.metric), sm = ns.m;
       if (isSel) scaleVals = scaleVals.concat(sm);
-      series.push(lineSeries(h.label, h.key, sm, {
+      series.push(lineSeries(nm(h), h.key, sm, {
         color: COLOR[h.key], width: isSel ? 3 : 1.2,
         opacity: isSel ? 1 : 0.22, z: isSel ? 5 : 2,
         symbol: isSel ? "circle" : "none"
@@ -449,7 +460,7 @@ function render(){
         // holiday has to be named in the header. Without one the rows ARE the
         // holidays, and naming a single holiday up top would misdescribe them.
         var head = '<div style="font-weight:700">' +
-                   (S.metro ? hol(S.holiday).label + " · " + week : week) +
+                   (S.metro ? nm(hol(S.holiday)) + " · " + week : week) +
                    '</div>' +
                    '<div style="color:#1b1f3b">' + metric + '</div>' +
                    '<div style="color:#8b91ad;font-size:11px;margin:1px 0 5px">' +
@@ -458,7 +469,7 @@ function render(){
             return p.seriesName.indexOf("__")<0 && p.value && p.value[1] != null;
           });
         if (!S.metro) items.sort(function(a,b){ return b.value[1] - a.value[1]; });
-        var selLabel = hol(S.holiday).label;
+        var selLabel = nm(hol(S.holiday));
         var rows = items.map(function(p){
             var isSel = !S.metro && p.seriesName === selLabel;
             var wt = isSel ? "700" : "400";
@@ -531,7 +542,7 @@ function paintReadout(){
   var nat = natSeries(S.holiday, S.metric), i0 = 8;   // offset 0 sits at index 8
   var natYrs = nat.y ? nat.y[i0] : null;
   var h = hol(S.holiday);
-  var html = '<div class="ro nat"><div class="k">' + h.label + ' week — national</div>' +
+  var html = '<div class="ro nat"><div class="k">' + nm(h) + ' week — national</div>' +
              '<div class="v">' + fmtPct(nat.m[i0]) + '</div>' +
              '<div class="sub">' + METRIC_NAME[S.metric].toLowerCase() +
              ' vs. the week before · ' + natYrs + ' years</div></div>';
