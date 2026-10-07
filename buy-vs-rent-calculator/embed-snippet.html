@@ -1,0 +1,82 @@
+<!-- =====================================================================
+     Inman — "Buying vs. renting" calculator (Pitch 2: "The condo fee that doesn't shrink")
+     WordPress paste-in snippet (use a "Custom HTML" block, not the visual editor).
+     Live tool: https://dhouston890.github.io/inman-tools/buy-vs-rent-calculator/
+     The ?embed flag makes the tool report its rendered height via postMessage;
+     the listener below resizes the iframe so there is never an inner scrollbar.
+     allow="clipboard-write" lets the tool's "Copy link" button use the
+     clipboard from inside the iframe (without it the tool falls back to a
+     copy command, then to showing the link to copy by hand).
+     Optional, added after ?embed with &:
+       &a=<option>&b=<option>  open on a pair (2026-10-07). Options:
+                               buy-condo, buy-house, rent-apartment, rent-house
+                               (any two except two rentals), e.g.
+                               &a=buy-condo&b=buy-house. Without them the tool
+                               opens on buy a condo vs. rent an apartment.
+       &view=condo | &view=sfr legacy: still opens on buy a condo vs. rent an
+                               apartment, or buy a house vs. rent a house, so
+                               existing embeds keep their pair
+       &metro=<slug, e.g. miami-fl>  open on a metro (&metro=us: the
+                               "United States (typical)" option, which is
+                               the default since 2026-10-07)
+       &years=<1-30>           open on a stay
+       &account=retirement     open on the Retirement setting
+       &chart=diff             open the step-by-step chart on its last step
+                               (the difference line)
+       &step=<1-6>             open the step-by-step chart on that step
+                               (six steps since 2026-10-07; larger numbers
+                               open the last step). &step and &chart=diff
+                               open with the chart's autoplay paused.
+       &autoplay=0             open with the chart's autoplay paused
+                               (2026-10-07; by default each step moves on
+                               by itself 12 seconds after it finishes)
+       Any other input (2026-10-07): every field and toggle has a short
+                               parameter (dp down payment, rt rate, up / mo
+                               the two money toggles, ap / bp prices, ar / br
+                               rents, af HOA fee, atx tax bill, ...; old up=cash / mo=cash links open on "Spend it", which gives the same numbers; the full
+                               list is in template.html above shareQuery()).
+                               The tool's "Copy link" button builds these
+                               links; inside this embed it copies the
+                               canonical tool URL above plus the query.
+     Fallback height (before the first message): about the desktop height of
+     the default layout (re-measured 2,235px at 960px wide on 2026-10-07
+     after Houston's edit list 1: no help under the main inputs, the "What
+     you'd have" card removed, title-only chart steps and much shorter method
+     notes, so 2,250px; with the method notes opened, 2,507px. Before that
+     2,493px at 960px wide on 2026-10-07 after
+     chart autoplay and the three-way money toggles, so 2,500px still fits;
+     2,500px after the UI pass: the method notes and the chart note collapse into
+     "How this calculator works" / "How to read this chart"; with the method
+     notes opened, 3,244px. Before that 3,194px at 960px wide on 2026-10-07 after
+     pass 3: the condo-fee method note and help text; 3,177px after
+     pass 2: longer insurance, fee, maintenance and PMI help text and method
+     notes, and the longer credit line; before that 3,123px after
+     review batch 1: the U.S. typical default, four-way money toggles, new
+     cost inputs and longer method notes; before that 2,832px after larger input text; earlier 2,829px after the
+     chart's step controls moved above it and the steps went from ten to six;
+     was 2,827px). The height is the same on every chart step.
+     Phones report a taller height (about 3,647px at 375px after edit list 1;
+     4,721px after autoplay;
+     4,706px after the UI pass; 6,040px after pass 3; 6,285px reported after pass 2; was 5,828px, and 5,145px before that) within a moment of loading.
+     ===================================================================== -->
+<div style="max-width:960px;margin:0 auto;">
+  <iframe
+    id="inman-buy-vs-rent-calculator"
+    src="https://dhouston890.github.io/inman-tools/buy-vs-rent-calculator/?embed"
+    title="Buying vs. renting calculator — Inman"
+    style="width:100%;border:0;height:2250px;display:block;"
+    allow="clipboard-write"
+    loading="lazy"
+    scrolling="no"></iframe>
+</div>
+<script>
+(function(){
+  var frame = document.getElementById('inman-buy-vs-rent-calculator');
+  window.addEventListener('message', function(e){
+    var d = e.data;
+    if (d && d.type === 'inman-embed-height' && d.height && frame && e.source === frame.contentWindow){
+      frame.style.height = d.height + 'px';
+    }
+  });
+})();
+</script>
