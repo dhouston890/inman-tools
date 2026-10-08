@@ -959,7 +959,7 @@
           <div class="field"><input id="in-a-maint" type="text" inputmode="decimal" autocomplete="off"><span class="suf" data-copy="pctPerYear"></span></div>
           <div class="help" id="help-a-maint"></div>
         </div>
-        <div class="ctl" data-slot="a" data-for="buy">
+        <div class="ctl" data-slot="a" data-for="condo">
           <label for="in-a-assess" data-copy="fields.assess.label"></label>
           <div class="field"><span class="pre">$</span><input id="in-a-assess" type="text" inputmode="numeric" autocomplete="off"></div>
           <div class="help" id="help-a-assess"></div>
@@ -1002,7 +1002,7 @@
           <div class="field"><input id="in-b-maint" type="text" inputmode="decimal" autocomplete="off"><span class="suf" data-copy="pctPerYear"></span></div>
           <div class="help" id="help-b-maint"></div>
         </div>
-        <div class="ctl" data-slot="b" data-for="buy">
+        <div class="ctl" data-slot="b" data-for="condo">
           <label for="in-b-assess" data-copy="fields.assess.label"></label>
           <div class="field"><span class="pre">$</span><input id="in-b-assess" type="text" inputmode="numeric" autocomplete="off"></div>
           <div class="help" id="help-b-assess"></div>
@@ -1325,7 +1325,7 @@ const COPY = {
     // (edit list 10, 2026-10-08: the Points field and the special
     // assessment's "Paid in year" field were removed; any assessment is paid
     // in the first year, so it always falls within the stay)
-    assess: { label: "Special assessment", help: "A one-time bill from the condo or homeowners association, paid in your first year of ownership. Florida's reserve rules after the Surfside collapse have brought large assessments in older condo buildings." },
+    assess: { label: "Special assessment", help: "A one-time bill from the condo association, paid in your first year of ownership. Florida's reserve rules after the Surfside collapse have brought large assessments in older condo buildings." },
     // edit list 10: shown only when a condo is compared with a house
     condoadd: { label: "Extra rate on the condo loan", help: "Percentage points added to the mortgage rate for the condo only; the house uses the rate above. Fannie Mae and Freddie Mac charge more on some condo loans, and condos that don't meet their rules (non-warrantable) need loans that usually cost more." },
     // edit list 9: one sentence on high-transfer-tax places (no location
@@ -2095,7 +2095,8 @@ const SLOT_FIELDS = {
   // that slot's unit switch is on "$ per year" (S.taxUnit); converted to a
   // rate on the purchase price in readInputs()
   taxusd: { min: 0,  max: 1e7, zeroOk: true,  fmt: fmtMoney, for: "buy", unit: "usd" },
-  assess: { min: 0,  max: 1e8, zeroOk: true,  fmt: fmtMoney, for: "buy" },
+  // condo purchases only since 2026-10-08 (Houston): a house passes 0
+  assess: { min: 0,  max: 1e8, zeroOk: true,  fmt: fmtMoney, for: "condo" },
   // (assessyr, the year the assessment is paid, was removed in edit list 10:
   // readInputs() passes DEF.assessYear, year 1, so it always falls in the stay)
   // renter-side costs (edit list 4, 2026-10-08): move-in costs not recovered
