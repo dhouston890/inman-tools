@@ -75,12 +75,48 @@
      default sources moved to the method notes); the tax on savings
      interest retired (the input, ?itx and the math: interest is untaxed in
      both engines); the account switch built into the top of the "Tax on
-     investment gains" box; one note under the ledger and a check mark on
+     investment gains" box; one note under the ledger and a check mark (a cash-stack icon since edit list 8) on
      the lower net cost; the "What you'd have" card removed; the chart
      titled "Your choices, visualized", with an x-axis name and title-only
      step captions (the explanation stays for screen readers) whose
      ellipsis fills in dot by dot; Houston's "How to read this chart"; and a
      much shorter "How this calculator works".
+     EDIT LIST 4 (Houston, 2026-10-08): a 30-year | 15-year fixed switch built
+     into the bottom of the mortgage-rate box (?term=15; the rate follows
+     the term's PMMS default unless the reader typed one; both engines
+     amortize over the term and pay no P&I after payoff); renter-side costs
+     per rental in Adjust costs (move-in costs you won't get back, other
+     monthly rental fees; $0 by default; ?amv / ?bmv, ?afe / ?bfe), in the
+     ledger and the chart; the first-month card relabelled "Recurring costs,
+     first month", with a note that up-front costs are in the totals; "tax
+     advisor" (Inman style) in the disclaimer.
+     EDIT LIST 5 (Houston, 2026-10-08): a % / $ switch on the down payment
+     (the property-tax unit-switch pattern; ?dpd=<dollars>). In $ mode one
+     amount applies to every purchase, each at its own share of its price
+     with its own PMI band (both engines take the down share and PMI rate
+     per option, opt_down_pct / opt_pmi_pct); a line under the field shows
+     the share(s).
+     EDIT LIST 6 (Houston, 2026-10-08): an optional monthly budget under the
+     money questions (?bud=), compared with each option's first-month
+     recurring cost: a line in the verdict box and a flag under the
+     over-budget total(s) in the first-month card; and a "Match ... monthly
+     cost" / "Back to typical ..." button under each option's price or rent
+     that sets it so the two first-month costs are equal (rent solved
+     directly; price by bisection on the page's own cost). Neither changes
+     any calculation.
+     EDIT LIST 8 (Houston, 2026-10-08): match labels name what they match
+     ("Match monthly cost with renting / buying / house / condo"); a match is
+     now LIVE (S.matchLock, ?lock=a|b): refresh() re-solves the locked
+     field before every render, the field is read-only with a link icon, and
+     "Back to typical ..." unlocks; the PMI help is one fixed sentence; the
+     lower net cost is marked with a small stack-of-cash icon (was a check).
+     EDIT LIST 9 (Houston, 2026-10-08): closing costs default 2.0% (was
+     2.5%) and renters insurance in dollars (NAIC HO-4 average, $14.25/mo,
+     growing at CPI; was 1% of rent), both from DEF; a one-sentence
+     transfer-tax note under "Costs to sell"; shorter "Can't match" messages,
+     held with the last matched value until a match is possible (the field's
+     link icon also stops matching); the method sources add closing and
+     selling costs, PMI rules, renters insurance and taxes on gains.
      ===================================================================== -->
 <!-- Detect iframe/embed context early so the page flows to its true height -->
 <script>
@@ -97,6 +133,7 @@
     --inman-blue:#0a84ff; --inman-dark:#161a48; --inman-dark-2:#20275c;
     --inman-red:#ff0a0a; --ink:#1b1f3b; --muted:#5b6180; --line:#e5e8f0;
     --field:#ccd2e2; --tint:#f5f7fb;
+    --warn-ink:#9c3d10;   /* over-budget flags (edit list 6): 7.2:1 on white */
     /* Option colours, fixed per option (2026-10-07), from .claude/inman_branding.md:
        Bright Blue, Dark Blue and Red, plus a desaturated variant of the Red
        (the brand doc's "legible desaturated variants" for additional
@@ -197,7 +234,30 @@
   details.panel summary::before{content:"";width:0;height:0;border-left:5px solid currentColor;
     border-top:4px solid transparent;border-bottom:4px solid transparent;transition:transform .12s}
   details.panel[open] summary::before{transform:rotate(90deg)}
-  .controls > .usage + details.panel{margin-top:16px}
+  .controls > .usage + details.panel,.controls > .budgetrow + details.panel{margin-top:16px}
+  /* Optional monthly budget (edit list 6): a main-row-width field, its help
+     beside it in the next columns (under it on phones) */
+  .budgetrow{display:grid;grid-template-columns:repeat(5,minmax(0,1fr));gap:4px 12px;margin-top:16px;align-items:end}
+  .budgetrow .budgethelp{grid-column:span 3;margin:0 0 12px}
+  .budgetrow .field input::placeholder{color:var(--muted);font-weight:400;opacity:.8}
+  /* "Match ... monthly cost" / "Back to typical ..." under each option's price
+     or rent (edit list 6): one line, always reserved, so the row never moves */
+  .matchline{min-height:16px;line-height:16px;font-size:11.5px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+  .matchbtn{font-family:var(--font-ui);font-size:11.5px;line-height:16px;color:var(--inman-blue);background:none;border:0;padding:0;
+    cursor:pointer;text-decoration:underline;text-underline-offset:2px}
+  .matchmsg{color:var(--warn-ink)}
+  /* a live-matched field (edit list 8): read-only, tinted, a link icon */
+  .field.locked{background:var(--tint);border-style:dashed}
+  .field.locked input{cursor:default}
+  .locktag{display:inline-flex;align-items:center;padding:0 8px 0 2px;color:var(--inman-blue);background:none;border:0;cursor:pointer;font:inherit}
+  .locktag:focus-visible{outline:2px solid var(--inman-blue);outline-offset:-2px;border-radius:3px}
+  .field .locktag + .suf{padding-left:0}
+  .locktag svg{width:14px;height:14px}
+  .locktag.miss{color:var(--warn-ink)}
+  .matchmsg:empty{display:none}
+  /* over budget (edit list 6): a muted burnt orange, 7:1 on white */
+  .hero .overbud{font-size:12px;line-height:1.45;margin:5px 0 0;color:var(--warn-ink)}
+  table.bd tr.overbud td{padding-top:2px;border:0;font-size:11px;color:var(--warn-ink);font-weight:600}
   /* compact segmented toggles: money not used up front / monthly cost difference, account */
   .seg.compact{align-self:flex-start}
   .seg.compact button{font-size:12.5px;padding:6px 11px}
@@ -230,6 +290,35 @@
   .fieldbox .seg.compact button+button{border-left:1px solid var(--field);border-top:0}
   .fieldbox .field{border:0;border-radius:0;height:38px}
   .fieldbox .field:focus-within{box-shadow:none}
+  /* Loan term built into the BOTTOM of the mortgage-rate box (edit list 4,
+     2026-10-08): the rate field keeps the row's 40px line (38px + the box's
+     border), so its value lines up with its neighbours, and the switch runs
+     along the bottom, like the stay's slider in the next column. Long labels
+     ("30-year fixed") where the column allows, short ones ("30-year") where it
+     doesn't; the full wording stays in each button's accessible name. */
+  .fieldbox.termbox .seg.compact{border-bottom:0;border-top:1px solid var(--field)}
+  .fieldbox.termbox .seg.compact button{font-size:11.5px;padding:4px 4px;line-height:1.25;white-space:nowrap}
+  .fieldbox.termbox .ts{display:none}
+  @container termbox (max-width:170px){
+    .fieldbox.termbox .tl{display:none}
+    .fieldbox.termbox .ts{display:inline}
+  }
+  .fieldbox.termbox{container:termbox / inline-size}
+  /* the renter-side cost fields (edit list 4): "Move-in costs you won't get
+     back" wraps to two lines where its neighbour's label doesn't, so both
+     labels take two lines' height, text at the bottom, and the two fields
+     line up at every width */
+  .ctl.rentcost > label{min-height:26px;display:flex;align-items:flex-end}
+  /* down payment in dollars (edit list 5): the share of the price under the
+     field, one line always reserved (hidden in % mode) so nothing moves */
+  .downnote{font-size:11px;line-height:14px;min-height:14px;color:var(--muted);font-variant-numeric:tabular-nums;
+    white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+  /* one line at every width: in a narrow column (two purchases at 320px)
+     the line steps down to 10px rather than wrap and push the row taller */
+  #down-ctl{container:downctl / inline-size}
+  @container downctl (max-width:150px){ .downnote{font-size:10px;letter-spacing:-.01em} }
+  .downnote.off{visibility:hidden}
+  .downnote.warn{color:var(--inman-red)}
 
   /* ---- results ---- */
   .results{padding:14px 18px 16px}
@@ -284,9 +373,10 @@
   table.bd th.amt{white-space:normal}
   table.bd tr.total td{font-weight:700;border-top:1.5px solid var(--ink)}
   table.bd tr.net td{font-weight:700;border-top:1.5px solid var(--ink);font-size:14px}
-  /* the lower net cost gets a check mark at its left (Houston, edit list 1);
-     green #0b7a3e is 5.5:1 on white */
-  table.bd .ck{color:#0b7a3e;font-weight:700;margin-right:5px}
+  /* the lower net cost gets a small stack of cash at its left (Houston, edit
+     list 8; a check mark from edit list 1): an inline SVG sized to the
+     text, in green #0b7a3e (5.5:1 on white); the figures stay right-aligned */
+  table.bd .ck{display:inline-block;width:1.3em;height:1em;vertical-align:-0.12em;margin-right:5px;color:#0b7a3e}
   table.bd tr.sec td{font-size:10.5px;letter-spacing:.06em;text-transform:uppercase;color:var(--muted);font-weight:600;padding-top:12px;border-top:0}
   table.bd tr.muted td{color:var(--muted);font-size:11.5px;border-top:0;padding-top:0;white-space:normal}
   table.bd tr.sub td{color:var(--muted);font-size:12px;border-top:0;padding-top:0}
@@ -433,6 +523,8 @@
 
   @media (max-width:860px){
     .inputs{grid-template-columns:repeat(3,minmax(0,1fr))}
+    .budgetrow{grid-template-columns:repeat(3,minmax(0,1fr))}
+    .budgetrow .budgethelp{grid-column:span 2}
   }
   /* the step track gets its own row above the buttons */
   @media (max-width:700px){
@@ -460,6 +552,8 @@
   }
   @media (max-width:520px){
     .inputs{grid-template-columns:repeat(2,minmax(0,1fr))}
+    .budgetrow{grid-template-columns:repeat(2,minmax(0,1fr))}
+    .budgetrow .budgethelp{grid-column:span 1}
     .pairline{width:100%}
     .pairline .optsel{flex:1 1 100%}
     .pairline .optsel select{width:100%}
@@ -521,7 +615,7 @@
     .hero{padding:6px 11px 7px;margin-bottom:6px;break-inside:avoid}
     .hero .verdict{font-size:15px}
     .hero .sub{font-size:11px;margin-top:3px}
-    .hero .warn{font-size:9.5px;margin-top:3px}
+    .hero .warn,.hero .overbud{font-size:9.5px;margin-top:3px}
     .assume{margin-top:5px;gap:3px 4px}
     .assume .alead{font-size:8.5px}
     .chip{font-size:9.5px;padding:1px 6px;background:#fff;border-color:var(--line)}
@@ -597,27 +691,55 @@
     <div class="inputs">
       <div class="ctl" data-slot="a" data-for="buy">
         <label for="in-a-price" id="lab-a-price"></label>
-        <div class="field"><span class="pre">$</span><input id="in-a-price" type="text" inputmode="numeric" autocomplete="off"></div>
+        <div class="field"><span class="pre">$</span><input id="in-a-price" type="text" inputmode="numeric" autocomplete="off"><button type="button" class="locktag" id="locktag-a-price" hidden><svg viewBox="0 0 16 16" aria-hidden="true" focusable="false"><path d="M6.5 9.5l3-3M7 4.5l1.2-1.2a2.6 2.6 0 0 1 3.7 3.7L10.7 8.2M9 11.5l-1.2 1.2a2.6 2.6 0 0 1-3.7-3.7L5.3 7.8" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round"/></svg><span class="sr"></span></button></div>
+        <div class="matchline"><button type="button" class="matchbtn" id="match-a-price" data-mslot="a" data-mkey="price"></button><span class="matchmsg" id="matchmsg-a-price" role="status"></span></div>
       </div>
       <div class="ctl" data-slot="a" data-for="rent">
         <label for="in-a-rent" id="lab-a-rent"></label>
-        <div class="field"><span class="pre">$</span><input id="in-a-rent" type="text" inputmode="decimal" autocomplete="off"><span class="suf" data-copy="perMonth"></span></div>
+        <div class="field"><span class="pre">$</span><input id="in-a-rent" type="text" inputmode="decimal" autocomplete="off"><button type="button" class="locktag" id="locktag-a-rent" hidden><svg viewBox="0 0 16 16" aria-hidden="true" focusable="false"><path d="M6.5 9.5l3-3M7 4.5l1.2-1.2a2.6 2.6 0 0 1 3.7 3.7L10.7 8.2M9 11.5l-1.2 1.2a2.6 2.6 0 0 1-3.7-3.7L5.3 7.8" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round"/></svg><span class="sr"></span></button><span class="suf" data-copy="perMonth"></span></div>
+        <div class="matchline"><button type="button" class="matchbtn" id="match-a-rent" data-mslot="a" data-mkey="rent"></button><span class="matchmsg" id="matchmsg-a-rent" role="status"></span></div>
       </div>
       <div class="ctl" data-slot="b" data-for="buy">
         <label for="in-b-price" id="lab-b-price"></label>
-        <div class="field"><span class="pre">$</span><input id="in-b-price" type="text" inputmode="numeric" autocomplete="off"></div>
+        <div class="field"><span class="pre">$</span><input id="in-b-price" type="text" inputmode="numeric" autocomplete="off"><button type="button" class="locktag" id="locktag-b-price" hidden><svg viewBox="0 0 16 16" aria-hidden="true" focusable="false"><path d="M6.5 9.5l3-3M7 4.5l1.2-1.2a2.6 2.6 0 0 1 3.7 3.7L10.7 8.2M9 11.5l-1.2 1.2a2.6 2.6 0 0 1-3.7-3.7L5.3 7.8" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round"/></svg><span class="sr"></span></button></div>
+        <div class="matchline"><button type="button" class="matchbtn" id="match-b-price" data-mslot="b" data-mkey="price"></button><span class="matchmsg" id="matchmsg-b-price" role="status"></span></div>
       </div>
       <div class="ctl" data-slot="b" data-for="rent">
         <label for="in-b-rent" id="lab-b-rent"></label>
-        <div class="field"><span class="pre">$</span><input id="in-b-rent" type="text" inputmode="decimal" autocomplete="off"><span class="suf" data-copy="perMonth"></span></div>
+        <div class="field"><span class="pre">$</span><input id="in-b-rent" type="text" inputmode="decimal" autocomplete="off"><button type="button" class="locktag" id="locktag-b-rent" hidden><svg viewBox="0 0 16 16" aria-hidden="true" focusable="false"><path d="M6.5 9.5l3-3M7 4.5l1.2-1.2a2.6 2.6 0 0 1 3.7 3.7L10.7 8.2M9 11.5l-1.2 1.2a2.6 2.6 0 0 1-3.7-3.7L5.3 7.8" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round"/></svg><span class="sr"></span></button><span class="suf" data-copy="perMonth"></span></div>
+        <div class="matchline"><button type="button" class="matchbtn" id="match-b-rent" data-mslot="b" data-mkey="rent"></button><span class="matchmsg" id="matchmsg-b-rent" role="status"></span></div>
       </div>
-      <div class="ctl">
-        <label for="in-down" data-copy="fields.down.label"></label>
-        <div class="field"><input id="in-down" type="text" inputmode="decimal" autocomplete="off"><span class="suf">%</span></div>
+      <!-- Down payment as a percent or in dollars (Houston, edit list 5,
+           2026-10-08): the same small unit switch as property tax. In $
+           mode the line under the field shows the share of each purchase's
+           price; it always keeps its one line of space (hidden in % mode),
+           so switching never moves the fields below. -->
+      <div class="ctl" id="down-ctl">
+        <div class="labrow"><label for="in-down" id="lab-down" data-copy="fields.down.label"></label>
+          <span class="seg compact unit" id="downunit" role="group" aria-labelledby="lab-down">
+            <button type="button" data-unit="pct" data-copy="fields.down.unitPct"></button>
+            <button type="button" data-unit="usd" data-copy="fields.down.unitUsd"></button>
+          </span></div>
+        <div class="field" data-downunit="pct"><input id="in-down" type="text" inputmode="decimal" autocomplete="off"><span class="suf">%</span></div>
+        <div class="field" data-downunit="usd" hidden><span class="pre">$</span><input id="in-downusd" type="text" inputmode="numeric" autocomplete="off"></div>
+        <div class="downnote" id="down-note" aria-live="polite"></div>
       </div>
-      <div class="ctl">
+      <!-- Mortgage rate with the loan term built into its box (Houston, edit
+           list 4, 2026-10-08): the 30-year | 15-year switch sits along the
+           BOTTOM of the box, not the top as on the tax-on-gains box, so the
+           rate's value lines up with the other fields in the row; the
+           switch then takes the place the stay's slider takes beside it.
+           Switching moves the rate to that term's PMMS default unless the
+           reader typed a rate (setTerm()). -->
+      <div class="ctl" id="rate-ctl">
         <label for="in-rate" data-copy="fields.rate.label"></label>
-        <div class="field"><input id="in-rate" type="text" inputmode="decimal" autocomplete="off"><span class="suf">%</span></div>
+        <div class="fieldbox termbox">
+          <div class="field"><input id="in-rate" type="text" inputmode="decimal" autocomplete="off"><span class="suf">%</span></div>
+          <div class="seg compact" id="term-seg" role="group">
+            <button type="button" data-term="30"><span class="tl" data-copy="term.y30"></span><span class="ts" data-copy="term.s30"></span></button>
+            <button type="button" data-term="15"><span class="tl" data-copy="term.y15"></span><span class="ts" data-copy="term.s15"></span></button>
+          </div>
+        </div>
       </div>
       <div class="ctl">
         <label for="in-years" data-copy="fields.years.label"></label>
@@ -651,6 +773,18 @@
           <button type="button" data-use="invest" data-copy="use.invest"></button>
         </div>
       </div>
+    </div>
+
+    <!-- Optional monthly budget (Houston, edit list 6, 2026-10-08): one
+         main-row-width field under the money questions, its one help line
+         beside it (below it on phones). Blank by default; it flags options
+         whose first-month recurring cost is over it and changes no figure. -->
+    <div class="budgetrow">
+      <div class="ctl">
+        <label for="in-budget" data-copy="budget.label"></label>
+        <div class="field"><span class="pre">$</span><input id="in-budget" type="text" inputmode="decimal" autocomplete="off"><span class="suf" data-copy="perMonth"></span></div>
+      </div>
+      <p class="help budgethelp" data-copy="budget.help"></p>
     </div>
 
     <!-- Growth: one box per option (Houston, edit list 3, 2026-10-08): home
@@ -742,6 +876,19 @@
           <div class="field"><input id="in-a-assessyr" type="text" inputmode="numeric" autocomplete="off"></div>
           <div class="help" id="help-a-assessyr"></div>
         </div>
+        <!-- Renter-side costs for a rental in slot a (Houston, edit list 4,
+             2026-10-08), mirroring the purchase blocks; both $0 by default -->
+        <div class="subhead" data-slot="a" data-for="rent"><span class="sw" data-sw="a"></span><span id="head-a-rcost"></span></div>
+        <div class="ctl rentcost" data-slot="a" data-for="rent">
+          <label for="in-a-movein" data-copy="fields.movein.label"></label>
+          <div class="field"><span class="pre">$</span><input id="in-a-movein" type="text" inputmode="numeric" autocomplete="off"></div>
+          <div class="help" id="help-a-movein"></div>
+        </div>
+        <div class="ctl rentcost" data-slot="a" data-for="rent">
+          <label for="in-a-fees" data-copy="fields.fees.label"></label>
+          <div class="field"><span class="pre">$</span><input id="in-a-fees" type="text" inputmode="decimal" autocomplete="off"><span class="suf" data-copy="perMonth"></span></div>
+          <div class="help" id="help-a-fees"></div>
+        </div>
         <div class="subhead" data-slot="b" data-for="buy"><span class="sw" data-sw="b"></span><span id="head-b-cost"></span></div>
         <div class="ctl" data-slot="b" data-for="buy">
           <div class="labrow"><label for="in-b-tax" id="lab-b-tax" data-copy="fields.tax.label"></label>
@@ -777,6 +924,20 @@
           <label for="in-b-assessyr" data-copy="fields.assessyr.label"></label>
           <div class="field"><input id="in-b-assessyr" type="text" inputmode="numeric" autocomplete="off"></div>
           <div class="help" id="help-b-assessyr"></div>
+        </div>
+
+        <!-- Renter-side costs for a rental in slot b (Houston, edit list 4,
+             2026-10-08), mirroring the purchase blocks; both $0 by default -->
+        <div class="subhead" data-slot="b" data-for="rent"><span class="sw" data-sw="b"></span><span id="head-b-rcost"></span></div>
+        <div class="ctl rentcost" data-slot="b" data-for="rent">
+          <label for="in-b-movein" data-copy="fields.movein.label"></label>
+          <div class="field"><span class="pre">$</span><input id="in-b-movein" type="text" inputmode="numeric" autocomplete="off"></div>
+          <div class="help" id="help-b-movein"></div>
+        </div>
+        <div class="ctl rentcost" data-slot="b" data-for="rent">
+          <label for="in-b-fees" data-copy="fields.fees.label"></label>
+          <div class="field"><span class="pre">$</span><input id="in-b-fees" type="text" inputmode="decimal" autocomplete="off"><span class="suf" data-copy="perMonth"></span></div>
+          <div class="help" id="help-b-fees"></div>
         </div>
 
         <div class="subhead" id="head-shared"></div>
@@ -843,6 +1004,8 @@
       <div id="outputs" aria-live="polite">
         <div class="hero" id="hero">
           <p class="verdict" id="hero-main"></p>
+          <!-- over the optional monthly budget (edit list 6) -->
+          <p class="overbud" id="hero-budget" hidden></p>
           <!-- the assumptions behind the verdict (review H5): chips, each
                jumping to its input; built by paintAssume() -->
           <div class="assume" id="hero-assume"></div>
@@ -858,6 +1021,7 @@
             <h2 data-copy="month1.heading"></h2>
             <p class="verdict2" id="m1-verdict"></p>
             <table class="bd" id="m1-table"></table>
+            <p class="small" id="m1-upfront"></p>
             <p class="small" id="m1-note" hidden></p>
           </div>
           <div class="card">
@@ -967,7 +1131,7 @@ const COPY = {
   tools: { copy: "Copy link", copied: "Link copied", copiedStatus: "A link to these figures was copied.",
            manual: "Copy this link:", print: "Print summary" },
   // One-line disclaimer above the credit line (review H5, 2026-10-07)
-  disclaimer: "For illustration only; not financial, tax or legal advice. Results depend on the assumptions shown; check figures with a lender, tax adviser and local professionals.",
+  disclaimer: "For illustration only; not financial, tax or legal advice. Results depend on the assumptions shown; check figures with a lender, tax advisor and local professionals.",
   // The collapsed method notes in the footer (2026-10-07)
   howto: "How this calculator works",
   // The assumptions line under the verdict (review H5, 2026-10-07). Each
@@ -976,7 +1140,10 @@ const COPY = {
   // {sav} / {ret} = the savings yield and investment return entered).
   assume: {
     lead: "Assumes",
-    down: "{v}% down", rate: "{v}% rate", rateAdd: "{v}% rate (+{add} pts condo)",
+    // the rate chip names the loan term (edit list 4, 2026-10-08)
+    // edit list 5: a dollar down payment with its share(s) of the price
+    downUsd: "{amt} down ({v}%)", downUsdTwo: "{amt} down ({v1}% {n1}, {v2}% {n2})",
+    down: "{v}% down", rate: "{term}-year fixed at {v}%", rateAdd: "{term}-year fixed at {v}% (+{add} pts condo)",
     years: "{n}-year stay",
     up: "Up front: {use}", monthly: "Monthly difference: {use}",
     use: { spend: "spent", save: "saved at {sav}%", invest: "invested at {ret}%" },
@@ -1008,8 +1175,23 @@ const COPY = {
   fields: {
     price: { label: "{Noun} price" },
     rent: { label: "{Noun} rent" },
-    down: { label: "Down payment" },
+    // edit list 5 (2026-10-08): a % / $ switch beside the label; in $ the
+    // line under the field gives the share of the price ({v} = percent,
+    // one decimal; {noun} = the purchase), one purchase or two
+    down: { label: "Down payment", unitPct: "%", unitUsd: "$",
+            unitPctLabel: "Enter as a percent of the price", unitUsdLabel: "Enter in dollars",
+            noteOne: "{v}% of the {noun} price", noteTwo: "{v1}% {n1} · {v2}% {n2}",
+            noteOver: "Must be less than the {noun} price",
+            // print list value; {amt} = the dollars, {shares} = noteOne / printTwo
+            print: "{amt} ({shares})", printTwo: "{v1}% of {n1} price · {v2}% of {n2} price",
+          },
     rate: { label: "Mortgage rate" },
+    // renter-side costs, per rental (Houston, edit list 4, 2026-10-08); both
+    // default to $0
+    movein: { label: "Move-in costs you won't get back",
+      help: "Application, admin and broker fees, nonrefundable pet deposits, and any part of a security deposit you don't expect to get back." },
+    fees: { label: "Other monthly rental fees",
+      help: "Pet rent, parking, amenity and other required fees not included in the rent." },
     years: { label: "Years in the home" },
     // home value growth (each purchase) and rent growth (each rental):
     // one box each since edit list 3 (Houston, 2026-10-08), labelled with
@@ -1031,7 +1213,7 @@ const COPY = {
               condoUS: "Default: national median fee reported by condo owners (Census, 2020–23), each year's fees raised to {startYear} at {hoaIdx}% a year, the national rise in listed condo fees since 2019 (Realtor.com)",
               houseUS: "Default: $0, since most single-family homes have no HOA. Add a fee if this home is in an HOA or planned community" },
       // appended for a Florida condo (pass 3, 2026-10-07): the Florida factor
-      helpFL: "In Florida the default also rises a further {flX}% a year from {flFrom}, for the jump in condo insurance and the reserve and inspection rules adopted after the 2021 Surfside collapse. Fees vary widely from building to building: if you know this building's fee, enter it." },
+      helpFL: "In Florida the default also rises a further {flX}% a year from {flFrom}, for the jump in condo insurance and the reserve and inspection rules adopted after the 2021 Surfside collapse (Redfin fee data; Florida law). Fees vary widely from building to building: if you know this building's fee, enter it." },
     tax: { label: "Property tax",
       unitPct: "%", unitUsd: "$/yr", unitPctLabel: "Enter as a percent of value", unitUsdLabel: "Enter as dollars a year",
       help: { condoA: "% of value a year. Default: median rate reported by condo owners in this metro (Census)",
@@ -1055,21 +1237,64 @@ const COPY = {
               // {whose}: this metro's / the national (U.S. typical)
               whoseMetro: "this metro's", whoseUS: "the national",
               buy_house: "% a year of the home's structure value, not the land: the price × {ss}%, {whose} structure share (FHFA). Default: {maint}%, about {usd} a year for the typical U.S. house (Angi, 2025), capped at {cap} a year (the cap rises with inflation)" } },
-    closing: { label: "Closing costs to buy", help: "% of the price, paid at purchase: title, lender and other fees" },
+    // edit list 9 (2026-10-08): what the 2% default covers
+    closing: { label: "Closing costs to buy", help: "% of the price, paid at purchase: title, settlement, recording, transfer taxes and lender fees" },
     agent: { label: "Buyer's agent fee", help: "% of the price, paid at closing. Since the 2024 NAR settlement, a buyer may have to pay their own agent if the seller doesn't. Default: 0, the seller pays." },
     points: { label: "Points", help: "% of the loan, paid at closing. Points usually buy a lower rate, so enter the rate you were quoted with them." },
     assess: { label: "Special assessment", help: "A one-time bill from the condo or homeowners association, paid in the year of ownership you choose (not if you sell first). Florida's reserve rules after the Surfside collapse have brought large assessments in older condo buildings." },
     assessyr: { label: "Paid in year", help: "Year of ownership, 1 to {stayMax}" },
     condoadd: { label: "Condo loan rate add-on", help: "Added to the mortgage rate for the condo only. Fannie Mae and Freddie Mac charge more on some condo loans, and condos that don't meet their rules (non-warrantable) need loans that usually cost more." },
-    selling: { label: "Costs to sell", help: "% of the sale price: commissions, transfer tax and fees" },
+    // edit list 9: one sentence on high-transfer-tax places (no location tables)
+    selling: { label: "Costs to sell", help: "% of the sale price: commissions, transfer tax and fees. Transfer taxes are much higher in places such as Delaware, Philadelphia, Washington, D.C., and New York City; raise both cost figures there." },
     insg: { label: "Insurance growth",
       help: "A year for the first {switch} years; after that, the same as that home's value growth, but never less than inflation ({cpi}% a year)",
       helpOne: "A year for the first {switch} years; after that, {lr}% a year: home value growth, but never less than inflation ({cpi}%)" },
     hoag: { label: "HOA fee growth",
       help: "A year for the first {switch} years; after that, {lr}% a year: the home's value growth, but never less than inflation ({cpi}%)",
       helpNoRate: "A year for the first {switch} years; after that, the same as that home's value growth, but never less than inflation ({cpi}% a year)" },
-    pmi: { label: "Mortgage insurance (PMI)", help: "Charged only below {pmiBelow}% down. Default: Enact's published rate for strong credit (740–759), set by the down payment: {r4}% of the loan a year under {d3}% down, {r3}% from {d3}%, {r2}% from {d2}% and {r1}% from {d1}%. A rate you type stays when you change the down payment." }
+    // edit list 8 (Houston, 2026-10-08): this exact text, no rate list
+    pmi: { label: "Mortgage insurance (PMI)", help: "Charged only below 20% down. A rate you type stays fixed when you change the down payment above." }
   },
+  // The loan term, built into the bottom of the mortgage-rate box (edit list
+  // 4, 2026-10-08). y30 / y15: the buttons; s30 / s15: their short form in a
+  // narrow column; label: the switch's accessible name and the print list's
+  // label; rate: the rate with its term (print list), {v} = the rate.
+  term: { label: "Loan term", y30: "30-year fixed", y15: "15-year fixed", s30: "30-year", s15: "15-year",
+          rate: "{term}-year fixed at {v}%" },
+  // Optional monthly budget (Houston, edit list 6, 2026-10-08). Compared with
+  // each option's first-month recurring cost (the card's "Monthly cost", to
+  // the dollar); it changes no figure. {A} / {a} {b} = the options, {bud} =
+  // the budget, {amt} = how far over.
+  budget: { label: "Monthly budget", placeholder: "Optional",
+            help: "Compared with each option's first-month costs, before utilities.",
+            one: "{A} is {amt} over your {bud} monthly budget in the first month.",
+            both: "Both options are over your {bud} monthly budget in the first month: {a} by {amtA}, {b} by {amtB}.",
+            flag: "{amt} over budget", flagSr: "{Col}: ", print: "{amt}/mo" },
+  // "Match" buttons under each option's price or rent (edit list 6). The
+  // long label is used where it fits on one line, else the short one.
+  // {other} = the other option's noun ("condo", "house"; a rental reads
+  // "rental"); {where} = the metro's city (whereUS for the U.S. typical);
+  // {what} = "rent" or "{noun} price".
+  // edit list 8: the label names what it matches ({with} = "renting",
+  // "buying", or the other purchase's noun); three lengths, the longest
+  // that fits on one line is used. The match LOCKS (live) until the
+  // "Back to typical ..." button is clicked.
+  match: { match: "Match monthly cost with {with}", matchMid: "Match cost with {with}", matchShort: "Match with {with}",
+           withRent: "renting", withBuy: "buying", theNoun: "the {noun}",
+           back: "Back to typical {where} {what}", backShortRent: "Back to typical rent", backShortPrice: "Back to typical price",
+           whatRent: "rent", whatPrice: "{noun} price", whereUS: "U.S.",
+           title: "Set this so its first-month cost equals the other option's ({amt} a month), and keep it matched as other inputs change",
+           backTitle: "Back to the typical {where} {what}: {amt}",
+           backTitleLocked: "Stop matching and go back to the typical {where} {what}: {amt}",
+           lockedTitle: "Matched: {What} follows the first-month cost of {with}",
+           unlock: "Select to stop matching and go back to the typical {where} {what}",
+           print: "Matched", printText: "{What} matched to {with}'s monthly cost",
+           // edit list 9: short enough for the one reserved line; the
+           // longest form that fits is used ({amt} = the gap a month)
+           cant: { fixed: ["Can't match: fixed costs too high", "No match: fixed costs too high", "No match (fixed costs)"],
+                   down: ["Can't match: below your down payment", "No match: below down payment", "No match (down payment)"],
+                   rent: ["Can't match: rental fees too high", "No match: rental fees too high", "No match (rental fees)"],
+                   closest: ["Closest: {amt}/mo apart (PMI band)", "Closest: {amt}/mo off (PMI band)", "Closest: {amt}/mo off"] } },
   growthSummary: "Growth and investing",
   // edit list 3 (2026-10-08): one subhead over the growth boxes (the
   // per-option subheads became the boxes' labels, fields.app / fields.rg);
@@ -1077,6 +1302,8 @@ const COPY = {
   // (growthBuys: two purchases, so no rent growth box)
   growthHead: { growth: "Home value and rent growth", growthBuys: "Home value growth", invest: "Savings and investing" },
   costHead: "{Noun} costs",
+  // a rental's sub-block in Adjust costs (edit list 4): "Apartment rental costs"
+  rentCostHead: "{Noun} rental costs",
   sharedHead: { one: "Buying and selling", two: "Both purchases" },
   // The two main-panel toggles: what happens to money one option frees up
   // compared with the other, at the start and month by month.
@@ -1140,14 +1367,18 @@ const COPY = {
     crossNotWithin: "{Over} doesn't pull ahead of {under} within {stayMax} years at these assumptions.",
     tieYear1: "The two come out level after one year."
   },
+  // Edit list 4 (Houston, 2026-10-08): the card shows the first month's
+  // RECURRING costs only, so it says so; the up-front costs are in the totals
+  // over the stay (upfront, {n} {yrs} = the stay).
   month1: {
-    heading: "The first month",
-    more: "In month one, {a} costs {amt} more than {b}.",
-    less: "In month one, {a} costs {amt} less than {b}.",
-    even: "In month one, {a} costs about the same as {b}.",
+    heading: "Recurring costs, first month",
+    more: "In the first month, recurring costs for {a} are {amt} higher than for {b}.",
+    less: "In the first month, recurring costs for {a} are {amt} lower than for {b}.",
+    even: "In the first month, recurring costs for {a} and {b} are about the same.",
+    upfront: "Up-front costs, such as the down payment, closing costs and rental move-in costs, are counted in the totals over {n} {yrs}.",
     rows: { pi: "Principal & interest", pmi: "Mortgage insurance (PMI)", tax: "Property tax",
             ins: "Insurance", hoa: "HOA/condo fee", maint: "Maintenance", assess: "Special assessment",
-            rent: "Rent", rins: "Renters insurance", total: "Monthly cost" },
+            rent: "Rent", rins: "Renters insurance", fees: "Other rental fees", total: "Monthly cost" },
     // shown only when the rows don't add to the totals (the general note on
     // how costs grow was removed in edit list 1)
     roundingNote: "Rows may not add to the totals because of rounding."
@@ -1165,13 +1396,15 @@ const COPY = {
             pi: "Mortgage payments (principal & interest)",
             pmi: "Mortgage insurance", tax: "Property tax", ins: "Insurance", hoa: "HOA/condo fee",
             maint: "Maintenance", assess: "Special assessment", rent: "Rent", rins: "Renters insurance",
+            // a rental's renter-side costs (edit list 4), shown even at $0
+            movein: "Move-in costs", fees: "Other rental fees",
             paidTotal: "Total paid", equityNet: "Home equity after selling costs",
             equityGross: "Home equity at sale", selling: "Costs to sell, paid from the sale",
             growth: "Investment growth, after tax", growthSav: "Interest on savings",
             growthBoth: "Savings interest and investment growth after tax",
             net: "Net cost", freed: "Money freed up",
-            // visually hidden before the check mark on the lower net cost
-            lower: "Lower: " },
+            // visually hidden before the cash icon on the lower net cost (edit list 8)
+            lower: "Lower net cost: " },
     freedNone: "none",
     // looking back over the stay (2026-10-07); {sav} / {ret} as entered
     freedUse: { spend: "spent", save: "saved at {sav}%", invest: "invested at {ret}%" },
@@ -1325,7 +1558,8 @@ const COPY = {
     list: { down: "the down payment", closing: "closing costs", agent: "the buyer's agent fee", points: "points",
             mort: "mortgage payments (principal and interest)",
             pmi: "mortgage insurance", tax: "property tax", ins: "insurance", hoa: "the HOA fee", maint: "maintenance",
-            assess: "the special assessment", rent: "rent", rins: "renters insurance" },
+            assess: "the special assessment", rent: "rent", rins: "renters insurance",
+            movein: "move-in costs", fees: "other rental fees" },
     // Labels at the right-hand end of each band or line (they double as
     // the legend) and in the tooltip. Every line label names its option
     // ({Col} = the option's column name, "Buy condo"). A band label is the
@@ -1336,14 +1570,14 @@ const COPY = {
     labels: { down: "Down payment", closing: "Closing costs", agent: "Buyer's agent fee", points: "Points",
               mort: "Mortgage payments", pmi: "Mortgage insurance",
               tax: "Property tax", ins: "Insurance", hoa: "HOA fee", maint: "Maintenance", assess: "Special assessment",
-              rent: "Rent", rins: "Renters insurance",
+              rent: "Rent", rins: "Renters insurance", movein: "Move-in costs", fees: "Other rental fees",
               putIn: "Money put in (down payment + principal)", app: "Appreciation", growth: "Investment growth, after tax",
               growthSav: "Interest on savings", growthBoth: "Savings interest and investment growth after tax",
               sell: "Selling costs, paid from the sale" },
     layer: { down: "down payment", closing: "closing costs", agent: "buyer's agent fee", points: "points",
              mort: "mortgage payments", pmi: "mortgage insurance",
              tax: "property tax", ins: "insurance", hoa: "HOA fee", maint: "maintenance", assess: "special assessment",
-             rent: "rent", rins: "renters insurance",
+             rent: "rent", rins: "renters insurance", movein: "move-in costs", fees: "other rental fees",
              putIn: "money put in (down payment + principal)", app: "appreciation", growth: "investment growth, after tax",
              growthSav: "interest on savings", growthBoth: "savings interest and investment growth after tax",
              sell: "selling costs, paid from the sale" },
@@ -1379,19 +1613,25 @@ const COPY = {
   // full text is archived in eda_report.md sec. 12.0e.
   method: {
     what: "The calculator follows two options month by month and shows each one's net cost if you sell in a given year: total paid out of pocket, minus home equity after selling costs, minus growth on money one option frees up. Lower is better.",
-    how: "A purchase uses a {payoff}-year fixed loan and pays property tax, insurance, any HOA fee, maintenance and, below {pmiBelow}% down, mortgage insurance, plus {closing}% to buy and {selling}% to sell. A rental pays rent and renters insurance.",
+    // edit list 4 (2026-10-08): either term; a rental's move-in costs and other fees
+    how: "A purchase uses a 30- or 15-year fixed loan and pays property tax, insurance, any HOA fee, maintenance and, below {pmiBelow}% down, mortgage insurance, plus {closing}% to buy and {selling}% to sell. A rental pays rent, renters insurance and any move-in costs and other fees you enter.",
     caveats: "Results depend on the assumptions, all of which can be changed. Prices and rents are Zillow's typical values, not a specific home; cost defaults are Census medians adjusted to {startYear}. Figures are in future dollars. No mortgage-interest or property-tax deduction is counted, and savings interest is treated as untaxed.",
     sourcesHead: "Sources",
     sources: [
       "Home values and rents: Zillow, {month}.",
       "Property tax, insurance and condo fees: Census Bureau, adjusted with ICE, BLS and Realtor.com data.",
-      "Mortgage rate: Freddie Mac 30-year fixed average, week of {week}.",
+      "Mortgage rates: Freddie Mac 30- and 15-year fixed averages, week of {week}.",
       "Down payment ({down}%, typical first-time buyer) and stay ({stay} years, median seller tenure): NAR, 2025.",
       // edit list 3 (2026-10-08): flat growth, no forecast citation;
       // {growth} = the default rate (DEF.app = DEF.rgApartment =
       // DEF.rgHouse; paintMethod() uses growthMixed if they ever differ)
       "Home value and rent growth: {growth}% a year, a simple long-run assumption you can change. Inflation: CBO.",
-      "PMI: Enact. Maintenance: FHFA, Angi, Census. Savings yield: FDIC."
+      // edit list 9 (Houston, 2026-10-08): closing and selling costs, PMI,
+      // renters insurance and taxes on gains credited; never other calculators
+      "Closing and selling costs: LodeStar, CFPB, Clever Real Estate (agent survey).",
+      "PMI: Enact rate card, with Fannie Mae coverage rules; cancellation rules: CFPB.",
+      "Maintenance: FHFA, Angi, Census. Renters insurance: NAIC. Savings yield: FDIC.",
+      "Taxes on gains: Tax Foundation (capital-gains rate) and IRS (home-sale exclusion)."
     ],
     // replaces the growth source line if the three default growth rates differ
     growthMixed: "Home value growth: {app}% a year; rent growth: {rga}% a year for an apartment, {rgh}% for a house. Simple long-run assumptions you can change. Inflation: CBO.",
@@ -1448,8 +1688,8 @@ const COUNTERPART = { buy_condo: "rent_apartment", buy_house: "rent_house", rent
 // =====================================================================
 const METROS = [{"id":"us","n":"United States","rank":0,"o":0,"us":true,"hc":0,"fl":false,"th":false,"tb":false,"bc":{"v":346000,"t":0.0097,"i":74,"h":409},"bh":{"v":371000,"t":0.0092,"i":164},"ss":0.601,"cp":false,"ra":{"r":1750},"rh":{"r":2300}},{"id":"394913","n":"New York, NY","rank":1,"o":1,"us":false,"hc":0,"fl":false,"th":false,"tb":false,"bc":{"v":579000,"t":0.015,"i":68,"h":646},"bh":{"v":761000,"t":0.0193,"i":181},"ss":0.542,"cp":true,"ra":{"r":3600},"rh":{"r":3450}},{"id":"753899","n":"Los Angeles, CA","rank":2,"o":2,"us":false,"hc":2,"fl":false,"th":false,"tb":false,"bc":{"v":665000,"t":0.0081,"i":90,"h":463},"bh":{"v":1014000,"t":0.0068,"i":167},"ss":0.323,"cp":false,"ra":{"r":2700},"rh":{"r":4450}},{"id":"394463","n":"Chicago, IL","rank":3,"o":3,"us":false,"hc":0,"fl":false,"th":false,"tb":false,"bc":{"v":278000,"t":0.0182,"i":65,"h":380},"bh":{"v":378000,"t":0.0203,"i":162},"ss":0.692,"cp":false,"ra":{"r":2100},"rh":{"r":2550}},{"id":"394514","n":"Dallas, TX","rank":4,"o":4,"us":false,"hc":0,"fl":false,"th":false,"tb":false,"bc":{"v":213000,"t":0.0162,"i":118,"h":388},"bh":{"v":363000,"t":0.0153,"i":296},"ss":0.686,"cp":false,"ra":{"r":1500},"rh":{"r":2350}},{"id":"394692","n":"Houston, TX","rank":5,"o":5,"us":false,"hc":1,"fl":false,"th":false,"tb":false,"bc":{"v":143000,"t":0.0155,"i":102,"h":439},"bh":{"v":309000,"t":0.0154,"i":278},"ss":0.712,"cp":false,"ra":{"r":1400},"rh":{"r":2250}},{"id":"395209","n":"Washington, DC","rank":6,"o":7,"us":false,"hc":0,"fl":false,"th":false,"tb":false,"bc":{"v":351000,"t":0.0089,"i":60,"h":489},"bh":{"v":619000,"t":0.009,"i":170},"ss":0.567,"cp":false,"ra":{"r":2300},"rh":{"r":3300}},{"id":"394974","n":"Philadelphia, PA","rank":7,"o":6,"us":false,"hc":0,"fl":false,"th":false,"tb":false,"bc":{"v":287000,"t":0.014,"i":68,"h":341},"bh":{"v":399000,"t":0.015,"i":146},"ss":0.725,"cp":false,"ra":{"r":1800},"rh":{"r":2300}},{"id":"394856","n":"Miami, FL","rank":8,"o":8,"us":false,"hc":2,"fl":true,"th":false,"tb":false,"bc":{"v":268000,"t":0.0082,"i":140,"h":608},"bh":{"v":569000,"t":0.0079,"i":506},"ss":0.534,"cp":false,"ra":{"r":2450},"rh":{"r":3450}},{"id":"394347","n":"Atlanta, GA","rank":9,"o":9,"us":false,"hc":0,"fl":false,"th":false,"tb":false,"bc":{"v":269000,"t":0.0087,"i":88,"h":387},"bh":{"v":384000,"t":0.0081,"i":190},"ss":0.753,"cp":false,"ra":{"r":1650},"rh":{"r":2300}},{"id":"394404","n":"Boston, MA","rank":10,"o":10,"us":false,"hc":0,"fl":false,"th":false,"tb":false,"bc":{"v":582000,"t":0.0101,"i":74,"h":427},"bh":{"v":774000,"t":0.0116,"i":186},"ss":0.446,"cp":false,"ra":{"r":3050},"rh":{"r":3650}},{"id":"394976","n":"Phoenix, AZ","rank":11,"o":11,"us":false,"hc":0,"fl":false,"th":false,"tb":false,"bc":{"v":275000,"t":0.0043,"i":71,"h":297},"bh":{"v":452000,"t":0.0044,"i":134},"ss":0.681,"cp":false,"ra":{"r":1500},"rh":{"r":2300}},{"id":"395057","n":"San Francisco, CA","rank":12,"o":13,"us":false,"hc":2,"fl":false,"th":false,"tb":false,"bc":{"v":711000,"t":0.009,"i":92,"h":568},"bh":{"v":1214000,"t":0.0072,"i":198},"ss":0.407,"cp":false,"ra":{"r":3150},"rh":{"r":4200}},{"id":"395025","n":"Riverside, CA","rank":13,"o":16,"us":false,"hc":2,"fl":false,"th":false,"tb":false,"bc":{"v":472000,"t":0.0081,"i":89,"h":446},"bh":{"v":592000,"t":0.0075,"i":164},"ss":0.519,"cp":false,"ra":{"r":2300},"rh":{"r":3200}},{"id":"394532","n":"Detroit, MI","rank":14,"o":12,"us":false,"hc":0,"fl":false,"th":false,"tb":false,"bc":{"v":270000,"t":0.013,"i":53,"h":334},"bh":{"v":267000,"t":0.0131,"i":134},"ss":0.728,"cp":false,"ra":{"r":1400},"rh":{"r":1700}},{"id":"395078","n":"Seattle, WA","rank":15,"o":14,"us":false,"hc":0,"fl":false,"th":false,"tb":false,"bc":{"v":441000,"t":0.0081,"i":58,"h":512},"bh":{"v":760000,"t":0.0081,"i":147},"ss":0.483,"cp":false,"ra":{"r":2100},"rh":{"r":3500}},{"id":"394865","n":"Minneapolis, MN","rank":16,"o":15,"us":false,"hc":0,"fl":false,"th":false,"tb":false,"bc":{"v":213000,"t":0.0107,"i":51,"h":375},"bh":{"v":401000,"t":0.0106,"i":226},"ss":0.664,"cp":false,"ra":{"r":1650},"rh":{"r":2450}},{"id":"395056","n":"San Diego, CA","rank":17,"o":19,"us":false,"hc":2,"fl":false,"th":false,"tb":false,"bc":{"v":621000,"t":0.0082,"i":92,"h":446},"bh":{"v":1005000,"t":0.0068,"i":194},"ss":0.389,"cp":false,"ra":{"r":2750},"rh":{"r":4150}},{"id":"395148","n":"Tampa, FL","rank":18,"o":17,"us":false,"hc":2,"fl":true,"th":false,"tb":false,"bc":{"v":195000,"t":0.0073,"i":127,"h":586},"bh":{"v":375000,"t":0.0073,"i":279},"ss":0.578,"cp":false,"ra":{"r":1800},"rh":{"r":2400}},{"id":"394530","n":"Denver, CO","rank":19,"o":18,"us":false,"hc":0,"fl":false,"th":false,"tb":false,"bc":{"v":302000,"t":0.005,"i":78,"h":384},"bh":{"v":585000,"t":0.0051,"i":303},"ss":0.608,"cp":false,"ra":{"r":1750},"rh":{"r":3000}},{"id":"394358","n":"Baltimore, MD","rank":20,"o":21,"us":false,"hc":0,"fl":false,"th":false,"tb":false,"bc":{"v":281000,"t":0.0104,"i":66,"h":341},"bh":{"v":412000,"t":0.0096,"i":162},"ss":0.636,"cp":false,"ra":{"r":1800},"rh":{"r":2500}},{"id":"395121","n":"St. Louis, MO","rank":21,"o":20,"us":false,"hc":0,"fl":false,"th":false,"tb":false,"bc":{"v":199000,"t":0.0117,"i":73,"h":297},"bh":{"v":282000,"t":0.0117,"i":190},"ss":0.788,"cp":false,"ra":{"r":1350},"rh":{"r":1700}},{"id":"394943","n":"Orlando, FL","rank":22,"o":25,"us":false,"hc":2,"fl":true,"th":false,"tb":false,"bc":{"v":184000,"t":0.0073,"i":124,"h":454},"bh":{"v":400000,"t":0.0073,"i":273},"ss":0.717,"cp":false,"ra":{"r":1750},"rh":{"r":2450}},{"id":"394458","n":"Charlotte, NC","rank":23,"o":23,"us":false,"hc":0,"fl":false,"th":false,"tb":false,"bc":{"v":297000,"t":0.007,"i":80,"h":297},"bh":{"v":388000,"t":0.0065,"i":153},"ss":0.741,"cp":false,"ra":{"r":1550},"rh":{"r":2200}},{"id":"395055","n":"San Antonio, TX","rank":24,"o":26,"us":false,"hc":0,"fl":false,"th":true,"tb":false,"bc":{"v":186000,"t":0.0162,"i":105,"h":359},"bh":{"v":278000,"t":0.0152,"i":189},"ss":0.77,"cp":false,"ra":{"r":1250},"rh":{"r":1850}},{"id":"394998","n":"Portland, OR","rank":25,"o":24,"us":false,"hc":0,"fl":false,"th":false,"tb":false,"bc":{"v":297000,"t":0.01,"i":64,"h":439},"bh":{"v":556000,"t":0.0087,"i":128},"ss":0.545,"cp":false,"ra":{"r":1700},"rh":{"r":2700}},{"id":"395045","n":"Sacramento, CA","rank":26,"o":31,"us":false,"hc":2,"fl":false,"th":false,"tb":false,"bc":{"v":338000,"t":0.0075,"i":79,"h":375},"bh":{"v":584000,"t":0.0075,"i":153},"ss":0.654,"cp":false,"ra":{"r":2000},"rh":{"r":2850}},{"id":"394982","n":"Pittsburgh, PA","rank":27,"o":22,"us":false,"hc":0,"fl":false,"th":false,"tb":false,"bc":{"v":277000,"t":0.0137,"i":60,"h":310},"bh":{"v":230000,"t":0.0137,"i":113},"ss":0.783,"cp":false,"ra":{"r":1400},"rh":{"r":1650}},{"id":"394466","n":"Cincinnati, OH","rank":28,"o":29,"us":false,"hc":0,"fl":false,"th":false,"tb":false,"bc":{"v":216000,"t":0.0119,"i":52,"h":310},"bh":{"v":319000,"t":0.0122,"i":137},"ss":0.767,"cp":false,"ra":{"r":1400},"rh":{"r":2050}},{"id":"394355","n":"Austin, TX","rank":29,"o":27,"us":false,"hc":0,"fl":false,"th":false,"tb":false,"bc":{"v":343000,"t":0.0155,"i":96,"h":372},"bh":{"v":425000,"t":0.015,"i":213},"ss":0.586,"cp":false,"ra":{"r":1450},"rh":{"r":2300}},{"id":"394775","n":"Las Vegas, NV","rank":30,"o":33,"us":false,"hc":0,"fl":false,"th":false,"tb":false,"bc":{"v":231000,"t":0.0042,"i":62,"h":260},"bh":{"v":444000,"t":0.0047,"i":112},"ss":0.738,"cp":false,"ra":{"r":1500},"rh":{"r":2250}},{"id":"394735","n":"Kansas City, MO","rank":31,"o":30,"us":false,"hc":0,"fl":false,"th":true,"tb":false,"bc":{"v":212000,"t":0.0121,"i":81,"h":359},"bh":{"v":330000,"t":0.0108,"i":217},"ss":0.772,"cp":false,"ra":{"r":1400},"rh":{"r":1800}},{"id":"394492","n":"Columbus, OH","rank":32,"o":32,"us":false,"hc":0,"fl":false,"th":false,"tb":false,"bc":{"v":227000,"t":0.0153,"i":49,"h":307},"bh":{"v":354000,"t":0.0142,"i":134},"ss":0.755,"cp":false,"ra":{"r":1400},"rh":{"r":2100}},{"id":"394705","n":"Indianapolis, IN","rank":34,"o":34,"us":false,"hc":0,"fl":false,"th":false,"tb":false,"bc":{"v":225000,"t":0.0082,"i":68,"h":297},"bh":{"v":298000,"t":0.0078,"i":153},"ss":0.802,"cp":false,"ra":{"r":1400},"rh":{"r":1900}},{"id":"394475","n":"Cleveland, OH","rank":35,"o":28,"us":false,"hc":0,"fl":false,"th":false,"tb":false,"bc":{"v":191000,"t":0.0161,"i":58,"h":310},"bh":{"v":261000,"t":0.0156,"i":124},"ss":0.721,"cp":false,"ra":{"r":1250},"rh":{"r":1750}},{"id":"395059","n":"San Jose, CA","rank":36,"o":37,"us":false,"hc":2,"fl":false,"th":false,"tb":false,"bc":{"v":780000,"t":0.0088,"i":71,"h":510},"bh":{"v":1674000,"t":0.0067,"i":167},"ss":0.316,"cp":false,"ra":{"r":3600},"rh":{"r":4850}},{"id":"394902","n":"Nashville, TN","rank":37,"o":35,"us":false,"hc":0,"fl":false,"th":false,"tb":false,"bc":{"v":348000,"t":0.0057,"i":81,"h":259},"bh":{"v":460000,"t":0.0047,"i":168},"ss":0.698,"cp":false,"ra":{"r":1650},"rh":{"r":2400}},{"id":"395194","n":"Virginia Beach, VA","rank":38,"o":36,"us":false,"hc":0,"fl":false,"th":false,"tb":false,"bc":{"v":311000,"t":0.0081,"i":84,"h":330},"bh":{"v":379000,"t":0.0078,"i":168},"ss":0.658,"cp":false,"ra":{"r":1750},"rh":{"r":2300}},{"id":"395005","n":"Providence, RI","rank":39,"o":38,"us":false,"hc":0,"fl":false,"th":false,"tb":false,"bc":{"v":389000,"t":0.0121,"i":71,"h":375},"bh":{"v":539000,"t":0.0118,"i":189},"ss":0.565,"cp":false,"ra":{"r":2050},"rh":{"r":3000}},{"id":"394714","n":"Jacksonville, FL","rank":40,"o":40,"us":false,"hc":2,"fl":true,"th":false,"tb":false,"bc":{"v":235000,"t":0.0072,"i":114,"h":481},"bh":{"v":360000,"t":0.0073,"i":224},"ss":0.692,"cp":false,"ra":{"r":1500},"rh":{"r":2050}},{"id":"394862","n":"Milwaukee, WI","rank":41,"o":39,"us":false,"hc":0,"fl":false,"th":false,"tb":false,"bc":{"v":293000,"t":0.0152,"i":46,"h":336},"bh":{"v":404000,"t":0.0144,"i":129},"ss":0.736,"cp":false,"ra":{"r":1500},"rh":{"r":1850}},{"id":"394935","n":"Oklahoma City, OK","rank":42,"o":41,"us":false,"hc":0,"fl":false,"th":true,"tb":true,"bc":{"v":122000,"t":0.009,"i":91,"h":254},"bh":{"v":247000,"t":0.009,"i":285},"ss":0.766,"cp":false,"ra":{"r":1150},"rh":{"r":1550}},{"id":"395012","n":"Raleigh, NC","rank":43,"o":42,"us":false,"hc":0,"fl":false,"th":true,"tb":false,"bc":{"v":281000,"t":0.0068,"i":89,"h":259},"bh":{"v":436000,"t":0.0068,"i":161},"ss":0.745,"cp":false,"ra":{"r":1500},"rh":{"r":2150}},{"id":"394849","n":"Memphis, TN","rank":44,"o":45,"us":false,"hc":0,"fl":false,"th":false,"tb":false,"bc":{"v":259000,"t":0.0082,"i":104,"h":372},"bh":{"v":244000,"t":0.0066,"i":183},"ss":0.811,"cp":false,"ra":{"r":1250},"rh":{"r":1650}},{"id":"395022","n":"Richmond, VA","rank":45,"o":44,"us":false,"hc":0,"fl":false,"th":false,"tb":false,"bc":{"v":343000,"t":0.0075,"i":70,"h":320},"bh":{"v":398000,"t":0.0072,"i":136},"ss":0.779,"cp":false,"ra":{"r":1600},"rh":{"r":2300}},{"id":"394807","n":"Louisville, KY","rank":46,"o":43,"us":false,"hc":0,"fl":false,"th":false,"tb":false,"bc":{"v":219000,"t":0.0083,"i":63,"h":285},"bh":{"v":285000,"t":0.0082,"i":164},"ss":0.829,"cp":false,"ra":{"r":1250},"rh":{"r":1750}},{"id":"394910","n":"New Orleans, LA","rank":47,"o":54,"us":false,"hc":1,"fl":false,"th":false,"tb":false,"bc":{"v":190000,"t":0.0059,"i":159,"h":458},"bh":{"v":263000,"t":0.0049,"i":448},"ss":0.724,"cp":false,"ra":{"r":1450},"rh":{"r":1850}},{"id":"395053","n":"Salt Lake City, UT","rank":48,"o":50,"us":false,"hc":0,"fl":false,"th":false,"tb":false,"bc":{"v":441000,"t":0.0051,"i":50,"h":273},"bh":{"v":579000,"t":0.0051,"i":132},"ss":0.535,"cp":false,"ra":{"r":1500},"rh":{"r":2550}},{"id":"394669","n":"Hartford, CT","rank":49,"o":47,"us":false,"hc":0,"fl":false,"th":false,"tb":false,"bc":{"v":271000,"t":0.0195,"i":51,"h":388},"bh":{"v":426000,"t":0.019,"i":168},"ss":0.665,"cp":false,"ra":{"r":1950},"rh":{"r":2650}},{"id":"394425","n":"Buffalo, NY","rank":50,"o":46,"us":false,"hc":0,"fl":false,"th":true,"tb":false,"bc":{"v":242000,"t":0.0172,"i":51,"h":332},"bh":{"v":292000,"t":0.0192,"i":105},"ss":0.846,"cp":false,"ra":{"r":1400},"rh":{"r":1900}},{"id":"394388","n":"Birmingham, AL","rank":51,"o":48,"us":false,"hc":0,"fl":false,"th":false,"tb":false,"bc":{"v":216000,"t":0.0054,"i":86,"h":341},"bh":{"v":264000,"t":0.0038,"i":166},"ss":0.751,"cp":false,"ra":{"r":1300},"rh":{"r":1600}},{"id":"395031","n":"Rochester, NY","rank":52,"o":49,"us":false,"hc":0,"fl":false,"th":true,"tb":false,"bc":{"v":256000,"t":0.0203,"i":52,"h":318},"bh":{"v":287000,"t":0.0222,"i":98},"ss":0.829,"cp":false,"ra":{"r":1450},"rh":{"r":2150}},{"id":"394640","n":"Grand Rapids, MI","rank":53,"o":51,"us":false,"hc":0,"fl":false,"th":false,"tb":false,"bc":{"v":344000,"t":0.0115,"i":47,"h":310},"bh":{"v":359000,"t":0.0108,"i":111},"ss":0.787,"cp":false,"ra":{"r":1500},"rh":{"r":2200}},{"id":"395167","n":"Tucson, AZ","rank":54,"o":52,"us":false,"hc":0,"fl":false,"th":false,"tb":false,"bc":{"v":207000,"t":0.0055,"i":66,"h":235},"bh":{"v":349000,"t":0.0059,"i":124},"ss":0.729,"cp":false,"ra":{"r":1200},"rh":{"r":1900}},{"id":"753924","n":"Urban Honolulu, HI","rank":55,"o":63,"us":false,"hc":0,"fl":false,"th":false,"tb":false,"bc":{"v":511000,"t":0.0026,"i":49,"h":743},"bh":{"v":1058000,"t":0.0027,"i":218},"ss":0.304,"cp":false,"ra":{"r":2500},"rh":{"r":3550}},{"id":"395169","n":"Tulsa, OK","rank":56,"o":53,"us":false,"hc":0,"fl":false,"th":true,"tb":true,"bc":{"v":123000,"t":0.0087,"i":90,"h":254},"bh":{"v":256000,"t":0.0087,"i":226},"ss":0.765,"cp":false,"ra":{"r":1150},"rh":{"r":1650}},{"id":"394619","n":"Fresno, CA","rank":57,"o":61,"us":false,"hc":2,"fl":false,"th":true,"tb":false,"bc":{"v":244000,"t":0.0079,"i":79,"h":392},"bh":{"v":415000,"t":0.0074,"i":133},"ss":0.724,"cp":false,"ra":{"r":1600},"rh":{"r":2400}},{"id":"395238","n":"Worcester, MA","rank":58,"o":66,"us":false,"hc":0,"fl":false,"th":false,"tb":false,"bc":{"v":365000,"t":0.013,"i":61,"h":401},"bh":{"v":493000,"t":0.0125,"i":159},"ss":0.663,"cp":false,"ra":{"r":2100},"rh":{"r":2850}},{"id":"394938","n":"Omaha, NE","rank":59,"o":55,"us":false,"hc":0,"fl":false,"th":true,"tb":false,"bc":{"v":230000,"t":0.0156,"i":71,"h":336},"bh":{"v":310000,"t":0.0162,"i":226},"ss":0.788,"cp":false,"ra":{"r":1300},"rh":{"r":2050}},{"id":"394415","n":"Bridgeport, CT","rank":60,"o":62,"us":false,"hc":0,"fl":false,"th":false,"tb":false,"bc":{"v":419000,"t":0.017,"i":57,"h":500},"bh":{"v":791000,"t":0.0162,"i":228},"ss":0.465,"cp":false,"ra":{"r":2750},"rh":{"r":4800}},{"id":"394653","n":"Greenville, SC","rank":61,"o":57,"us":false,"hc":0,"fl":false,"th":true,"tb":false,"bc":{"v":297000,"t":0.005,"i":76,"h":246},"bh":{"v":314000,"t":0.0046,"i":137},"ss":0.832,"cp":false,"ra":{"r":1450},"rh":{"r":1850}},{"id":"394312","n":"Albuquerque, NM","rank":62,"o":59,"us":false,"hc":0,"fl":false,"th":true,"tb":true,"bc":{"v":239000,"t":0.0075,"i":72,"h":316},"bh":{"v":352000,"t":0.0075,"i":136},"ss":0.769,"cp":false,"ra":{"r":1350},"rh":{"r":2200}},{"id":"394357","n":"Bakersfield, CA","rank":63,"o":79,"us":false,"hc":2,"fl":false,"th":true,"tb":true,"bc":{"v":225000,"t":0.0083,"i":71,"h":308},"bh":{"v":365000,"t":0.0083,"i":129},"ss":0.76,"cp":false,"ra":{"r":1450},"rh":{"r":2250}},{"id":"394308","n":"Albany, NY","rank":64,"o":56,"us":false,"hc":0,"fl":false,"th":true,"tb":false,"bc":{"v":326000,"t":0.014,"i":62,"h":297},"bh":{"v":376000,"t":0.0182,"i":113},"ss":0.825,"cp":false,"ra":{"r":1650},"rh":{"r":2350}},{"id":"394753","n":"Knoxville, TN","rank":65,"o":60,"us":false,"hc":0,"fl":false,"th":false,"tb":false,"bc":{"v":330000,"t":0.0051,"i":87,"h":154},"bh":{"v":367000,"t":0.0046,"i":140},"ss":0.837,"cp":false,"ra":{"r":1550},"rh":{"r":2150}},{"id":"394367","n":"Baton Rouge, LA","rank":66,"o":68,"us":false,"hc":1,"fl":false,"th":true,"tb":true,"bc":{"v":138000,"t":0.0048,"i":85,"h":254},"bh":{"v":254000,"t":0.0048,"i":222},"ss":0.762,"cp":false,"ra":{"r":1250},"rh":{"r":1800}},{"id":"394843","n":"McAllen, TX","rank":67,"o":84,"us":false,"hc":0,"fl":false,"th":true,"tb":true,"bc":{"v":145000,"t":0.0156,"i":136,"h":256},"bh":{"v":194000,"t":0.0156,"i":167},"ss":0.726,"cp":false,"ra":{"r":1050},"rh":{"r":1800}},{"id":"394908","n":"New Haven, CT","rank":68,"o":93,"us":false,"hc":0,"fl":false,"th":false,"tb":false,"bc":{"v":275000,"t":0.0203,"i":54,"h":401},"bh":{"v":437000,"t":0.0187,"i":201},"ss":0.624,"cp":false,"ra":{"r":1950},"rh":{"r":2900}},{"id":"394561","n":"El Paso, TX","rank":69,"o":72,"us":false,"hc":0,"fl":false,"th":true,"tb":true,"bc":{"v":177000,"t":0.017,"i":96,"h":278},"bh":{"v":235000,"t":0.017,"i":139},"ss":0.772,"cp":false,"ra":{"r":1200},"rh":{"r":1800}},{"id":"394318","n":"Allentown, PA","rank":70,"o":64,"us":false,"hc":0,"fl":false,"th":true,"tb":false,"bc":{"v":311000,"t":0.0184,"i":53,"h":347},"bh":{"v":368000,"t":0.0155,"i":118},"ss":0.774,"cp":false,"ra":{"r":1700},"rh":{"r":2300}},{"id":"394952","n":"Oxnard, CA","rank":71,"o":80,"us":false,"hc":2,"fl":false,"th":false,"tb":false,"bc":{"v":571000,"t":0.0083,"i":82,"h":465},"bh":{"v":909000,"t":0.0069,"i":195},"ss":0.495,"cp":false,"ra":{"r":2700},"rh":{"r":4100}},{"id":"394486","n":"Columbia, SC","rank":72,"o":65,"us":false,"hc":0,"fl":false,"th":true,"tb":true,"bc":{"v":167000,"t":0.0051,"i":79,"h":271},"bh":{"v":258000,"t":0.0051,"i":138},"ss":0.814,"cp":false,"ra":{"r":1400},"rh":{"r":1800}},{"id":"753906","n":"North Port, FL","rank":73,"o":58,"us":false,"hc":2,"fl":true,"th":false,"tb":false,"bc":{"v":282000,"t":0.0073,"i":147,"h":623},"bh":{"v":421000,"t":0.0071,"i":282},"ss":0.595,"cp":false,"ra":{"r":1850},"rh":{"r":2550}},{"id":"394457","n":"Charleston, SC","rank":75,"o":67,"us":false,"hc":0,"fl":false,"th":false,"tb":false,"bc":{"v":409000,"t":0.0042,"i":109,"h":372},"bh":{"v":433000,"t":0.0045,"i":220},"ss":0.67,"cp":false,"ra":{"r":1900},"rh":{"r":2600}},{"id":"394648","n":"Greensboro, NC","rank":76,"o":70,"us":false,"hc":0,"fl":false,"th":false,"tb":false,"bc":{"v":166000,"t":0.0087,"i":74,"h":227},"bh":{"v":269000,"t":0.0075,"i":126},"ss":0.8,"cp":false,"ra":{"r":1250},"rh":{"r":1800}},{"id":"395134","n":"Stockton, CA","rank":77,"o":90,"us":false,"hc":2,"fl":false,"th":true,"tb":true,"bc":{"v":257000,"t":0.0074,"i":66,"h":326},"bh":{"v":530000,"t":0.0074,"i":137},"ss":0.637,"cp":false,"ra":{"r":2000},"rh":{"r":2850}},{"id":"394440","n":"Cape Coral, FL","rank":78,"o":69,"us":false,"hc":2,"fl":true,"th":false,"tb":false,"bc":{"v":265000,"t":0.0072,"i":146,"h":637},"bh":{"v":351000,"t":0.0075,"i":322},"ss":0.662,"cp":false,"ra":{"r":1650},"rh":{"r":2150}},{"id":"394399","n":"Boise City, ID","rank":79,"o":74,"us":false,"hc":0,"fl":false,"th":true,"tb":true,"bc":{"v":338000,"t":0.005,"i":71,"h":365},"bh":{"v":495000,"t":0.005,"i":113},"ss":0.614,"cp":false,"ra":{"r":1650},"rh":{"r":2300}},{"id":"394484","n":"Colorado Springs, CO","rank":80,"o":75,"us":false,"hc":0,"fl":false,"th":true,"tb":false,"bc":{"v":245000,"t":0.004,"i":96,"h":309},"bh":{"v":455000,"t":0.0044,"i":266},"ss":0.762,"cp":false,"ra":{"r":1550},"rh":{"r":2350}},{"id":"394798","n":"Little Rock, AR","rank":81,"o":71,"us":false,"hc":0,"fl":false,"th":true,"tb":true,"bc":{"v":169000,"t":0.0062,"i":84,"h":273},"bh":{"v":232000,"t":0.0062,"i":176},"ss":0.803,"cp":false,"ra":{"r":1100},"rh":{"r":1450}},{"id":"394766","n":"Lakeland, FL","rank":82,"o":81,"us":false,"hc":2,"fl":true,"th":true,"tb":false,"bc":{"v":143000,"t":0.0067,"i":128,"h":416},"bh":{"v":299000,"t":0.007,"i":213},"ss":0.791,"cp":false,"ra":{"r":1600},"rh":{"r":2100}},{"id":"394304","n":"Akron, OH","rank":83,"o":76,"us":false,"hc":0,"fl":false,"th":false,"tb":false,"bc":{"v":230000,"t":0.0147,"i":63,"h":320},"bh":{"v":244000,"t":0.0144,"i":123},"ss":0.786,"cp":false,"ra":{"r":1100},"rh":{"r":1500}},{"id":"394531","n":"Des Moines, IA","rank":84,"o":77,"us":false,"hc":0,"fl":false,"th":false,"tb":false,"bc":{"v":190000,"t":0.0158,"i":62,"h":233},"bh":{"v":303000,"t":0.0153,"i":165},"ss":0.759,"cp":false,"ra":{"r":1200},"rh":{"r":1750}},{"id":"395115","n":"Springfield, MA","rank":85,"o":97,"us":false,"hc":0,"fl":false,"th":false,"tb":false,"bc":{"v":279000,"t":0.0121,"i":53,"h":344},"bh":{"v":383000,"t":0.0139,"i":138},"ss":0.711,"cp":false,"ra":{"r":1800},"rh":{"r":2800}},{"id":"394931","n":"Ogden, UT","rank":87,"o":95,"us":false,"hc":0,"fl":false,"th":true,"tb":false,"bc":{"v":365000,"t":0.0053,"i":48,"h":220},"bh":{"v":520000,"t":0.0052,"i":119},"ss":0.683,"cp":false,"ra":{"r":1450},"rh":{"r":2300}},{"id":"394816","n":"Madison, WI","rank":88,"o":73,"us":false,"hc":0,"fl":false,"th":false,"tb":false,"bc":{"v":307000,"t":0.0163,"i":45,"h":297},"bh":{"v":469000,"t":0.0152,"i":135},"ss":0.501,"cp":false,"ra":{"r":1600},"rh":{"r":2550}},{"id":"395235","n":"Winston, NC","rank":89,"o":82,"us":false,"hc":0,"fl":false,"th":true,"tb":true,"bc":{"v":162000,"t":0.0069,"i":89,"h":268},"bh":{"v":284000,"t":0.0069,"i":132},"ss":0.818,"cp":false,"ra":{"r":1250},"rh":{"r":1850}},{"id":"394528","n":"Deltona, FL","rank":90,"o":78,"us":false,"hc":2,"fl":true,"th":false,"tb":false,"bc":{"v":292000,"t":0.0077,"i":117,"h":651},"bh":{"v":334000,"t":0.0072,"i":226},"ss":0.748,"cp":false,"ra":{"r":1600},"rh":{"r":2150}},{"id":"395143","n":"Syracuse, NY","rank":91,"o":83,"us":false,"hc":0,"fl":false,"th":true,"tb":true,"bc":{"v":270000,"t":0.0222,"i":63,"h":332},"bh":{"v":271000,"t":0.0222,"i":107},"ss":0.849,"cp":false,"ra":{"r":1450},"rh":{"r":2300}},{"id":"395006","n":"Provo, UT","rank":92,"o":96,"us":false,"hc":0,"fl":false,"th":false,"tb":false,"bc":{"v":319000,"t":0.0048,"i":40,"h":227},"bh":{"v":557000,"t":0.0046,"i":128},"ss":0.553,"cp":false,"ra":{"r":1550},"rh":{"r":2300}},{"id":"395160","n":"Toledo, OH","rank":93,"o":85,"us":false,"hc":0,"fl":false,"th":false,"tb":false,"bc":{"v":215000,"t":0.0137,"i":66,"h":235},"bh":{"v":204000,"t":0.0152,"i":122},"ss":0.734,"cp":false,"ra":{"r":1150},"rh":{"r":1350}},{"id":"395224","n":"Wichita, KS","rank":94,"o":86,"us":false,"hc":0,"fl":false,"th":true,"tb":true,"bc":{"v":154000,"t":0.0129,"i":59,"h":262},"bh":{"v":225000,"t":0.0129,"i":235},"ss":0.844,"cp":false,"ra":{"r":1000},"rh":{"r":1400}},{"id":"394549","n":"Durham, NC","rank":95,"o":88,"us":false,"hc":0,"fl":false,"th":true,"tb":false,"bc":{"v":278000,"t":0.0082,"i":79,"h":273},"bh":{"v":410000,"t":0.0074,"i":160},"ss":0.721,"cp":false,"ra":{"r":1500},"rh":{"r":2150}},{"id":"394352","n":"Augusta, GA","rank":96,"o":94,"us":false,"hc":0,"fl":false,"th":true,"tb":true,"bc":{"v":197000,"t":0.0067,"i":85,"h":291},"bh":{"v":254000,"t":0.0067,"i":150},"ss":0.831,"cp":false,"ra":{"r":1350},"rh":{"r":1650}},{"id":"394957","n":"Palm Bay, FL","rank":97,"o":87,"us":false,"hc":2,"fl":true,"th":false,"tb":false,"bc":{"v":240000,"t":0.0072,"i":142,"h":586},"bh":{"v":352000,"t":0.0068,"i":314},"ss":0.707,"cp":false,"ra":{"r":1650},"rh":{"r":2250}},{"id":"394711","n":"Jackson, MS","rank":98,"o":91,"us":false,"hc":0,"fl":false,"th":true,"tb":true,"bc":{"v":202000,"t":0.0057,"i":93,"h":294},"bh":{"v":214000,"t":0.0057,"i":197},"ss":0.814,"cp":false,"ra":{"r":1450},"rh":{"r":1650}},{"id":"394666","n":"Harrisburg, PA","rank":99,"o":89,"us":false,"hc":0,"fl":false,"th":true,"tb":true,"bc":{"v":232000,"t":0.0126,"i":61,"h":312},"bh":{"v":314000,"t":0.0126,"i":113},"ss":0.736,"cp":false,"ra":{"r":1350},"rh":{"r":1900}},{"id":"395113","n":"Spokane, WA","rank":100,"o":92,"us":false,"hc":0,"fl":false,"th":true,"tb":true,"bc":{"v":255000,"t":0.0082,"i":71,"h":324},"bh":{"v":422000,"t":0.0082,"i":131},"ss":0.714,"cp":false,"ra":{"r":1400},"rh":{"r":2200}}];
 const META = {"valuesMonth":"2026-08","built":"2026-10-08"};
-const DEF = {"optionA":"buy_condo","optionB":"rent_apartment","stay":11,"stayMin":1,"stayMax":30,"beHorizon":60,"down":10,"term":360,"app":3,"rgApartment":3,"rgHouse":3,"ret":7,"cgt":15,"downUse":"save","diffUse":"spend","accountRetirement":false,"cgtRetirement":0,"savYield":0.5,"savRegRef":0.37,"savHysaRef":4.2,"closing":2.5,"selling":6,"agent":0,"points":0,"assessUsd":0,"assessYear":1,"condoAdd":0,"costFloor":2.3,"maintCondo":0.9,"maintSfr":1.43,"maintCapSfr":6368,"maintUsTypicalUsd":3185,"ssUs":0.601,"insG":5,"hoaG":4,"costSwitch":5,"hoaIdx":4.37,"flX":4.5,"flFrom":2022,"pmiEdges":[85,90,95],"pmiRates":[0.2,0.38,0.53,0.7],"pmiBelow":20,"pmiCancel":78,"pmiFinal":180,"renters":1,"cpi":2.3,"wash":5000,"washPct":2,"round":5000,"startYear":2026,"exclSingle":250000,"exclJoint":500000,"exclMinYears":2};
-const FALLBACK_RATE = {"rate":7.28,"week":"2026-10-01","source":"Freddie Mac PMMS via FRED"};
+const DEF = {"optionA":"buy_condo","optionB":"rent_apartment","stay":11,"stayMin":1,"stayMax":30,"beHorizon":60,"down":10,"term":30,"app":3,"rgApartment":3,"rgHouse":3,"ret":7,"cgt":15,"downUse":"save","diffUse":"spend","accountRetirement":false,"cgtRetirement":0,"savYield":0.5,"savRegRef":0.37,"savHysaRef":4.2,"closing":2,"selling":6,"agent":0,"points":0,"assessUsd":0,"assessYear":1,"condoAdd":0,"costFloor":2.3,"maintCondo":0.9,"maintSfr":1.43,"maintCapSfr":6368,"maintUsTypicalUsd":3185,"ssUs":0.601,"insG":5,"hoaG":4,"costSwitch":5,"hoaIdx":4.37,"flX":4.5,"flFrom":2022,"pmiEdges":[85,90,95],"pmiRates":[0.2,0.38,0.53,0.7],"pmiRates15":[0.16,0.21,0.39,0.53],"pmiBelow":20,"pmiCancel":78,"pmiFinal":180,"pmiFinal15":90,"rentMoveIn":0,"rentFees":0,"rentersUsd":14.25,"rentersPct":0,"cpi":2.3,"wash":5000,"washPct":2,"round":5000,"startYear":2026,"exclSingle":250000,"exclJoint":500000,"exclMinYears":2};
+const FALLBACK_RATE = {"rate":7.28,"rate15":6.6,"week":"2026-10-01","source":"Freddie Mac PMMS via FRED"};
 
 // Live-rate file. The weekly refresh is staged but NOT active, so the rate
 // and its label stay the build-week reading until LIVE_RATE_ACTIVE is set
@@ -1465,11 +1705,13 @@ const LIVE_RATE_ACTIVE = false;
 // runs this block under Node for every metro, every ordered pair of options
 // and every control setting, and requires it to match R to the cent ($0.005).
 // x (simulatePair): a, b = { option, price, rent, taxPct, ins, hoa, maintPct,
-//    structShare, maintCap, app[3], rg[3], rateAddPct, assessUsd, assessYear },
+//    structShare, maintCap, app[3], rg[3], rateAddPct, assessUsd, assessYear,
+//    moveInUsd, feesUsd, downPct, pmiPct },  (downPct / pmiPct: this
+//    option's down-payment share and PMI rate, per option since edit list 5)
 //    (app / rg: years 1, 2 and 3 on; since 2026-10-08 the page passes one
 //    flat rate to all three, as R's make_cases() does)
-//    plus the shared downPct, ratePct, term, closingPct, sellingPct, insGPct,
-//    hoaGPct, costSwitch, pmiPct, pmiBelowPct, pmiCancelPct, pmiFinalMonth,
+//    plus the shared ratePct, term, closingPct, sellingPct, insGPct,
+//    hoaGPct, costSwitch, pmiBelowPct, pmiCancelPct, pmiFinalMonth, rentersUsd, rinsGPct,
 //    rentersPct, agentPct, pointsPct, costFloorPct, maintCapGPct and the
 //    choices retPct,
 //    cgtDownPct, cgtDiffPct, savPct, investDown, spendDown,
@@ -1505,41 +1747,57 @@ const LIVE_RATE_ACTIVE = false;
 // spent are not added: they are already counted in the cheaper option's
 // lower costs (paid_A - paid_B = freedTotal_B - freedTotal_A).
 // gap = net A - net B.
+// Edit list 4 (Houston, 2026-10-08), as in the R engine: the term (p.term,
+// months) is 360 or 180 (a 15-year fixed); P&I amortizes over it and is $0
+// after payoff, and the caller sets pmiFinalMonth to that term's midpoint.
+// A rental's moveInUsd (move-in costs not recovered) is paid at t = 0 and its
+// feesUsd (other monthly rental fees) steps with its rent at each renewal;
+// both are costs (lost), and both are 0 by default.
 const OPTION_TYPE = { buy_condo: "buy", buy_house: "buy", rent_apartment: "rent", rent_house: "rent" };
 // PMI band (pass 2): edges = LTV edges [85, 90, 95], rates = the four band
 // rates, lowest LTV first; LTV = 100 - down payment %.
-function pmiBand(downPct, edges, rates){
+// Edit list 7 (2026-10-08): the term's grid, as pmi_band_rate() in R: term
+// (months) over 240 -> rates (the card's > 20-year grid), else rates15 (its
+// <= 20-year grid).
+function pmiBand(downPct, term, edges, rates, rates15){
   const ltv = 100 - downPct;
+  rates = term <= 240 ? rates15 : rates;
   return ltv <= edges[0] ? rates[0] : (ltv <= edges[1] ? rates[1] : (ltv <= edges[2] ? rates[2] : rates[3]));
 }
 function simOption(o, p, years){
   if (!OPTION_TYPE[o.option]) throw new Error("Unknown option type: " + o.option);
   const M = 12 * years, isBuy = OPTION_TYPE[o.option] === "buy";
   const P = isBuy ? o.price : 0, R1 = isBuy ? 0 : o.rent;
+  const F1 = isBuy ? 0 : o.feesUsd;                                     // other monthly rental fees, year 1
+  const mvi = isBuy ? 0 : o.moveInUsd;                                  // move-in costs not recovered (t = 0)
   const tau = isBuy ? o.taxPct : 0, ins1 = isBuy ? o.ins : 0, hoa1 = isBuy ? o.hoa : 0, mu = isBuy ? o.maintPct : 0;
   const ss = isBuy ? o.structShare : 0;                                 // structure share of value
   const mcap = isBuy && o.maintCap > 0 ? o.maintCap : Infinity;         // yearly cap, start-year $ (0 = none)
   const asx = isBuy ? o.assessUsd : 0, asm = 12 * (o.assessYear - 1) + 1;   // month the assessment is paid
-  const d = p.downPct / 100, L = P * (1 - d), r = (p.ratePct + (isBuy ? o.rateAddPct : 0)) / 1200;
-  const pmt0 = r === 0 ? L / p.term : L * r / (1 - Math.pow(1 + r, -p.term));
-  const pmiOn = p.downPct < p.pmiBelowPct;
+  const d = o.downPct / 100, L = P * (1 - d), r = (p.ratePct + (isBuy ? o.rateAddPct : 0)) / 1200;
+  const term = p.term;                                                  // loan term, months: 360 or 180 (edit list 4)
+  const pmt0 = r === 0 ? L / term : L * r / (1 - Math.pow(1 + r, -term));
+  const pmiOn = o.downPct < p.pmiBelowPct;
   const cb = p.closingPct / 100 * P;
   const agent = p.agentPct / 100 * P, pts = p.pointsPct / 100 * L;     // paid at closing
   const lr = Math.max(o.app[2], p.costFloorPct);                       // long-run cost growth (floored)
   let V = P, B = L;
-  const t0 = d * P + cb + agent + pts;
+  const t0 = d * P + cb + agent + pts + mvi;
   const cost = new Float64Array(M);
-  const s = { int: 0, prin: 0, pmi: 0, tax: 0, ins: 0, hoa: 0, maint: 0, assess: 0, own: 0, rent: 0, rins: 0, cost: 0 };
-  let rentY = R1, pmiLast = 0, month1 = null;
+  const s = { int: 0, prin: 0, pmi: 0, tax: 0, ins: 0, hoa: 0, maint: 0, assess: 0, own: 0, rent: 0, rins: 0, fees: 0, cost: 0 };
+  let rentY = R1, feeY = F1, pmiLast = 0, month1 = null;
+  let rinsU = isBuy ? 0 : p.rentersUsd;                                 // renters insurance, $/mo in year 1 (edit list 9)
   const out = [];
   for (let m = 1; m <= M; m++){
     const y = Math.floor((m - 1) / 12) + 1;
     if (m > 1 && (m - 1) % 12 === 0){              // lease renewal at the start of year y
       const h = y - 1 === 1 ? o.rg[0] : (y - 1 === 2 ? o.rg[1] : o.rg[2]);
       rentY = rentY * (1 + h / 100);
+      feeY = feeY * (1 + h / 100);                 // rental fees step with the rent
+      rinsU = rinsU * (1 + p.rinsGPct / 100);      // renters insurance steps at CPI (edit list 9)
     }
     const g = y === 1 ? o.app[0] : (y === 2 ? o.app[1] : o.app[2]);
-    const paying = m <= p.term;                    // loan still amortizing this month
+    const paying = m <= term;                      // loan still amortizing this month
     const pmt = paying ? pmt0 : 0;
     const tax = tau / 100 * V / 12;
     // maintenance on the structure value, capped (pass 2): the cap rises at
@@ -1547,31 +1805,31 @@ function simOption(o, p, years){
     const mnt = Math.min(mu / 100 * ss * V, mcap * Math.pow(1 + p.maintCapGPct / 100, y - 1)) / 12;
     const int = paying ? B * r : 0;
     const prin = pmt - int;
-    const pmi = (pmiOn && paying && B > p.pmiCancelPct / 100 * P && m <= p.pmiFinalMonth) ? p.pmiPct / 100 * L / 12 : 0;
+    const pmi = (pmiOn && paying && B > p.pmiCancelPct / 100 * P && m <= p.pmiFinalMonth) ? o.pmiPct / 100 * L / 12 : 0;
     if (pmi > 0) pmiLast = m;
     B = B - prin;
-    if (m === p.term) B = 0;                       // final payment: clear floating-point residue
+    if (m === term) B = 0;                         // final payment: clear floating-point residue
     V = V * Math.pow(1 + g / 100, 1 / 12);
     const kNear = Math.min(y - 1, p.costSwitch), kLong = Math.max(0, y - 1 - p.costSwitch);
     const insM = ins1 * Math.pow(1 + p.insGPct / 100, kNear) * Math.pow(1 + lr / 100, kLong);
     const hoaM = hoa1 * Math.pow(1 + p.hoaGPct / 100, kNear) * Math.pow(1 + lr / 100, kLong);
     const asmt = m === asm ? asx : 0;              // one-time special assessment
     const own = pmt + pmi + tax + insM + hoaM + mnt + asmt;
-    const rins = rentY * p.rentersPct / 100;
-    const rc = rentY + rins;
+    const rins = rentY * p.rentersPct / 100 + rinsU;   // legacy share of rent (0) + dollars
+    const rc = rentY + rins + feeY;
     const cst = isBuy ? own : rc;                  // this option's outflow this month
     cost[m - 1] = cst;
     s.int += int; s.prin += prin; s.pmi += pmi; s.tax += tax; s.ins += insM; s.hoa += hoaM;
-    s.maint += mnt; s.assess += asmt; s.own += own; s.rent += rentY; s.rins += rins; s.cost += cst;
+    s.maint += mnt; s.assess += asmt; s.own += own; s.rent += rentY; s.rins += rins; s.fees += feeY; s.cost += cst;
     if (m === 1) month1 = { pi: pmt, pmi: pmi, tax: tax, ins: insM, hoa: hoaM, maint: mnt, assess: asmt, own: own,
-                            rent: rentY, rins: rins, cost: cst };
+                            rent: rentY, rins: rins, fees: feeY, cost: cst };
     if (m % 12 === 0){
       const sell = p.sellingPct / 100 * V;
-      const lost = isBuy ? s.int + s.pmi + s.tax + s.ins + s.hoa + s.maint + s.assess + cb + agent + pts : s.rent + s.rins;
+      const lost = isBuy ? s.int + s.pmi + s.tax + s.ins + s.hoa + s.maint + s.assess + cb + agent + pts : s.rent + s.rins + s.fees + mvi;
       out.push({ year: y, value: V, balance: B, selling: sell, equity: V - B, equityNet: V - B - sell,
-                 down: d * P, closing: cb, agent: agent, points: pts, t0: t0, putIn: d * P + s.prin, appreciation: V - P,
+                 down: d * P, closing: cb, agent: agent, points: pts, moveIn: mvi, t0: t0, putIn: d * P + s.prin, appreciation: V - P,
                  interest: s.int, principal: s.prin, pmi: s.pmi, tax: s.tax, ins: s.ins, hoa: s.hoa,
-                 maint: s.maint, assess: s.assess, own: s.own, rent: s.rent, rins: s.rins, costCum: s.cost,
+                 maint: s.maint, assess: s.assess, own: s.own, rent: s.rent, rins: s.rins, fees: s.fees, costCum: s.cost,
                  paid: t0 + s.cost, lost: lost, insY: insM, hoaY: hoaM, rentLast: rentY,
                  pmiLastMonth: pmiLast });
     }
@@ -1736,11 +1994,18 @@ const SLOT_FIELDS = {
   // rate on the purchase price in readInputs()
   taxusd: { min: 0,  max: 1e7, zeroOk: true,  fmt: fmtMoney, for: "buy", unit: "usd" },
   assess: { min: 0,  max: 1e8, zeroOk: true,  fmt: fmtMoney, for: "buy" },
-  assessyr: { min: 1, max: 30, zeroOk: false, fmt: fmtPlain, for: "buy", int: true }
+  assessyr: { min: 1, max: 30, zeroOk: false, fmt: fmtPlain, for: "buy", int: true },
+  // renter-side costs (edit list 4, 2026-10-08): move-in costs not recovered
+  // ($, one-time) and other monthly rental fees ($/mo), rentals only
+  movein: { min: 0,  max: 1e7, zeroOk: true,  fmt: fmtMoney, for: "rent" },
+  fees:   { min: 0,  max: 1e5, zeroOk: true,  fmt: fmtMoney, for: "rent" }
 };
 SLOT_FIELDS.tax.unit = "pct";
 const FIELDS = {
-  down:    { id: "in-down",    min: 0,   max: 100, zeroOk: true,  fmt: fmtPlain },
+  down:    { id: "in-down",    min: 0,   max: 100, zeroOk: true,  fmt: fmtPlain, dunit: "pct" },
+  // the down payment in dollars (edit list 5), read instead of `down` in $
+  // mode (S.downUnit); readInputs() also rejects an amount at or above a price
+  downusd: { id: "in-downusd", min: 0,   max: 1e9, zeroOk: true,  fmt: fmtMoney, dunit: "usd" },
   rate:    { id: "in-rate",    min: 0,   max: 30,  zeroOk: true,  fmt: fmt2 },
   years:   { id: "in-years",   min: 1,   max: 30,  zeroOk: false, fmt: fmtPlain, int: true },
   ret:     { id: "in-ret",     min: -30, max: 30,  zeroOk: true,  fmt: fmtPlain, neg: true },
@@ -1771,6 +2036,7 @@ function fieldApplies(k){
   const f = FIELDS[k];
   if (f.slot) return slotUses(f.slot, f.for) && (!f.unit || S.taxUnit[f.slot] === f.unit);
   if (f.pairFor === "condo") return pairHasCondo();
+  if (f.dunit) return S.downUnit === f.dunit;
   return true;
 }
 function setField(key, v){
@@ -1791,7 +2057,12 @@ const S = {
   downUse: "spend", diffUse: "spend", // "spend" | "save" | "invest" (set from DEF at load; never "cash", see pageUse())
   account: "brokerage",               // "brokerage" | "retirement" (Retirement: the invested monthly cost difference untaxed)
   taxUnit: { a: "pct", b: "pct" },    // property tax entered as "pct" (% of value) or "usd" ($ a year), per slot
-  rate: null,          // { rate, week, status: "pending" | "live" | "fallback" }
+  term: 30,            // loan term in years: 30 or 15 (edit list 4; set from DEF.term at load)
+  downUnit: "pct",     // down payment entered as "pct" or "usd" (edit list 5)
+  matchLock: null,     // "a" | "b": that slot's price or rent is matched live (edit list 8)
+  lockMsg: null,       // the lock's current message { why, amt } ("Can't match" / "Closest"), null when it matches
+  downConv: null,      // the last % -> $ conversion { pct, usd, price }, so $ -> % can restore the exact %
+  rate: null,          // { rate (30-year), rate15, week, status: "pending" | "live" | "fallback" }
   rateEdited: false,   // the reader typed a rate: the live fetch must not overwrite it
   pmiEdited: false,    // the reader typed a PMI rate: it stops following the down payment's band (pass 2)
   built: false
@@ -1812,7 +2083,7 @@ function metroDefaults(m, o){
 function optionDefaults(o){
   if (o === "buy_condo") return { maint: DEF.maintCondo, app: DEF.app, assess: DEF.assessUsd, assessyr: DEF.assessYear };
   if (o === "buy_house") return { maint: DEF.maintSfr, app: DEF.app, assess: DEF.assessUsd, assessyr: DEF.assessYear };
-  return { rg: o === "rent_apartment" ? DEF.rgApartment : DEF.rgHouse };
+  return { rg: o === "rent_apartment" ? DEF.rgApartment : DEF.rgHouse, movein: DEF.rentMoveIn, fees: DEF.rentFees };
 }
 // One slot: scope "metro" = the metro's price/rent, tax, insurance and HOA;
 // scope "option" = those plus the option-level defaults.
@@ -1837,19 +2108,91 @@ function applyDefaults(scope){
     setField("agent", DEF.agent); setField("points", DEF.points); setField("condoadd", DEF.condoAdd);
     setField("insg", DEF.insG); setField("hoag", DEF.hoaG);
     setField("pmi", defaultPmi(DEF.down)); S.pmiEdited = false;
-    setField("rate", S.rate.rate); S.rateEdited = false;
+    S.term = DEF.term;                                  // Reset returns to the 30-year term
+    S.downUnit = "pct"; S.downConv = null;              // ... and to the down payment in % (edit list 5)
+    $("in-budget").value = "";                          // ... and clears the optional budget (edit list 6)
+    unlockMatch();                                      // ... and ends a live match (edit list 8)
+    syncPmiToDown();                                    // PMI from the 30-year grid again (edit list 7)
+    setField("rate", termRate(S.term)); S.rateEdited = false;
   }
+}
+
+// Loan term (edit list 4, 2026-10-08): 30- or 15-year fixed. termRate() is
+// that term's PMMS default (S.rate: the build-week reading, or the live file
+// once it is active). Switching the term moves the rate field to the new
+// term's default when the field still holds the old term's default (or the
+// reader never typed a rate); a rate the reader typed stays.
+const TERMS = [30, 15];
+function termRate(t){ return t === 15 ? S.rate.rate15 : S.rate.rate; }
+function setTerm(t){
+  if (TERMS.indexOf(t) < 0 || t === S.term) return;
+  const cur = readField("rate"), old = termRate(S.term);
+  S.term = t;
+  if (!S.rateEdited || (isFinite(cur) && Math.abs(cur - old) < 1e-9)){ setField("rate", termRate(t)); S.rateEdited = false; }
+  syncPmiToDown();                 // the PMI field follows the new term's grid unless typed (edit list 7)
 }
 
 // PMI default (pass 2, 2026-10-07): the Enact band rate for the down
 // payment (pmiBand(), MATH block). The PMI field follows the down payment
 // until the reader types in it (S.pmiEdited); from then the typed rate
 // sticks until Reset.
-function defaultPmi(down){ return pmiBand(down, DEF.pmiEdges, DEF.pmiRates); }
+function defaultPmi(down){ return pmiBand(down, 12 * S.term, DEF.pmiEdges, DEF.pmiRates, DEF.pmiRates15); }   // the term's grid (edit list 7)
 function syncPmiToDown(){
   if (S.pmiEdited) return;
-  const d = readField("down");
+  const d = refDownPct();
   if (isFinite(d)) setField("pmi", defaultPmi(d));
+}
+
+// Down payment in dollars (Houston, edit list 5, 2026-10-08). In $ mode one
+// dollar amount applies to every purchase in the pair, so each purchase's
+// share is dollars / its own price (two purchases: two shares, each with
+// its own PMI band unless the reader typed a PMI rate). The reference
+// purchase (the PMI field's band, the % <-> $ conversion) is option A if it
+// is a purchase, else B.
+function buySlots(){ return ["a", "b"].filter(function(sl){ return isBuy(sl === "a" ? S.optA : S.optB); }); }
+function refSlot(){ return buySlots()[0]; }
+// Each purchase slot's down share (% of its price); NaN if not valid. In $
+// mode an amount at or above the price is not valid.
+function downShares(){
+  const out = {};
+  buySlots().forEach(function(sl){
+    if (S.downUnit === "pct"){ out[sl] = readField("down"); return; }
+    const u = readField("downusd"), p = readField(sl + "_price");
+    out[sl] = isFinite(u) && isFinite(p) && p > 0 && u < p ? u / p * 100 : NaN;
+  });
+  return out;
+}
+function refDownPct(){ return downShares()[refSlot()]; }
+// % -> $: the reference price x the share, to the nearest $1,000 (the
+// prices are prefilled to the nearest $1,000), or the nearest $100 under
+// $5,000 so a small down payment doesn't round to $0 or double. $ -> %:
+// the exact % the reader had if neither the dollars nor the reference price
+// changed since, else dollars / price to two decimals.
+function roundDownUsd(v){ return v < 5000 ? Math.round(v / 100) * 100 : Math.round(v / 1000) * 1000; }
+function setDownUnit(u){
+  if (S.downUnit === u) return;
+  const price = readField(refSlot() + "_price");
+  if (u === "usd"){
+    const d = readField("down");
+    if (isFinite(d) && isFinite(price)){ const usd = roundDownUsd(d / 100 * price); setField("downusd", usd); S.downConv = { pct: d, usd: usd, price: price }; }
+  } else {
+    const usd = readField("downusd"), c = S.downConv;
+    if (c && usd === c.usd && price === c.price) setField("down", c.pct);
+    else if (isFinite(usd) && isFinite(price) && price > 0) setField("down", Math.min(100, Math.round(usd / price * 1e4) / 100));
+  }
+  S.downUnit = u;
+  syncPmiToDown();
+}
+// One decimal for the share line, the chip and the print list.
+function pct1(v){ return (Math.round(v * 10) / 10).toFixed(1); }
+// "11.6% of the condo price" / "9.0% condo · 6.6% house" (fill keys for the
+// chip and print variants too); null when not valid.
+function downShareVars(){
+  const sh = downShares(), sl = buySlots();
+  const nm = function(s){ return optCopy(s === "a" ? S.optA : S.optB).noun; };
+  if (sl.some(function(s){ return !isFinite(sh[s]); })) return null;
+  return sl.length === 1 ? { two: false, v: pct1(sh[sl[0]]), noun: nm(sl[0]) }
+    : { two: true, v1: pct1(sh.a), n1: nm("a"), v2: pct1(sh.b), n2: nm("b") };
 }
 
 // Account (Houston, 2026-10-07; revised 2026-10-07). Retirement applies to
@@ -1901,7 +2244,12 @@ function readInputs(){
     el.parentNode.classList.toggle("bad", !isFinite(v[k]));
     if (!isFinite(v[k])) bad.push(k);
   });
-  const mt = metroById(S.metroId);
+  // a dollar down payment at or above a purchase's price is not valid (edit list 5)
+  if (S.downUnit === "usd" && isFinite(v.downusd) && buySlots().some(function(sl){
+        const p = v[sl + "_price"]; return isFinite(p) && v.downusd >= p; })){
+    $("in-downusd").parentNode.classList.add("bad"); bad.push("downusd");
+  }
+  const mt = metroById(S.metroId), shares = downShares(), ref = shares[refSlot()];
   const opt = function(sl){
     const o = sl === "a" ? S.optA : S.optB, g = function(k){ return fieldApplies(sl + "_" + k) ? v[sl + "_" + k] : 0; };
     // Property tax entered in dollars (2026-10-07) becomes a rate on the
@@ -1917,15 +2265,27 @@ function readInputs(){
              // page's single box fills all three (edit list 3, 2026-10-08)
              app: [g("app"), g("app"), g("app")], rg: [g("rg"), g("rg"), g("rg")],
              rateAddPct: o === "buy_condo" ? v.condoadd : 0,          // the condo add-on, condo purchases only
-             assessUsd: g("assess"), assessYear: isBuy(o) ? v[sl + "_assessyr"] : 1 };
+             assessUsd: g("assess"), assessYear: isBuy(o) ? v[sl + "_assessyr"] : 1,
+             // renter-side costs (edit list 4): a rental's, else 0
+             moveInUsd: g("movein"), feesUsd: g("fees"),
+             // this option's down share and PMI rate (edit list 5): its own
+             // share of its price in $ mode (a rental: the reference share,
+             // unused); a typed PMI rate (or % mode, where the field follows
+             // the one share) applies to both, else its own share's band
+             downPct: isBuy(o) ? shares[sl] : ref,
+             pmiPct: S.pmiEdited || S.downUnit === "pct" || !isBuy(o) ? v.pmi : defaultPmi(shares[sl]) };
   };
   const x = {
     a: opt("a"), b: opt("b"),
-    downPct: v.down, ratePct: v.rate, term: DEF.term,
+    // the term in months, and PMI's final month at that term's midpoint (edit list 4)
+    downRefPct: ref,    // the reference purchase's share (display only; the engine reads a.downPct / b.downPct)
+    ratePct: v.rate, term: 12 * S.term,
     closingPct: v.closing, sellingPct: v.selling, insGPct: v.insg,
     hoaGPct: v.hoag,    // every allowed pair has a purchase, and any purchase can carry an HOA fee
-    costSwitch: DEF.costSwitch, pmiPct: v.pmi, pmiBelowPct: DEF.pmiBelow,
-    pmiCancelPct: DEF.pmiCancel, pmiFinalMonth: DEF.pmiFinal, rentersPct: DEF.renters,
+    costSwitch: DEF.costSwitch, pmiBelowPct: DEF.pmiBelow,
+    pmiCancelPct: DEF.pmiCancel, pmiFinalMonth: S.term === 15 ? DEF.pmiFinal15 : DEF.pmiFinal,
+    // renters insurance (edit list 9): NAIC dollar premium growing at CPI; the share-of-rent term is 0
+    rentersPct: DEF.rentersPct, rentersUsd: DEF.rentersUsd, rinsGPct: DEF.cpi,
     agentPct: v.agent, pointsPct: v.points, costFloorPct: DEF.costFloor, maintCapGPct: DEF.cpi,
     retPct: v.ret, savPct: v.sav,
     // up-front pot always brokerage; monthly pot at the retirement rate
@@ -1972,7 +2332,7 @@ function syncPairPicker(){
 
 function paintStatic(){
   const m = metroById(S.metroId), dv = defVars();
-  [["down-seg", "use", S.downUse], ["diff-seg", "use", S.diffUse], ["acct-seg", "acct", S.account]].forEach(function(g){
+  [["down-seg", "use", S.downUse], ["diff-seg", "use", S.diffUse], ["acct-seg", "acct", S.account], ["term-seg", "term", String(S.term)]].forEach(function(g){
     document.querySelectorAll("#" + g[0] + " button").forEach(function(b){
       const on = b.dataset[g[1]] === g[2];
       b.classList.toggle("active", on); b.setAttribute("aria-pressed", on ? "true" : "false");
@@ -1987,7 +2347,27 @@ function paintStatic(){
     el.style.background = OPTION_COLOR[el.dataset.sw === "a" ? S.optA : S.optB];
   });
   $("acct-seg").setAttribute("aria-label", COPY.account.label);
+  $("term-seg").setAttribute("aria-label", COPY.term.label);
+  document.querySelectorAll("#term-seg button").forEach(function(b){
+    b.setAttribute("aria-label", COPY.term[b.dataset.term === "15" ? "y15" : "y30"]);
+  });
   const F = COPY.fields;
+  // down payment unit switch, field, label and share line (edit list 5)
+  document.querySelectorAll("#downunit button").forEach(function(b){
+    const on = b.dataset.unit === S.downUnit;
+    b.classList.toggle("active", on); b.setAttribute("aria-pressed", on ? "true" : "false");
+    b.setAttribute("aria-label", b.dataset.unit === "pct" ? F.down.unitPctLabel : F.down.unitUsdLabel);
+  });
+  document.querySelectorAll("#down-ctl [data-downunit]").forEach(function(el){ el.hidden = el.dataset.downunit !== S.downUnit; });
+  $("lab-down").setAttribute("for", S.downUnit === "usd" ? "in-downusd" : "in-down");
+  const dn = $("down-note"), dsv = S.downUnit === "usd" ? downShareVars() : null;
+  if (S.downUnit !== "usd"){ dn.textContent = ""; dn.className = "downnote off"; }
+  else if (dsv){ dn.textContent = fill(dsv.two ? F.down.noteTwo : F.down.noteOne, dsv); dn.className = "downnote"; }
+  else {
+    const u = readField("downusd"), over = buySlots().filter(function(sl){ const p = readField(sl + "_price"); return isFinite(u) && isFinite(p) && u >= p; })[0];
+    dn.textContent = over ? fill(F.down.noteOver, { noun: optCopy(over === "a" ? S.optA : S.optB).noun }) : "";
+    dn.className = "downnote warn";
+  }
   // property tax unit switches and fields
   ["a", "b"].forEach(function(sl){
     document.querySelectorAll("#" + sl + "-taxunit button").forEach(function(b){
@@ -2025,6 +2405,9 @@ function paintStatic(){
     } else {
       $("lab-" + sl + "-rent").textContent = fill(F.rent.label, nv);
       $("lab-" + sl + "-rg").textContent = fill(F.rg.label, nv);
+      $("head-" + sl + "-rcost").textContent = fill(COPY.rentCostHead, nv);
+      $("help-" + sl + "-movein").textContent = F.movein.help;
+      $("help-" + sl + "-fees").textContent = F.fees.help;
     }
   });
   const twoBuys = isBuy(S.optA) && isBuy(S.optB);
@@ -2050,9 +2433,7 @@ function paintStatic(){
   // HOA growth: with one purchase, quote its long-run rate; with two, say "that home's"
   const lrH = twoBuys || !isFinite(lrOne0) ? NaN : lrOne;
   $("help-hoag").textContent = fill(isFinite(lrH) ? F.hoag.help : F.hoag.helpNoRate, Object.assign({ lr: isFinite(lrH) ? pctTxt(lrH) : "" }, gv));
-  $("help-pmi").textContent = fill(F.pmi.help, Object.assign({
-    r1: pctTxt(DEF.pmiRates[0]), r2: pctTxt(DEF.pmiRates[1]), r3: pctTxt(DEF.pmiRates[2]), r4: pctTxt(DEF.pmiRates[3]),
-    d1: pctTxt(100 - DEF.pmiEdges[0]), d2: pctTxt(100 - DEF.pmiEdges[1]), d3: pctTxt(100 - DEF.pmiEdges[2]) }, dv));
+  $("help-pmi").textContent = F.pmi.help;            // edit list 8: fixed text (the field still follows the term's grid)
 
 
   $("swap").setAttribute("aria-label", COPY.pair.swapLabel);
@@ -2074,17 +2455,25 @@ function paintStatic(){
 // Two-column rows. A null cell is "—" (does not apply to that option).
 // Every numeric cell is logged in ROWCHK, so signCheck() can assert that
 // the sign shown matches the sign of the value (review H2, 2026-10-07).
-// ck (optional, edit list 1): [markA, markB], a check mark (with visually
+// ck (optional, edit list 1): [markA, markB], a cash-stack icon (a check mark until edit list 8; with visually
 // hidden "Lower: ") before that column's value; it sits outside the logged
 // text, so the sign check still reads the amount itself.
 let ROWCHK = [];
+// A small stack of cash (edit list 8): three offset banknotes, the front one
+// solid with a centre circle; aria-hidden (the "Lower net cost:" text is for
+// screen readers). Not an emoji, which renders inconsistently and in print.
+const CASH_ICON = '<svg class="ck" viewBox="0 0 20 15" aria-hidden="true" focusable="false">' +
+  '<rect x="5.5" y="0.75" width="13.5" height="8" rx="1.2" fill="#fff" stroke="currentColor" stroke-width="1.3"/>' +
+  '<rect x="3.25" y="3.25" width="13.5" height="8" rx="1.2" fill="#fff" stroke="currentColor" stroke-width="1.3"/>' +
+  '<rect x="1" y="5.75" width="13.5" height="8.5" rx="1.2" fill="currentColor"/>' +
+  '<circle cx="7.75" cy="10" r="2.1" fill="#fff"/></svg>';
 function row2(label, a, b, cls, fmt, ck){
   const f = fmt || money;
   const cell = function(v, mark){
     if (v === null) return esc(COPY.ledger.dash);
     if (typeof v === "string") return esc(v);
     const t = f(v); ROWCHK.push({ label: label, v: v, t: t });
-    return (mark ? '<span class="ck" aria-hidden="true">\u2713</span><span class="sr">' + esc(COPY.ledger.rows.lower) + '</span>' : '') + t;
+    return (mark ? CASH_ICON + '<span class="sr">' + esc(COPY.ledger.rows.lower) + '</span>' : '') + t;
   };
   return '<tr' + (cls ? ' class="' + cls + '"' : '') + '><td>' + esc(label) + '</td><td class="amt">' + cell(a, ck && ck[0]) +
     '</td><td class="amt">' + cell(b, ck && ck[1]) + '</td></tr>';
@@ -2116,9 +2505,14 @@ function signedPct(v){ return (v > 0 ? "+" : (v < 0 ? "−" : "")) + pctTxt(Math
 function paintAssume(x, N){
   const A = COPY.assume, chips = [];
   const useTxt = function(u){ return useWord(A.use, u); };
-  chips.push([fill(A.down, { v: pctTxt(x.downPct) }), "in-down"]);
+  // in $ mode: "$40,000 down (11.6%)", or both shares with two purchases (edit list 5)
+  const dv = S.downUnit === "usd" ? downShareVars() : null;
+  chips.push(dv ? [fill(dv.two ? A.downUsdTwo : A.downUsd, Object.assign({ amt: money(readField("downusd")) }, dv)), "in-downusd"]
+                : [fill(A.down, { v: pctTxt(x.downRefPct) }), "in-down"]);
   const add = x.a.option === "buy_condo" ? x.a.rateAddPct : (x.b.option === "buy_condo" ? x.b.rateAddPct : 0);
-  chips.push([add > 0 ? fill(A.rateAdd, { v: pctTxt(x.ratePct), add: pctTxt(add) }) : fill(A.rate, { v: pctTxt(x.ratePct) }), "in-rate"]);
+  // the rate chip names the term, "15-year fixed at 6.60%" (edit list 4)
+  const tv = { term: x.term / 12, v: fmt2(x.ratePct), add: pctTxt(add) };
+  chips.push([fill(add > 0 ? A.rateAdd : A.rate, tv), "in-rate"]);
   chips.push([fill(A.years, { n: N }), "in-years"]);
   chips.push([fill(A.up, { use: useTxt(S.downUse) }), "down-seg"]);
   chips.push([fill(A.monthly, { use: useTxt(S.diffUse) }), "diff-seg"]);
@@ -2146,11 +2540,195 @@ function jumpTo(id){
   setTimeout(function(){ ctl.classList.remove("flash"); }, 1400);
 }
 
+// ---- Optional monthly budget (Houston, edit list 6, 2026-10-08). Blank, 0,
+// negative or not a number means no budget. Parsed like the other dollar
+// fields (num()). It only flags; no figure depends on it.
+function readBudget(){ const v = num($("in-budget").value, true); return isFinite(v) && v > 0 ? v : null; }
+// How far each option's first-month recurring cost, to the dollar as the
+// card shows it, is over the budget (0 if not over or no budget).
+function overBudget(ma, mb){
+  const b = readBudget();
+  const over = function(c){ return b !== null && Math.round(c) > b ? Math.round(c) - b : 0; };
+  return { bud: b, a: over(ma.cost), b: over(mb.cost) };
+}
+
+// ---- "Match monthly cost" (Houston, edit list 6, 2026-10-08), LIVE since
+// edit list 8 (2026-10-08). Under each option's price or rent: matching sets
+// that field so the option's first-month recurring cost equals the other
+// option's, to the dollar shown in the card, AND locks it there
+// (S.matchLock = "a" | "b"): refresh() re-solves the locked field from the
+// current inputs before every render (resolveLock()), so it follows any
+// other change (rate, term, down payment, taxes, fees, metro, the other
+// option's price or rent). Only one side can be locked; the other side's
+// button is hidden meanwhile. The locked field is read-only, tinted, with a
+// link icon. Its button reads "Back to typical ...", which unlocks and
+// restores the metro's prefilled value; Reset and a pair change also
+// unlock; a swap moves the lock with its option; a metro change keeps it.
+// Unlocked, a value that differs from the typical one (typed) offers the
+// same "Back to typical ..." (no lock involved). Hidden while the two costs
+// are already equal and the field is at its typical value.
+function slotMainKey(sl){ return isBuy(sl === "a" ? S.optA : S.optB) ? "price" : "rent"; }
+function typicalVal(sl){ return metroDefaults(metroById(S.metroId), sl === "a" ? S.optA : S.optB)[slotMainKey(sl)]; }
+// The two options' first-month recurring costs from the page's own inputs
+// and engine (null if an input is invalid).
+function m1Costs(){
+  const inp = readInputs();
+  if (inp.bad.length) return null;
+  const sim = simulatePair(inp.x, 1);
+  return { a: sim.month1.a.cost, b: sim.month1.b.cost };
+}
+const matchTimers = {};
+// A "Can't match" / "Closest" message (edit list 9: short forms): why =
+// "fixed" | "down" | "rent" | "closest", amt = the gap for "closest". The
+// list of forms runs longest first; fitMsg() shows the longest that fits on
+// the one reserved line.
+function msgForms(why, amt){ return COPY.match.cant[why].map(function(t){ return fill(t, { amt: money(amt || 0) }); }); }
+function fitMsg(m, forms){
+  for (let i = 0; i < forms.length; i++){
+    m.textContent = forms[i];
+    if (!m.parentNode.clientWidth || m.offsetWidth <= m.parentNode.clientWidth) break;
+  }
+  m.title = forms[0];
+}
+// shows a message in place of the button (forms = null clears it); temporary
+// (6 s) unless held, as for a lock that can't match
+function matchMsg(sl, k, forms, hold){
+  const btn = $("match-" + sl + "-" + k), m = $("matchmsg-" + sl + "-" + k);
+  clearTimeout(matchTimers[sl + k]);
+  btn.style.display = forms ? "none" : "";
+  if (forms) fitMsg(m, forms); else { m.textContent = ""; m.title = ""; }
+  if (forms && !hold) matchTimers[sl + k] = setTimeout(function(){ matchMsg(sl, k, null); }, 6000);
+}
+// Solves slot sl's price or rent so its first-month cost equals the other
+// option's, writing trial values into the field (the page's own cost
+// function). Returns { val, msg, ok }: val = the value to hold (null if the
+// inputs are invalid), ok = false when no value matches (val is then the
+// closest feasible one), msg = "" or the "Can't match" / "Closest" text.
+function solveMatch(sl){
+  const k = slotMainKey(sl), other = sl === "a" ? "b" : "a", key = sl + "_" + k, M = COPY.match;
+  const c0 = m1Costs(); if (!c0) return { val: null, msg: "", ok: false };
+  const T = c0[other], TR = Math.round(T);
+  const costAt = function(v){ setField(key, v); const c = m1Costs(); return c ? c[sl] : NaN; };
+  if (k === "rent"){
+    // first-month cost = rent x (1 + renters insurance share) + other fees:
+    // solved directly, then the whole-dollar (else cent) rent whose total
+    // shows the same dollar figure
+    const fees = fieldApplies(sl + "_fees") && isFinite(readField(sl + "_fees")) ? readField(sl + "_fees") : 0;
+    const exact = (T - fees - DEF.rentersUsd) / (1 + DEF.rentersPct / 100);   // year-1 renters insurance in $ (edit list 9)
+    if (!(exact >= 1)) return { val: 1, why: "rent", ok: false };
+    const cands = [Math.round(exact), Math.floor(exact), Math.ceil(exact), Math.round(exact * 100) / 100];
+    for (let i = 0; i < cands.length; i++) if (cands[i] > 0 && Math.round(costAt(cands[i])) === TR) return { val: cands[i], why: "", ok: true };
+    return { val: Math.round(exact * 100) / 100, why: "", ok: true };
+  }
+  // price: bisection on the page's own first-month cost (P&I, PMI band,
+  // tax, insurance, maintenance with the house cap, HOA), which rises with
+  // the price, to the nearest $1; with a dollar down payment the price
+  // must stay above it
+  const usd = S.downUnit === "usd" ? readField("downusd") : NaN;
+  let lo = isFinite(usd) ? Math.floor(usd) + 1 : 1, hi = FIELDS[key].max;
+  if (!(costAt(lo) <= T)) return { val: lo, why: isFinite(usd) ? "down" : "fixed", ok: false };
+  if (!(costAt(hi) >= T)) return { val: hi, why: "fixed", ok: false };
+  while (hi - lo > 1){ const mid = Math.floor((lo + hi) / 2); if (costAt(mid) >= T) hi = mid; else lo = mid; }
+  // hi: the smallest whole-dollar price whose cost reaches the target
+  const ch = costAt(hi), cl = costAt(lo);
+  if (Math.round(ch) === TR) return { val: hi, why: "", ok: true };
+  if (Math.round(cl) === TR) return { val: lo, why: "", ok: true };
+  // a PMI band jump: the closer of the two, and say so
+  const val = Math.abs(ch - T) <= Math.abs(cl - T) ? hi : lo;
+  return { val: val, why: "closest", amt: Math.abs(Math.round(val === hi ? ch : cl) - TR), ok: false };
+}
+// The lock's re-solve, run by refresh() before every render. Its time is
+// logged in window.__lockStats (n, last, max, total ms).
+window.__lockStats = { n: 0, last: 0, max: 0, total: 0 };
+function resolveLock(){
+  const sl = S.matchLock; if (!sl) return;
+  const t0 = performance.now();
+  const k = slotMainKey(sl), key = sl + "_" + k, el = $(FIELDS[key].id), old = el.value;
+  const r = solveMatch(sl);
+  // an invalid input elsewhere, or no value matches (edit list 9): hold the
+  // last matched value; a PMI-band "closest" value is taken
+  if (r.val === null || (!r.ok && r.why !== "closest")) el.value = old;
+  else { setField(key, r.val); if (k === "price") syncPmiToDown(); }
+  const ms = performance.now() - t0, st = window.__lockStats;
+  st.n++; st.last = ms; st.max = Math.max(st.max, ms); st.total += ms;
+  // the message stays (in place of the revert button; the field's link icon
+  // also reverts) until a value matches again (edit list 9); paintMatch() shows it
+  if (r.val !== null) S.lockMsg = r.why ? { why: r.why, amt: r.amt } : null;
+}
+function matchSlot(sl){
+  const k = slotMainKey(sl), key = sl + "_" + k, el = $(FIELDS[key].id), old = el.value;
+  const r = solveMatch(sl);
+  // nothing to match at all (the other option's cost is out of reach): no lock
+  if (r.val === null || (!r.ok && r.why !== "closest")){
+    el.value = old; refresh(); if (r.why) matchMsg(sl, k, msgForms(r.why, r.amt)); return;
+  }
+  setField(key, r.val);
+  S.matchLock = sl; S.lockMsg = r.why ? { why: r.why, amt: r.amt } : null;
+  if (k === "price") syncPmiToDown();
+  refresh();
+}
+function unlockMatch(){
+  const sl = S.matchLock; S.matchLock = null; S.lockMsg = null;
+  if (sl) ["price", "rent"].forEach(function(k){ matchMsg(sl, k, null); });
+}
+function backToTypical(sl){
+  const k = slotMainKey(sl);
+  if (S.matchLock === sl) unlockMatch();
+  setField(sl + "_" + k, typicalVal(sl));
+  if (k === "price") syncPmiToDown();
+  refresh();
+}
+// Labels, visibility and the lock's look, after every render (ok = the
+// inputs are valid). Labels: the longest of the label's forms that fits on
+// its one line.
+function paintMatch(ok, ma, mb){
+  const M = COPY.match, mt = metroById(S.metroId);
+  const where = mt.us ? M.whereUS : mt.n.split(",")[0];
+  ["a", "b"].forEach(function(sl){
+    ["price", "rent"].forEach(function(kk){            // clear the lock's look on both fields of the slot
+      const el = $(FIELDS[sl + "_" + kk].id), locked = S.matchLock === sl && slotMainKey(sl) === kk;
+      el.readOnly = locked; el.parentNode.classList.toggle("locked", locked);
+      const tag = $("locktag-" + sl + "-" + kk); tag.hidden = !locked;
+    });
+    const k = slotMainKey(sl), btn = $("match-" + sl + "-" + k), line = btn.parentNode;
+    const o = sl === "a" ? S.optA : S.optB, oc = optCopy(o), oo = sl === "a" ? S.optB : S.optA;
+    if (!ok){ btn.style.visibility = "hidden"; return; }
+    const locked = S.matchLock === sl, otherLocked = !!S.matchLock && !locked;
+    const v = readField(sl + "_" + k), typ = typicalVal(sl), atTyp = !locked && isFinite(v) && Math.abs(v - typ) < 1e-9;
+    const equal = Math.round(ma.cost) === Math.round(mb.cost);
+    btn.dataset.mode = atTyp ? "match" : "back";
+    btn.style.visibility = otherLocked || (atTyp && equal) ? "hidden" : "visible";
+    const what = k === "rent" ? M.whatRent : fill(M.whatPrice, { noun: oc.noun });
+    const withWhat = isBuy(o) && isBuy(oo) ? optCopy(oo).noun : (isBuy(o) ? M.withRent : M.withBuy);
+    const forms = atTyp ? [M.match, M.matchMid, M.matchShort].map(function(t){ return fill(t, { with: withWhat }); })
+                        : [fill(M.back, { where: where, what: what }), k === "rent" ? M.backShortRent : M.backShortPrice];
+    for (let i = 0; i < forms.length; i++){
+      btn.textContent = forms[i];
+      if (!line.clientWidth || btn.offsetWidth <= line.clientWidth) break;
+    }
+    const fmtv = function(z){ return k === "rent" ? money(z) + COPY.perMonth : money(z); };
+    btn.title = atTyp ? fill(M.title, { amt: money(sl === "a" ? mb.cost : ma.cost) })
+      : fill(locked ? M.backTitleLocked : M.backTitle, { where: where, what: what, amt: fmtv(typ) });
+    // the locked field's icon: its tooltip and screen-reader text say what it
+    // follows; warning colour while no value matches (S.lockMsg)
+    if (locked){
+      const tag = $("locktag-" + sl + "-" + k), miss = !!S.lockMsg;
+      matchMsg(sl, k, miss ? msgForms(S.lockMsg.why, S.lockMsg.amt) : null, true);
+      const t = miss ? msgForms(S.lockMsg.why, S.lockMsg.amt)[0] : fill(M.lockedTitle, { What: cap(what), with: isBuy(o) && isBuy(oo) ? fill(M.theNoun, { noun: optCopy(oo).noun }) : (isBuy(o) ? M.withRent : M.withBuy) });
+      // the icon is also a button that stops matching (edit list 9), so the
+      // revert stays one click away while a message holds the line
+      const t2 = t + ". " + fill(M.unlock, { where: where, what: what });
+      tag.classList.toggle("miss", miss); tag.title = t2; tag.querySelector(".sr").textContent = t2;
+    }
+  });
+}
+
 function paintResults(inp){
   const bad = inp.bad;
   $("invalid").hidden = bad.length === 0;
   $("outputs").hidden = bad.length > 0;
   if (bad.length){
+    paintMatch(false);
     const k = bad[0], f = FIELDS[k], lab = document.querySelector('label[for="' + f.id + '"]');
     const lbl = lab ? lab.textContent : k;     // growth labels name their option (2026-10-08)
     $("invalid").textContent = fill(COPY.invalid, { field: lbl });
@@ -2200,10 +2778,13 @@ function paintResults(inp){
           : fill(H.cross, Object.assign({ y: shown, yrs: yrsWord(shown) }, ov)));
   }
 
-  // (2) the first month, two option columns
+  // (2) the first month's RECURRING costs, two option columns (edit list 4,
+  // 2026-10-08: relabelled; the up-front costs are in the totals over the
+  // stay, which the note under the table says)
   const M1 = COPY.month1, ma = sim.month1.a, mb = sim.month1.b, R = M1.rows;
   const d1 = sim.month1.diff;
   $("m1-verdict").textContent = Math.round(Math.abs(d1)) === 0 ? fill(M1.even, nv) : fill(d1 > 0 ? M1.more : M1.less, Object.assign({ amt: money(d1) }, nv));
+  $("m1-upfront").textContent = fill(M1.upfront, { n: N, yrs: yrsWord(N) });
   const bA = isBuy(S.optA), bB = isBuy(S.optB);
   const pick = function(isB, v){ return isB ? v : null; };
   let html = head2(), sumA = 0, sumB = 0;
@@ -2215,17 +2796,32 @@ function paintResults(inp){
     const va = pick(bA, ma[r[0]]), vb = pick(bB, mb[r[0]]);
     html += row2(R[r[0]], va, vb); sumA += va === null ? 0 : Math.round(va); sumB += vb === null ? 0 : Math.round(vb);
   });
-  if (!bA || !bB) [["rent"], ["rins"]].forEach(function(r){
+  // a rental's other monthly fees show even at $0 (edit list 4)
+  if (!bA || !bB) [["rent"], ["rins"], ["fees"]].forEach(function(r){
     const va = pick(!bA, ma[r[0]]), vb = pick(!bB, mb[r[0]]);
     html += row2(R[r[0]], va, vb); sumA += va === null ? 0 : Math.round(va); sumB += vb === null ? 0 : Math.round(vb);
   });
   html += row2(R.total, ma.cost, mb.cost, "total");
+  // over the optional monthly budget (edit list 6): a flag under that
+  // column's total, with the option named for screen readers
+  const ob = overBudget(ma, mb), B = COPY.budget;
+  if (ob.a > 0 || ob.b > 0){
+    const flag = function(amt, o){ return amt > 0 ? '<span class="sr">' + esc(fill(B.flagSr, { Col: optCopy(o).col })) + '</span>' +
+      esc(fill(B.flag, { amt: money(amt) })) : ""; };
+    html += '<tr class="overbud"><td></td><td class="amt">' + flag(ob.a, S.optA) + '</td><td class="amt">' + flag(ob.b, S.optB) + '</td></tr>';
+  }
+  const hb = $("hero-budget");
+  hb.hidden = !(ob.a > 0 || ob.b > 0);
+  hb.textContent = ob.a > 0 && ob.b > 0
+    ? fill(B.both, { bud: money(ob.bud), a: oc.A.gerund, b: oc.B.gerund, amtA: money(ob.a), amtB: money(ob.b) })
+    : (ob.a > 0 || ob.b > 0 ? fill(B.one, { A: cap((ob.a > 0 ? oc.A : oc.B).gerund), amt: money(ob.a > 0 ? ob.a : ob.b), bud: money(ob.bud) }) : "");
   $("m1-table").innerHTML = html;
   // edit list 1: the general note is gone; the rounding note shows only
   // when the rows don't add to the totals
   const rounding = sumA !== Math.round(ma.cost) || sumB !== Math.round(mb.cost);
   $("m1-note").textContent = rounding ? M1.roundingNote : "";
   $("m1-note").hidden = !rounding;
+  paintMatch(true, ma, mb);
 
   // (3) ledger over N years: what each option pays and keeps, its net cost
   // (Houston, 2026-10-07: total paid - what you keep - investment growth
@@ -2254,8 +2850,12 @@ function paintResults(inp){
     lrow(LR.assess, pick(bA, a.assess), pick(bB, b.assess), a.assess > 0 || b.assess > 0);
   }
   if (!bA || !bB){
+    // a rental's move-in costs and other fees show even at $0, so readers see
+    // the calculator counts them (edit list 4, 2026-10-08)
+    lrow(LR.movein, pick(!bA, a.moveIn), pick(!bB, b.moveIn));
     lrow(LR.rent, pick(!bA, a.rent), pick(!bB, b.rent));
     lrow(LR.rins, pick(!bA, a.rins), pick(!bB, b.rins));
+    lrow(LR.fees, pick(!bA, a.fees), pick(!bB, b.fees));
   }
   t += row2(LR.paidTotal, a.paid, b.paid, "total");
   t += '<tr class="sec"><td colspan="3">' + esc(Lg.keep) + '</td></tr>';
@@ -2270,7 +2870,7 @@ function paintResults(inp){
   const invested = a.basis > 0 || b.basis > 0, saved = a.savBasis > 0 || b.savBasis > 0;
   if (invested || saved) t += row2(invested && saved ? LR.growthBoth : (saved ? LR.growthSav : LR.growth),
                                    a.growth - a.gtax, b.growth - b.gtax, null, signedMoney);
-  // a check mark on the lower net cost (edit list 1); none on a wash, the
+  // a cash-stack icon on the lower net cost (edit list 8; a check mark from edit list 1); none on a wash, the
   // same rule as the verdict (no option is ahead within the wash band)
   t += row2(LR.net, -a.net, -b.net, "net", costMoney, wash ? null : [lead === "A", lead === "B"]);
   // money freed up: amount and what happened to it
@@ -2444,7 +3044,8 @@ const MAX_STEPS = 6;   // the most steps the chart ever has (track segments buil
 // net cost after selling costs. Last, because a layer that reverses
 // direction anywhere earlier would overlap the layers after it.
 // agent, points and assess added 2026-10-07 (zero bands are dropped).
-const COMP_KEYS = ["down", "closing", "agent", "points", "mort", "pmi", "tax", "ins", "hoa", "maint", "assess", "rent", "rins"];
+// movein and fees (a rental's move-in costs and other fees) added in edit list 4, 2026-10-08.
+const COMP_KEYS = ["down", "closing", "agent", "points", "movein", "mort", "pmi", "tax", "ins", "hoa", "maint", "assess", "rent", "rins", "fees"];
 const POS_KEYS = ["putIn", "app", "growth", "sell"];
 // Layer colours. Money paid out is neutral grey (alternating lighter and
 // darker so neighbouring bands separate), merged into one mid grey; what
@@ -2457,7 +3058,7 @@ const POS_KEYS = ["putIn", "app", "growth", "sell"];
 // faint outline so the lightest greys stay visible.
 const COST_COLOR = { down: "#74747c", closing: "#c9c9cf", agent: "#8b8b93", points: "#d9d9de", mort: "#9a9aa2", pmi: "#e2e2e7",
                      tax: "#b1b1b8", ins: "#d7d7dc", hoa: "#85858d", maint: "#bfbfc6", assess: "#6a6a72",
-                     rent: "#9a9aa2", rins: "#d0d0d6" };
+                     rent: "#9a9aa2", rins: "#d0d0d6", movein: "#6f6f77", fees: "#8c8c94" };
 const TOTAL_COLOR = "#c4c5ce";
 // The Total paid line: a dashed dark grey, distinct from every option colour,
 // drawn above the bands so the gains never hide it.
@@ -2527,7 +3128,8 @@ function animModel(sim, N){
       down: col(z => z.down), closing: col(z => z.closing), agent: col(z => z.agent), points: col(z => z.points),
       mort: col(z => z.interest + z.principal),
       pmi: col(z => z.pmi), tax: col(z => z.tax), ins: col(z => z.ins), hoa: col(z => z.hoa),
-      maint: col(z => z.maint), assess: col(z => z.assess), rent: col(z => z.rent), rins: col(z => z.rins)
+      maint: col(z => z.maint), assess: col(z => z.assess), rent: col(z => z.rent), rins: col(z => z.rins),
+      movein: col(z => z.moveIn), fees: col(z => z.fees)
     };
     // What comes back: equity = money put in (down payment + principal) +
     // appreciation (value - price); investment growth after tax; less the
@@ -3868,7 +4470,7 @@ function initAnim(q){
 function paintMethod(){
   const el = $("method"), M = COPY.method;
   const v = {
-    payoff: DEF.term / 12, pmiBelow: pctTxt(DEF.pmiBelow), closing: pctTxt(DEF.closing), selling: pctTxt(DEF.selling),
+    pmiBelow: pctTxt(DEF.pmiBelow), closing: pctTxt(DEF.closing), selling: pctTxt(DEF.selling),
     startYear: DEF.startYear, month: fmtMonth(META.valuesMonth), week: fmtWeek(S.rate.week),
     down: pctTxt(DEF.down), stay: DEF.stay,
     growth: pctTxt(DEF.app), app: pctTxt(DEF.app), rga: pctTxt(DEF.rgApartment), rgh: pctTxt(DEF.rgHouse)
@@ -3893,6 +4495,7 @@ function paintMethod(){
 // all of them can change the page height.
 function refresh(){
   if (!S.built) return;
+  resolveLock();       // a live match re-solves from the current inputs first (edit list 8)
   paintStatic();
   const inp = readInputs();
   paintResults(inp);
@@ -3945,6 +4548,7 @@ function initMetroPicker(){
 // slots' values, so the reader's edits travel with their option.
 function setPair(a, b, changed){
   const hadCondo = pairHasCondo();
+  unlockMatch();       // a new pair ends a live match (edit list 8)
   S.optA = a; S.optB = b;
   if (!validPair(S.optA, S.optB)){ S.optB = COUNTERPART[S.optA]; changed = changed.concat(["b"]); }
   changed.forEach(function(sl){ applySlotDefaults(sl, "option"); });
@@ -3959,6 +4563,7 @@ function swapPair(){
   });
   const tu = S.taxUnit.a; S.taxUnit.a = S.taxUnit.b; S.taxUnit.b = tu;
   const t = S.optA; S.optA = S.optB; S.optB = t;
+  if (S.matchLock) S.matchLock = S.matchLock === "a" ? "b" : "a";   // the lock moves with its option (edit list 8)
   syncPairPicker(); refresh();
 }
 function initPairPicker(){
@@ -3976,27 +4581,35 @@ function initPairPicker(){
 }
 
 // ---------------------------------------------------------- live rate
+// pmms.json since edit list 4 (2026-10-08): {"rate30", "rate15", "week",
+// "source"}, both rates for the same week. The old one-rate shape {"rate",
+// "week"} is still read: its rate is the 30-year, and the 15-year then stays
+// the build-week reading only if the file's week is the build week (else the
+// whole file is ignored, so the two terms never mix weeks).
 function initRate(){
-  S.rate = { rate: FALLBACK_RATE.rate, week: FALLBACK_RATE.week, status: "pending" };
+  S.rate = { rate: FALLBACK_RATE.rate, rate15: FALLBACK_RATE.rate15, week: FALLBACK_RATE.week, status: "pending" };
   const ctrl = window.AbortController ? new AbortController() : null;
   const timer = setTimeout(function(){ if (ctrl) ctrl.abort(); }, PMMS_TIMEOUT_MS);
   fetch(PMMS_URL, { cache: "no-cache", signal: ctrl ? ctrl.signal : undefined })
     .then(function(r){ if (!r.ok) throw new Error("HTTP " + r.status); return r.json(); })
     .then(function(j){
-      const okRate = j && typeof j.rate === "number" && isFinite(j.rate) && j.rate > 0 && j.rate < 20;
+      const ok = function(v){ return typeof v === "number" && isFinite(v) && v > 0 && v < 20; };
       const okWeek = j && typeof j.week === "string" && /^\d{4}-\d{2}-\d{2}$/.test(j.week);
-      if (!okRate || !okWeek) throw new Error("bad pmms.json");
+      // new shape: both rates; old shape: the 30-year only (same week as the build, or ignored)
+      const r30 = j && ok(j.rate30) ? j.rate30 : (j && ok(j.rate) ? j.rate : NaN);
+      const r15 = j && ok(j.rate15) ? j.rate15 : (okWeek && j.week === FALLBACK_RATE.week ? FALLBACK_RATE.rate15 : NaN);
+      if (!isFinite(r30) || !isFinite(r15) || !okWeek) throw new Error("bad pmms.json");
       // A stale live file (e.g. a paused refresh) never replaces a newer
       // rate baked in at build time.
-      // While the weekly refresh is inactive the build-week rate is kept, so
-      // the label and the number always match.
-      if (LIVE_RATE_ACTIVE && j.week >= FALLBACK_RATE.week) S.rate = { rate: j.rate, week: j.week, status: "live" };
+      // While the weekly refresh is inactive the build-week rates are kept, so
+      // the label and the numbers always match.
+      if (LIVE_RATE_ACTIVE && j.week >= FALLBACK_RATE.week) S.rate = { rate: r30, rate15: r15, week: j.week, status: "live" };
       else S.rate.status = "fallback";
     })
     .catch(function(){ S.rate.status = "fallback"; })
     .then(function(){
       clearTimeout(timer);
-      if (!S.rateEdited) setField("rate", S.rate.rate);
+      if (!S.rateEdited) setField("rate", termRate(S.term));
       refresh();
     });
 }
@@ -4012,6 +4625,15 @@ function initRate(){
 //   a, b      the pair: buy-condo, buy-house, rent-apartment, rent-house
 //   metro     a metro slug (miami-fl), a Zillow RegionID, or us
 //   years     stay, 1-30            dp   down payment, %      rt  mortgage rate, %
+//   term      loan term, 15 (the default 30 is left out; edit list 4, 2026-10-08)
+//   lock      a | b: that option's price or rent is matched live to the other
+//             option's monthly cost (edit list 8; no clash with any other
+//             parameter); the value is re-solved on load, not carried
+//   bud       optional monthly budget, $ (edit list 6, 2026-10-08; no clash:
+//             no other parameter, and no slot parameter b + "ud")
+//   dpd       down payment in dollars (edit list 5, 2026-10-08): its presence
+//             opens the $ mode; written whenever the $ mode is on (dp is then
+//             left out). No clash: dp, dd and the slot params (a*/b*) differ.
 //   up        money not used up front: spend | save | invest
 //   mo        monthly cost difference:  spend | save | invest
 //             (legacy, 2026-10-07: up=cash / mo=cash, and use=cash or
@@ -4044,13 +4666,17 @@ function initRate(){
 //     tx property tax, $ a year (also switches that slot to dollars)
 //     i insurance $/mo   f HOA fee $/mo   m maintenance, %
 //     sa special assessment, $   sy year it is paid
+//     mv a rental's move-in costs, $   fe its other monthly fees, $/mo
+//     (edit list 4: amv / bmv, afe / bfe; no clash with af, the HOA fee, or
+//     ag, the agent fee)
 //   e.g. ?metro=miami-fl&ap=420000&af=950&atx=6100&dp=10&up=invest
 //   Legacy ?view=condo|sfr still works.
 const TOOL_URL = "https://dhouston890.github.io/inman-tools/buy-vs-rent-calculator/";
-const Q_SHARED = { down: "dp", rate: "rt", years: "years", sav: "sav", ret: "ret", cgt: "cgt",
+const Q_SHARED = { down: "dp", downusd: "dpd", rate: "rt", years: "years", sav: "sav", ret: "ret", cgt: "cgt",
                    closing: "cl", agent: "ag", points: "pt", selling: "sell", insg: "ig", hoag: "hg", pmi: "pmi", condoadd: "ca" };
 const Q_SLOT = { price: "p", rent: "r", app: "h", rg: "rg",
-                 tax: "t", taxusd: "tx", ins: "i", hoa: "f", maint: "m", assess: "sa", assessyr: "sy" };
+                 tax: "t", taxusd: "tx", ins: "i", hoa: "f", maint: "m", assess: "sa", assessyr: "sy",
+                 movein: "mv", fees: "fe" };
 // legacy per-year growth params (before 2026-10-08): year 3 on -> the flat rate
 const Q_SLOT_LEGACY = { app: "h3", rg: "r3" };
 function defaultMetroId(){ return METROS.slice().sort(function(a, b){ return a.o - b.o; })[0].id; }
@@ -4067,24 +4693,29 @@ function fieldDefault(k){
     const o = f.slot === "a" ? S.optA : S.optB;
     return Object.assign({}, metroDefaults(metroById(S.metroId), o), optionDefaults(o))[f.key];
   }
-  return { down: DEF.down, rate: S.rate.rate, years: DEF.stay, sav: DEF.savYield, ret: DEF.ret,
+  return { down: DEF.down, rate: termRate(S.term), years: DEF.stay, sav: DEF.savYield, ret: DEF.ret,
            cgt: DEF.cgt, closing: DEF.closing, agent: DEF.agent, points: DEF.points, selling: DEF.selling,
-           insg: DEF.insG, hoag: DEF.hoaG, pmi: defaultPmi(readField("down")), condoadd: DEF.condoAdd }[k];
+           insg: DEF.insG, hoag: DEF.hoaG, pmi: defaultPmi(refDownPct()), condoadd: DEF.condoAdd }[k];
 }
 // The query for the current state. forCopy: a link to hand on (no motion).
 function shareQuery(forCopy){
   const q = [], put = function(k, v){ q.push(k + "=" + encodeURIComponent(v)); };
   if (S.optA !== DEF.optionA || S.optB !== DEF.optionB){ put("a", S.optA.replace(/_/g, "-")); put("b", S.optB.replace(/_/g, "-")); }
   if (String(S.metroId) !== String(defaultMetroId())) put("metro", metroParam(metroById(S.metroId)));
-  const order = ["years", "down", "rate"].concat(Object.keys(FIELDS).filter(function(k){ return ["years", "down", "rate"].indexOf(k) < 0; }));
+  if (S.term !== DEF.term) put("term", S.term);
+  if (readBudget() !== null) put("bud", readBudget());       // the optional budget (edit list 6)
+  if (S.matchLock) put("lock", S.matchLock);                 // a live match (edit list 8); its value is re-solved on load
+  const order = ["years", "down", "downusd", "rate"].concat(Object.keys(FIELDS).filter(function(k){ return ["years", "down", "downusd", "rate"].indexOf(k) < 0; }));
   order.forEach(function(k){
     const f = FIELDS[k];
     if (!fieldApplies(k)) return;
     if ((k === "rate" && !S.rateEdited) || (k === "pmi" && !S.pmiEdited)) return;
+    if (S.matchLock && k === S.matchLock + "_" + slotMainKey(S.matchLock)) return;   // the locked field: lock= carries it
     const v = readField(k);
     if (!isFinite(v)) return;                       // an invalid entry is left out (its default applies)
     // a tax bill in dollars is always written: the unit is itself a toggle
-    if (!(f.slot && f.key === "taxusd") && Math.abs(v - fieldDefault(k)) < 1e-9) return;
+    // (so is a dollar down payment, edit list 5)
+    if (!(f.slot && f.key === "taxusd") && k !== "downusd" && Math.abs(v - fieldDefault(k)) < 1e-9) return;
     put(f.slot ? f.slot + Q_SLOT[f.key] : Q_SHARED[k], String(v));
   });
   if (S.downUse !== (pageUse(DEF.downUse) || "spend")) put("up", S.downUse);
@@ -4136,7 +4767,8 @@ function applyQueryFields(q){
   };
   Object.keys(Q_SHARED).forEach(function(k){
     if (k === "years" || (k === "condoadd" && !pairHasCondo())) return;   // years: readQuery()
-    take(k, Q_SHARED[k]);
+    // dpd: the dollar down payment, which switches to $ mode (edit list 5)
+    if (take(k, Q_SHARED[k]) && k === "downusd"){ S.downUnit = "usd"; S.downConv = null; downSet = true; }
   });
   ["a", "b"].forEach(function(sl){
     Object.keys(Q_SLOT).forEach(function(key){
@@ -4147,6 +4779,12 @@ function applyQueryFields(q){
     });
   });
   if (downSet && !pmiSet) syncPmiToDown();          // PMI follows the restored down payment
+  // the optional budget (edit list 6): only a positive number is kept
+  const bq = Number(String(q.get("bud") || "").replace(/[,$\s]/g, ""));
+  if (isFinite(bq) && bq > 0) $("in-budget").value = fmtMoney(bq);
+  // a live match (edit list 8): set the lock; refresh() re-solves the value
+  const lk = q.get("lock");
+  if (lk === "a" || lk === "b") S.matchLock = lk;
   // the money toggles; legacy "cash" (and an old use= for both pots) -> spend
   const both = pageUse(q.get("use"));
   const up = pageUse(q.get("up")) || both, mo = pageUse(q.get("mo")) || both;
@@ -4199,16 +4837,41 @@ function buildPrintInputs(){
     return (pre ? pre.textContent : "") + inp.value + (s ? (/^[A-Za-z]/.test(s) ? " " : "") + s : "");
   };
   const slotKeys = function(sl, keys){ return keys.map(function(k){ return sl + "_" + k; }); };
-  const order = slotKeys("a", ["price", "rent"]).concat(slotKeys("b", ["price", "rent"]), ["down", "rate", "years", "@use", "sav", "ret", "@acct", "cgt"],
+  const order = slotKeys("a", ["price", "rent"]).concat(slotKeys("b", ["price", "rent"]), ["@lock", "down", "rate", "years", "@bud", "@use", "sav", "ret", "@acct", "cgt"],
     slotKeys("a", ["app", "rg"]), slotKeys("b", ["app", "rg"]),
-    slotKeys("a", ["tax", "taxusd", "ins", "hoa", "maint", "assess", "assessyr"]), slotKeys("b", ["tax", "taxusd", "ins", "hoa", "maint", "assess", "assessyr"]),
+    slotKeys("a", ["tax", "taxusd", "ins", "hoa", "maint", "assess", "assessyr", "movein", "fees"]),
+    slotKeys("b", ["tax", "taxusd", "ins", "hoa", "maint", "assess", "assessyr", "movein", "fees"]),
     ["closing", "agent", "points", "selling", "insg", "hoag", "pmi", "condoadd"]);
   order.forEach(function(k){
     if (k === "@use"){ items.push([P.upUse, useWord(P.use, S.downUse)], [P.diffUse, useWord(P.use, S.diffUse)]); return; }
     if (k === "@acct"){ items.push([P.account, COPY.account[S.account]]); return; }
+    if (k === "@lock"){
+      if (!S.matchLock) return;
+      const sl = S.matchLock, o = sl === "a" ? S.optA : S.optB, oo = sl === "a" ? S.optB : S.optA, M = COPY.match;
+      const what = slotMainKey(sl) === "rent" ? M.whatRent : fill(M.whatPrice, { noun: optCopy(o).noun });
+      const w = isBuy(o) && isBuy(oo) ? fill(M.theNoun, { noun: optCopy(oo).noun }) : (isBuy(o) ? M.withRent : M.withBuy);
+      items.push([M.print, fill(M.printText, { What: cap(what), with: w }) + (S.lockMsg ? " (" + msgForms(S.lockMsg.why, S.lockMsg.amt)[0] + ")" : "")]);
+      return;
+    }
+    if (k === "@bud"){ const b = readBudget(); if (b !== null) items.push([COPY.budget.label, fill(COPY.budget.print, { amt: money(b) })]); return; }
+    // a dollar down payment with its share(s) of the price (edit list 5)
+    if (k === "down" && S.downUnit === "usd"){
+      const lab = $("lab-down"), dsv = downShareVars(), u = readField("downusd");
+      const F2 = COPY.fields.down;
+      items.push([lab ? lab.textContent : k, dsv && isFinite(u) ? fill(F2.print, { amt: money(u), shares: fill(dsv.two ? F2.printTwo : F2.noteOne, dsv) }) : $("in-downusd").value]);
+      return;
+    }
     if (!fieldApplies(k)) return;
-    if (k === "pmi" && readField("down") >= DEF.pmiBelow) return;          // not charged
+    if (k === "pmi" && refDownPct() >= DEF.pmiBelow) return;               // not charged (the reference purchase)
     if (FIELDS[k].key === "assessyr" && !(readField(k.replace("yr", "")) > 0)) return;   // no assessment
+    // a rental's move-in costs and other fees: listed only when nonzero (edit list 4)
+    if ((FIELDS[k].key === "movein" || FIELDS[k].key === "fees") && !(readField(k) > 0)) return;
+    // the rate names its term: "15-year fixed at 6.60%" (edit list 4)
+    if (k === "rate"){
+      const lab = document.querySelector('label[for="' + FIELDS.rate.id + '"]'), rv = readField("rate");
+      items.push([lab ? lab.textContent : k, isFinite(rv) ? fill(COPY.term.rate, { term: S.term, v: fmt2(rv) }) : $(FIELDS.rate.id).value + "%"]);
+      return;
+    }
     const f = FIELDS[k], lab = document.querySelector('label[for="' + f.id + '"]');
     let label = lab ? lab.textContent : k;
     // growth labels already name their option ("Condo value growth")
@@ -4270,6 +4933,9 @@ function readQuery(){
     if (hit) out.metroId = hit.id;
   }
   if (q.get("account") === "retirement" || q.get("account") === "brokerage") out.account = q.get("account");
+  // ?term=15 (or 30): the loan term (edit list 4)
+  const tq = Number(q.get("term"));
+  if (TERMS.indexOf(tq) >= 0) out.term = tq;
   // ?chart=diff opens the chart on its last step (the difference line), as
   // the old "Difference only" view did; ?step=N opens it on step N. Numbers
   // above the step count (five or six, known once the model is built;
@@ -4296,7 +4962,9 @@ function init(){
   if (!METROS.length || !FALLBACK_RATE || DEF.stay == null || DEF.beHorizon == null || DEF.costSwitch == null ||
       !DEF.downUse || !DEF.diffUse || DEF.cgtRetirement == null || !validPair(DEF.optionA, DEF.optionB) ||
       DEF.savYield == null || DEF.costFloor == null || DEF.washPct == null ||
-      !DEF.pmiEdges || !DEF.pmiRates || DEF.maintCapSfr == null || DEF.cpi == null){
+      !DEF.pmiEdges || !DEF.pmiRates || !DEF.pmiRates15 || DEF.maintCapSfr == null || DEF.cpi == null ||
+      TERMS.indexOf(DEF.term) < 0 || DEF.pmiFinal == null || DEF.pmiFinal15 == null || FALLBACK_RATE.rate15 == null ||
+      DEF.rentMoveIn == null || DEF.rentFees == null || DEF.rentersUsd == null || DEF.rentersPct == null){
     $("loading").textContent = COPY.noData;
     if (window.__inmanEmbedSend) window.__inmanEmbedSend();
     return;
@@ -4315,6 +4983,7 @@ function init(){
   applyDefaults("all");
   if (q.years) setField("years", q.years);
   if (q.account) setAccount(q.account);
+  if (q.term) setTerm(q.term);      // before the fields, so a linked rt= still wins
   applyQueryFields(q.params);       // every other input in the link (review M11)
   initAnim(q);
   initMetroPicker();
@@ -4325,7 +4994,7 @@ function init(){
     el.addEventListener("input", function(){
       if (k === "rate") S.rateEdited = true;
       if (k === "pmi") S.pmiEdited = true;
-      if (k === "down") syncPmiToDown();
+      if (k === "down" || k === "downusd" || /_price$/.test(k)) syncPmiToDown();   // edit list 5: $ mode follows prices
       if (k === "years"){ const v = readField("years"); if (isFinite(v)) yr.value = v; }
       refresh();
     });
@@ -4346,6 +5015,26 @@ function init(){
   });
   document.querySelectorAll("#acct-seg button").forEach(function(b){
     b.addEventListener("click", function(){ setAccount(b.dataset.acct); refresh(); });
+  });
+  // the optional budget and the match buttons (edit list 6)
+  $("in-budget").setAttribute("placeholder", COPY.budget.placeholder);
+  $("in-budget").addEventListener("input", refresh);
+  $("in-budget").addEventListener("blur", function(){ const b = readBudget(); if (b !== null) $("in-budget").value = fmtMoney(b); });
+  document.querySelectorAll(".locktag").forEach(function(b){
+    b.addEventListener("click", function(){ backToTypical(b.id.split("-")[1]); });
+  });
+  document.querySelectorAll(".matchbtn").forEach(function(b){
+    b.addEventListener("click", function(){
+      // (data-mslot, not data-slot: paintStatic() hides every [data-slot] by option type)
+      const sl = b.dataset.mslot; matchMsg(sl, b.dataset.mkey, null);
+      if (b.dataset.mode === "back") backToTypical(sl); else matchSlot(sl);
+    });
+  });
+  document.querySelectorAll("#downunit button").forEach(function(b){
+    b.addEventListener("click", function(){ setDownUnit(b.dataset.unit); refresh(); });
+  });
+  document.querySelectorAll("#term-seg button").forEach(function(b){
+    b.addEventListener("click", function(){ setTerm(Number(b.dataset.term)); refresh(); });
   });
   ["a", "b"].forEach(function(sl){
     document.querySelectorAll("#" + sl + "-taxunit button").forEach(function(b){

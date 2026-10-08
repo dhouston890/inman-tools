@@ -20,6 +20,12 @@
                                "United States (typical)" option, which is
                                the default since 2026-10-07)
        &years=<1-30>           open on a stay
+       &term=15                open on the 15-year fixed loan (2026-10-08;
+                               the 30-year is the default)
+       &bud=<dollars>          open with an optional monthly budget
+                               (edit list 6), e.g. &bud=2500
+       &dpd=<dollars>          open with the down payment in dollars
+                               (2026-10-08, edit list 5), e.g. &dpd=40000
        &account=retirement     open on the Retirement setting
        &chart=diff             open the step-by-step chart on its last step
                                (the difference line)
@@ -34,13 +40,21 @@
        Any other input (2026-10-07): every field and toggle has a short
                                parameter (dp down payment, rt rate, up / mo
                                the two money toggles, ap / bp prices, ar / br
-                               rents, af HOA fee, atx tax bill, ...; old up=cash / mo=cash links open on "Spend it", which gives the same numbers; the full
+                               rents, af HOA fee, atx tax bill, amv / afe a rental's
+                               move-in costs and monthly fees, ...; old up=cash / mo=cash links open on "Spend it", which gives the same numbers; the full
                                list is in template.html above shareQuery()).
                                The tool's "Copy link" button builds these
                                links; inside this embed it copies the
                                canonical tool URL above plus the query.
      Fallback height (before the first message): about the desktop height of
-     the default layout (re-measured 2,219px at 960px wide on 2026-10-08 after
+     the default layout (re-measured 2,348px at 960px wide on 2026-10-08 after
+     Houston's edit list 6: the optional monthly-budget row and the match
+     buttons' line under the price and rent fields, so 2,375px; phones
+     4,031px. Before that 2,275px at 960px wide on 2026-10-08 after
+     Houston's edit list 4: the ledger's two renter-side rows, the
+     first-month card's up-front note and the loan-term switch, so the
+     fallback moves from 2,250px to 2,300px; the 15-year view measures the
+     same. Before that 2,219px at 960px wide on 2026-10-08 after
      Houston's edit list 3: one growth box per option, shorter help, new
      masthead copy, so 2,250px still fits; before that 2,235px at 960px wide on 2026-10-07
      after Houston's edit list 1: no help under the main inputs, the "What
@@ -58,7 +72,8 @@
      cost inputs and longer method notes; before that 2,832px after larger input text; earlier 2,829px after the
      chart's step controls moved above it and the steps went from ten to six;
      was 2,827px). The height is the same on every chart step.
-     Phones report a taller height (about 3,721px at 375px after edit list 3,
+     Phones report a taller height (about 3,938px at 375px after edit list 4;
+     3,721px after edit list 3,
      where the money toggles stack below 700px; 3,647px after edit list 1;
      4,721px after autoplay;
      4,706px after the UI pass; 6,040px after pass 3; 6,285px reported after pass 2; was 5,828px, and 5,145px before that) within a moment of loading.
@@ -68,7 +83,7 @@
     id="inman-buy-vs-rent-calculator"
     src="https://dhouston890.github.io/inman-tools/buy-vs-rent-calculator/?embed"
     title="Buying vs. renting calculator — Inman"
-    style="width:100%;border:0;height:2250px;display:block;"
+    style="width:100%;border:0;height:2375px;display:block;"
     allow="clipboard-write"
     loading="lazy"
     scrolling="no"></iframe>
