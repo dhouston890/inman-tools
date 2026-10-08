@@ -54,7 +54,7 @@
      setting); ?autoplay=0 to open with the chart's autoplay paused (?step
      and ?chart=diff open paused too, since the reader chose a step).
      AUTOPLAY (Houston, 2026-10-07): the chart moves to its next step
-     AUTO_DWELL_MS (8 seconds since edit list 3, 2026-10-08; was 12) after
+     AUTO_DWELL_MS (5 seconds since 2026-10-08; 8 in edit list 3, 12 before) after
      each step's own phases finish; see
      AUTOPLAY in the script for what pauses, holds and resumes it.
      MONEY TOGGLES (Houston, 2026-10-07): "Spend it | Save it | Invest it".
@@ -3107,7 +3107,7 @@ function paintResults(inp){
 // state at once, with no tweening and no attention cue.
 //
 // AUTOPLAY (Houston, 2026-10-07). On by default: once a step's own phases
-// have finished, the chart waits AUTO_DWELL_MS (8 seconds since Houston's
+// have finished, the chart waits AUTO_DWELL_MS (5 seconds since 2026-10-08; 8 seconds since Houston's
 // edit list 3, 2026-10-08, was 12; so the reader can read the finished step) and plays the next step; it stops on the last
 // step (no loop). The first step starts when the chart scrolls into view,
 // as before. Turned OFF (a pause, which only the reader can undo) by Pause,
@@ -3228,9 +3228,9 @@ const CUE_IDLE_MS = 8000;               // the attention cue returns after this 
 // Autoplay (Houston, 2026-10-07): the dwell on a finished step before the
 // chart moves on by itself, counted from the end of that step's own phases;
 // and the least a held countdown resumes with (see AUTOPLAY below).
-// 8 seconds since Houston's edit list 3 (2026-10-08; was 12). The countdown
+// 5 seconds since 2026-10-08 (Houston; 8 in edit list 3, 12 before). The countdown
 // bar on Next, the Play label and the chart note all derive from it.
-const AUTO_DWELL_MS = 8000;
+const AUTO_DWELL_MS = 5000;
 const AUTO_RESUME_MIN_MS = 3000;
 const CHART_FONT = "Libre Franklin, Helvetica Neue, Arial, sans-serif";
 const AN = { step: 1, pi: -1, playing: false, finishing: false, started: false, timers: [], m: null, cross: "",
