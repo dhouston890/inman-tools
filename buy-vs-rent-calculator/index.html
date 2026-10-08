@@ -117,6 +117,22 @@
      held with the last matched value until a match is possible (the field's
      link icon also stops matching); the method sources add closing and
      selling costs, PMI rules, renters insurance and taxes on gains.
+     EDIT LIST 10 (Houston, 2026-10-08; second independent review,
+     documentation/condo_study/calculator_review_2_2026-10-08.md): default
+     rates moved to the PMMS week of Oct. 8, 2026 (7.40% / 6.73%; the live
+     feed stays off, LIVE_RATE_ACTIVE = false); "Savings yield: FDIC."
+     dropped from the method sources (0.5% is an Inman assumption); three
+     inputs removed from the page, the engines keeping them at their
+     defaults: Points (0), the special assessment's "Paid in year" (now
+     always year 1, inside any stay) and, except when a condo is compared
+     with a house, the condo loan rate add-on (relabelled "Extra rate on the
+     condo loan"); old ?pt=, ?asy= / ?bsy= and buy-vs-rent ?ca= are
+     ignored. The main inputs are two rows: each option's fields (a condo's
+     HOA fee beside its price, moved out of Adjust costs by placeHoa(); a
+     rental's other monthly fees beside its rent), then the shared down
+     payment, rate and stay. A nonzero buyer's agent fee shows a note on the
+     costs to sell; the costs-to-sell help says what the 6% covers; the condo
+     fee's default source moved to the method notes.
      ===================================================================== -->
 <!-- Detect iframe/embed context early so the page flows to its true height -->
 <script>
@@ -206,7 +222,36 @@
   .swapbtn .ic{font-size:17px;line-height:1}
   .sw{display:inline-block;width:10px;height:10px;border-radius:2px;flex:none;vertical-align:baseline}
 
-  .inputs{display:grid;grid-template-columns:repeat(5,minmax(0,1fr));gap:12px 12px;margin-top:12px}
+  /* Main inputs (edit list 10, 2026-10-08): two rows (see the markup's
+     comment). .optrow: each option's fields in option order, one column per
+     visible field (--nopt, 3 or 4, set by paintStatic()); .sharedrow: down
+     payment, rate and stay in three columns. Both rows are grids of equal
+     columns with the same gaps; their items stretch to the row's height, so
+     the reserved match and share lines keep every field on one line. */
+  .inputs{display:flex;flex-direction:column;gap:12px;margin-top:12px}
+  .optrow{display:grid;grid-template-columns:repeat(var(--nopt,4),minmax(0,1fr));gap:12px 12px}
+  .sharedrow{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:12px 12px}
+  /* main-row labels stay on one line (a wrapped label would drop its field
+     below its neighbour's); the rental-fee label has a short form for a
+     narrow column, swapped by a container query on its box. The long form
+     stays in the accessible name (visually hidden, not display:none), and
+     the short one is aria-hidden. */
+  .optrow .ctl > label{white-space:nowrap;overflow:hidden;text-overflow:ellipsis;min-width:0}
+  /* every main-row label one 13px line, the height of the down payment's
+     label-and-switch row, so all fields in both rows start level (a plain
+     label was 12.5px, half a pixel off) */
+  .inputs .ctl > label{height:13px}
+  .optrow .ctl > label > span:not(.sw){overflow:hidden;text-overflow:ellipsis}
+  .optrow .ctl.optsec{container:optsec / inline-size}
+  .optrow .ls{display:none}
+  @container optsec (max-width:200px){
+    .optrow .ll{position:absolute;width:1px;height:1px;overflow:hidden;clip:rect(0 0 0 0);white-space:nowrap}
+    .optrow .ls{display:inline}
+  }
+  /* the HOA box in Adjust costs (a house) shows no swatch: the block's subhead has it */
+  #adjust .ctl > label.swlab .sw{display:none}
+  /* the note under the buyer's agent fee (edit list 10) */
+  .help.agentnote{color:var(--warn-ink);margin:2px 0 0}
   .grid4{display:grid;grid-template-columns:repeat(4,minmax(0,1fr));gap:12px 14px;padding:2px 0 12px}
   .subhead{grid-column:1 / -1;font-size:12px;font-weight:600;color:var(--ink);margin:4px 0 -4px;display:flex;align-items:center;gap:7px}
   /* Editable values (Houston, 2026-10-07): the number a reader can change is
@@ -304,11 +349,9 @@
     .fieldbox.termbox .ts{display:inline}
   }
   .fieldbox.termbox{container:termbox / inline-size}
-  /* the renter-side cost fields (edit list 4): "Move-in costs you won't get
-     back" wraps to two lines where its neighbour's label doesn't, so both
-     labels take two lines' height, text at the bottom, and the two fields
-     line up at every width */
-  .ctl.rentcost > label{min-height:26px;display:flex;align-items:flex-end}
+  /* (edit list 4's two-line label rule for the renter-side cost pair, .rentcost,
+     was removed in edit list 10: "Other monthly rental fees" moved to the
+     main row, so "Move-in costs you won't get back" stands alone) */
   /* down payment in dollars (edit list 5): the share of the price under the
      field, one line always reserved (hidden in % mode) so nothing moves */
   .downnote{font-size:11px;line-height:14px;min-height:14px;color:var(--muted);font-variant-numeric:tabular-nums;
@@ -521,8 +564,18 @@
   .choices[data-type*=select-one] .choices__input{font-family:var(--font-ui)}
   select#metro-select{height:36px;font-family:var(--font-ui);font-size:14px;border:1px solid var(--field);border-radius:3px;background:#fff;width:100%}
 
+  /* edit list 10: when the fields would get narrower than about 150px, two
+     columns, each option on its own line (its main field always starts a
+     line): four fields at 700px and below, three at 520px and below */
+  @media (max-width:700px){
+    .optrow[data-n="4"]{grid-template-columns:repeat(2,minmax(0,1fr))}
+    .optrow[data-n="4"] .ctl.optmain{grid-column-start:1}
+  }
+  @media (max-width:520px){
+    .optrow{grid-template-columns:repeat(2,minmax(0,1fr))}
+    .optrow .ctl.optmain{grid-column-start:1}
+  }
   @media (max-width:860px){
-    .inputs{grid-template-columns:repeat(3,minmax(0,1fr))}
     .budgetrow{grid-template-columns:repeat(3,minmax(0,1fr))}
     .budgetrow .budgethelp{grid-column:span 2}
   }
@@ -551,7 +604,7 @@
     .cards{grid-template-columns:minmax(0,1fr)}
   }
   @media (max-width:520px){
-    .inputs{grid-template-columns:repeat(2,minmax(0,1fr))}
+    .sharedrow{grid-template-columns:repeat(2,minmax(0,1fr))}
     .budgetrow{grid-template-columns:repeat(2,minmax(0,1fr))}
     .budgetrow .budgethelp{grid-column:span 1}
     .pairline{width:100%}
@@ -684,31 +737,66 @@
       <button type="button" class="resetbtn" id="reset" data-copy="reset"></button>
     </div>
 
-    <!-- Main inputs: each option's price or rent (labelled with the option),
-         then the shared down payment, rate and stay. No help text under
-         them since edit list 1 (Houston, 2026-10-07): their default sources
-         are in the method notes ("How this calculator works"). -->
+    <!-- Main inputs (edit list 10, Houston, 2026-10-08): two rows.
+         ROW 1, .optrow: each option's own fields, side by side in option
+         order: a purchase's price, and for a CONDO purchase its HOA fee
+         beside it (the #ctl-a-hoa / #ctl-b-hoa box, moved here from Adjust
+         costs by placeHoa(); a house keeps its HOA field in Adjust costs); a
+         rental's rent, then its other monthly fees (moved here from Adjust
+         costs). Each label carries its option's swatch, so a field's option
+         is visible from its colour. The row has one column per visible
+         field (3 or 4, set by paintStatic() as --nopt and data-n); where the
+         fields would get narrower than about 150px (four fields at 700px and
+         below, three at 520px and below) it has two columns, and each
+         option's main field starts a new line, so each option keeps its
+         pair together on its own line.
+         ROW 2, .sharedrow: the shared down payment (% / $ switch and its
+         one reserved share line), rate (30 / 15-year switch) and stay
+         (slider), three columns (two at 520px and below).
+         Price and rent keep their one reserved line for the match buttons,
+         and the share line is always reserved, so nothing moves when a
+         button, message or share line appears. No help text under the main
+         inputs (edit list 1): their default sources are in the method notes
+         ("How this calculator works"), including the condo fee's (methodFee),
+         and the rental fees' help is the field's screen-reader description. -->
     <div class="inputs">
-      <div class="ctl" data-slot="a" data-for="buy">
-        <label for="in-a-price" id="lab-a-price"></label>
+      <div class="optrow" id="optrow">
+      <div class="ctl optmain" data-slot="a" data-for="buy" id="ctl-a-price">
+        <label for="in-a-price" class="swlab"><span class="sw" data-sw="a"></span><span id="lab-a-price"></span></label>
         <div class="field"><span class="pre">$</span><input id="in-a-price" type="text" inputmode="numeric" autocomplete="off"><button type="button" class="locktag" id="locktag-a-price" hidden><svg viewBox="0 0 16 16" aria-hidden="true" focusable="false"><path d="M6.5 9.5l3-3M7 4.5l1.2-1.2a2.6 2.6 0 0 1 3.7 3.7L10.7 8.2M9 11.5l-1.2 1.2a2.6 2.6 0 0 1-3.7-3.7L5.3 7.8" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round"/></svg><span class="sr"></span></button></div>
         <div class="matchline"><button type="button" class="matchbtn" id="match-a-price" data-mslot="a" data-mkey="price"></button><span class="matchmsg" id="matchmsg-a-price" role="status"></span></div>
       </div>
-      <div class="ctl" data-slot="a" data-for="rent">
-        <label for="in-a-rent" id="lab-a-rent"></label>
+      <!-- (a condo purchase's HOA fee ctl, #ctl-a-hoa, is moved here by placeHoa()) -->
+      <div class="ctl optmain" data-slot="a" data-for="rent">
+        <label for="in-a-rent" class="swlab"><span class="sw" data-sw="a"></span><span id="lab-a-rent"></span></label>
         <div class="field"><span class="pre">$</span><input id="in-a-rent" type="text" inputmode="decimal" autocomplete="off"><button type="button" class="locktag" id="locktag-a-rent" hidden><svg viewBox="0 0 16 16" aria-hidden="true" focusable="false"><path d="M6.5 9.5l3-3M7 4.5l1.2-1.2a2.6 2.6 0 0 1 3.7 3.7L10.7 8.2M9 11.5l-1.2 1.2a2.6 2.6 0 0 1-3.7-3.7L5.3 7.8" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round"/></svg><span class="sr"></span></button><span class="suf" data-copy="perMonth"></span></div>
         <div class="matchline"><button type="button" class="matchbtn" id="match-a-rent" data-mslot="a" data-mkey="rent"></button><span class="matchmsg" id="matchmsg-a-rent" role="status"></span></div>
       </div>
-      <div class="ctl" data-slot="b" data-for="buy">
-        <label for="in-b-price" id="lab-b-price"></label>
+      <!-- a rental's other monthly fees, beside its rent (edit list 10) -->
+      <div class="ctl optsec" data-slot="a" data-for="rent">
+        <label for="in-a-fees" class="swlab"><span class="sw" data-sw="a"></span><span class="ll" id="lab-a-fees" data-copy="fields.fees.label"></span><span class="ls" aria-hidden="true" data-copy="fields.fees.short"></span></label>
+        <div class="field"><span class="pre">$</span><input id="in-a-fees" type="text" inputmode="decimal" autocomplete="off" aria-describedby="help-a-fees"><span class="suf" data-copy="perMonth"></span></div>
+        <span class="sr" id="help-a-fees"></span>
+      </div>
+      <div class="ctl optmain" data-slot="b" data-for="buy" id="ctl-b-price">
+        <label for="in-b-price" class="swlab"><span class="sw" data-sw="b"></span><span id="lab-b-price"></span></label>
         <div class="field"><span class="pre">$</span><input id="in-b-price" type="text" inputmode="numeric" autocomplete="off"><button type="button" class="locktag" id="locktag-b-price" hidden><svg viewBox="0 0 16 16" aria-hidden="true" focusable="false"><path d="M6.5 9.5l3-3M7 4.5l1.2-1.2a2.6 2.6 0 0 1 3.7 3.7L10.7 8.2M9 11.5l-1.2 1.2a2.6 2.6 0 0 1-3.7-3.7L5.3 7.8" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round"/></svg><span class="sr"></span></button></div>
         <div class="matchline"><button type="button" class="matchbtn" id="match-b-price" data-mslot="b" data-mkey="price"></button><span class="matchmsg" id="matchmsg-b-price" role="status"></span></div>
       </div>
-      <div class="ctl" data-slot="b" data-for="rent">
-        <label for="in-b-rent" id="lab-b-rent"></label>
+      <!-- (a condo purchase's HOA fee ctl, #ctl-b-hoa, is moved here by placeHoa()) -->
+      <div class="ctl optmain" data-slot="b" data-for="rent">
+        <label for="in-b-rent" class="swlab"><span class="sw" data-sw="b"></span><span id="lab-b-rent"></span></label>
         <div class="field"><span class="pre">$</span><input id="in-b-rent" type="text" inputmode="decimal" autocomplete="off"><button type="button" class="locktag" id="locktag-b-rent" hidden><svg viewBox="0 0 16 16" aria-hidden="true" focusable="false"><path d="M6.5 9.5l3-3M7 4.5l1.2-1.2a2.6 2.6 0 0 1 3.7 3.7L10.7 8.2M9 11.5l-1.2 1.2a2.6 2.6 0 0 1-3.7-3.7L5.3 7.8" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round"/></svg><span class="sr"></span></button><span class="suf" data-copy="perMonth"></span></div>
         <div class="matchline"><button type="button" class="matchbtn" id="match-b-rent" data-mslot="b" data-mkey="rent"></button><span class="matchmsg" id="matchmsg-b-rent" role="status"></span></div>
       </div>
+      <!-- a rental's other monthly fees, beside its rent (edit list 10) -->
+      <div class="ctl optsec" data-slot="b" data-for="rent">
+        <label for="in-b-fees" class="swlab"><span class="sw" data-sw="b"></span><span class="ll" id="lab-b-fees" data-copy="fields.fees.label"></span><span class="ls" aria-hidden="true" data-copy="fields.fees.short"></span></label>
+        <div class="field"><span class="pre">$</span><input id="in-b-fees" type="text" inputmode="decimal" autocomplete="off" aria-describedby="help-b-fees"><span class="suf" data-copy="perMonth"></span></div>
+        <span class="sr" id="help-b-fees"></span>
+      </div>
+      </div>
+      <div class="sharedrow">
       <!-- Down payment as a percent or in dollars (Houston, edit list 5,
            2026-10-08): the same small unit switch as property tax. In $
            mode the line under the field shows the share of each purchase's
@@ -746,6 +834,7 @@
         <div class="field"><input id="in-years" type="text" inputmode="numeric" autocomplete="off"><span class="suf" data-copy="yearsUnit"></span></div>
         <input type="range" id="in-years-range" step="1" aria-labelledby="years-range-lab">
         <span id="years-range-lab" hidden data-copy="fields.years.label"></span>
+      </div>
       </div>
     </div>
 
@@ -856,8 +945,12 @@
           <div class="field"><span class="pre">$</span><input id="in-a-ins" type="text" inputmode="decimal" autocomplete="off"><span class="suf" data-copy="perMonth"></span></div>
           <div class="help" id="help-a-ins"></div>
         </div>
-        <div class="ctl" data-slot="a" data-for="buy">
-          <label for="in-a-hoa" data-copy="fields.hoa.label"></label>
+        <!-- HOA fee (edit list 10): this box sits here for a HOUSE purchase;
+             for a condo purchase placeHoa() moves it into the main row,
+             beside the price (one field, one value, wherever it is shown) -->
+        <span class="hoa-home" id="hoa-home-a" hidden></span>
+        <div class="ctl" data-slot="a" data-for="buy" id="ctl-a-hoa">
+          <label for="in-a-hoa" class="swlab"><span class="sw" data-sw="a"></span><span data-copy="fields.hoa.label"></span></label>
           <div class="field"><span class="pre">$</span><input id="in-a-hoa" type="text" inputmode="decimal" autocomplete="off"><span class="suf" data-copy="perMonth"></span></div>
           <div class="help" id="help-a-hoa"></div>
         </div>
@@ -871,23 +964,13 @@
           <div class="field"><span class="pre">$</span><input id="in-a-assess" type="text" inputmode="numeric" autocomplete="off"></div>
           <div class="help" id="help-a-assess"></div>
         </div>
-        <div class="ctl" data-slot="a" data-for="buy">
-          <label for="in-a-assessyr" data-copy="fields.assessyr.label"></label>
-          <div class="field"><input id="in-a-assessyr" type="text" inputmode="numeric" autocomplete="off"></div>
-          <div class="help" id="help-a-assessyr"></div>
-        </div>
         <!-- Renter-side costs for a rental in slot a (Houston, edit list 4,
              2026-10-08), mirroring the purchase blocks; both $0 by default -->
         <div class="subhead" data-slot="a" data-for="rent"><span class="sw" data-sw="a"></span><span id="head-a-rcost"></span></div>
-        <div class="ctl rentcost" data-slot="a" data-for="rent">
+        <div class="ctl" data-slot="a" data-for="rent">
           <label for="in-a-movein" data-copy="fields.movein.label"></label>
           <div class="field"><span class="pre">$</span><input id="in-a-movein" type="text" inputmode="numeric" autocomplete="off"></div>
           <div class="help" id="help-a-movein"></div>
-        </div>
-        <div class="ctl rentcost" data-slot="a" data-for="rent">
-          <label for="in-a-fees" data-copy="fields.fees.label"></label>
-          <div class="field"><span class="pre">$</span><input id="in-a-fees" type="text" inputmode="decimal" autocomplete="off"><span class="suf" data-copy="perMonth"></span></div>
-          <div class="help" id="help-a-fees"></div>
         </div>
         <div class="subhead" data-slot="b" data-for="buy"><span class="sw" data-sw="b"></span><span id="head-b-cost"></span></div>
         <div class="ctl" data-slot="b" data-for="buy">
@@ -905,8 +988,12 @@
           <div class="field"><span class="pre">$</span><input id="in-b-ins" type="text" inputmode="decimal" autocomplete="off"><span class="suf" data-copy="perMonth"></span></div>
           <div class="help" id="help-b-ins"></div>
         </div>
-        <div class="ctl" data-slot="b" data-for="buy">
-          <label for="in-b-hoa" data-copy="fields.hoa.label"></label>
+        <!-- HOA fee (edit list 10): this box sits here for a HOUSE purchase;
+             for a condo purchase placeHoa() moves it into the main row,
+             beside the price (one field, one value, wherever it is shown) -->
+        <span class="hoa-home" id="hoa-home-b" hidden></span>
+        <div class="ctl" data-slot="b" data-for="buy" id="ctl-b-hoa">
+          <label for="in-b-hoa" class="swlab"><span class="sw" data-sw="b"></span><span data-copy="fields.hoa.label"></span></label>
           <div class="field"><span class="pre">$</span><input id="in-b-hoa" type="text" inputmode="decimal" autocomplete="off"><span class="suf" data-copy="perMonth"></span></div>
           <div class="help" id="help-b-hoa"></div>
         </div>
@@ -920,24 +1007,14 @@
           <div class="field"><span class="pre">$</span><input id="in-b-assess" type="text" inputmode="numeric" autocomplete="off"></div>
           <div class="help" id="help-b-assess"></div>
         </div>
-        <div class="ctl" data-slot="b" data-for="buy">
-          <label for="in-b-assessyr" data-copy="fields.assessyr.label"></label>
-          <div class="field"><input id="in-b-assessyr" type="text" inputmode="numeric" autocomplete="off"></div>
-          <div class="help" id="help-b-assessyr"></div>
-        </div>
 
         <!-- Renter-side costs for a rental in slot b (Houston, edit list 4,
              2026-10-08), mirroring the purchase blocks; both $0 by default -->
         <div class="subhead" data-slot="b" data-for="rent"><span class="sw" data-sw="b"></span><span id="head-b-rcost"></span></div>
-        <div class="ctl rentcost" data-slot="b" data-for="rent">
+        <div class="ctl" data-slot="b" data-for="rent">
           <label for="in-b-movein" data-copy="fields.movein.label"></label>
           <div class="field"><span class="pre">$</span><input id="in-b-movein" type="text" inputmode="numeric" autocomplete="off"></div>
           <div class="help" id="help-b-movein"></div>
-        </div>
-        <div class="ctl rentcost" data-slot="b" data-for="rent">
-          <label for="in-b-fees" data-copy="fields.fees.label"></label>
-          <div class="field"><span class="pre">$</span><input id="in-b-fees" type="text" inputmode="decimal" autocomplete="off"><span class="suf" data-copy="perMonth"></span></div>
-          <div class="help" id="help-b-fees"></div>
         </div>
 
         <div class="subhead" id="head-shared"></div>
@@ -948,13 +1025,10 @@
         </div>
         <div class="ctl">
           <label for="in-agent" data-copy="fields.agent.label"></label>
-          <div class="field"><input id="in-agent" type="text" inputmode="decimal" autocomplete="off"><span class="suf" data-copy="pctOfPrice"></span></div>
+          <div class="field"><input id="in-agent" type="text" inputmode="decimal" autocomplete="off" aria-describedby="help-agent agent-note"><span class="suf" data-copy="pctOfPrice"></span></div>
           <div class="help" id="help-agent"></div>
-        </div>
-        <div class="ctl">
-          <label for="in-points" data-copy="fields.points.label"></label>
-          <div class="field"><input id="in-points" type="text" inputmode="decimal" autocomplete="off"><span class="suf" data-copy="pctOfLoan"></span></div>
-          <div class="help" id="help-points"></div>
+          <!-- shown only while the fee is above 0 (edit list 10) -->
+          <p class="help agentnote" id="agent-note" aria-live="polite" hidden></p>
         </div>
         <div class="ctl">
           <label for="in-selling" data-copy="fields.selling.label"></label>
@@ -976,7 +1050,8 @@
           <div class="field"><input id="in-pmi" type="text" inputmode="decimal" autocomplete="off"><span class="suf" data-copy="pctLoanPerYear"></span></div>
           <div class="help" id="help-pmi"></div>
         </div>
-        <div class="ctl" data-for-pair="condo">
+        <!-- the condo loan rate add-on: condo vs. house only (edit list 10) -->
+        <div class="ctl" data-for-pair="condoHouse">
           <label for="in-condoadd" data-copy="fields.condoadd.label"></label>
           <div class="field"><span class="pre">+</span><input id="in-condoadd" type="text" inputmode="decimal" autocomplete="off"><span class="suf" data-copy="pctPts"></span></div>
           <div class="help" id="help-condoadd"></div>
@@ -1190,7 +1265,10 @@ const COPY = {
     // default to $0
     movein: { label: "Move-in costs you won't get back",
       help: "Application, admin and broker fees, nonrefundable pet deposits, and any part of a security deposit you don't expect to get back." },
-    fees: { label: "Other monthly rental fees",
+    // edit list 10 (Houston, 2026-10-08): in the main row beside the rent;
+    // short: the label in a narrow column; help: the field's screen-reader
+    // description (the main row has no help lines)
+    fees: { label: "Other monthly rental fees", short: "Rental fees",
       help: "Pet rent, parking, amenity and other required fees not included in the rent." },
     years: { label: "Years in the home" },
     // home value growth (each purchase) and rent growth (each rental):
@@ -1239,13 +1317,20 @@ const COPY = {
               buy_house: "% a year of the home's structure value, not the land: the price × {ss}%, {whose} structure share (FHFA). Default: {maint}%, about {usd} a year for the typical U.S. house (Angi, 2025), capped at {cap} a year (the cap rises with inflation)" } },
     // edit list 9 (2026-10-08): what the 2% default covers
     closing: { label: "Closing costs to buy", help: "% of the price, paid at purchase: title, settlement, recording, transfer taxes and lender fees" },
-    agent: { label: "Buyer's agent fee", help: "% of the price, paid at closing. Since the 2024 NAR settlement, a buyer may have to pay their own agent if the seller doesn't. Default: 0, the seller pays." },
-    points: { label: "Points", help: "% of the loan, paid at closing. Points usually buy a lower rate, so enter the rate you were quoted with them." },
-    assess: { label: "Special assessment", help: "A one-time bill from the condo or homeowners association, paid in the year of ownership you choose (not if you sell first). Florida's reserve rules after the Surfside collapse have brought large assessments in older condo buildings." },
-    assessyr: { label: "Paid in year", help: "Year of ownership, 1 to {stayMax}" },
-    condoadd: { label: "Condo loan rate add-on", help: "Added to the mortgage rate for the condo only. Fannie Mae and Freddie Mac charge more on some condo loans, and condos that don't meet their rules (non-warrantable) need loans that usually cost more." },
-    // edit list 9: one sentence on high-transfer-tax places (no location tables)
-    selling: { label: "Costs to sell", help: "% of the sale price: commissions, transfer tax and fees. Transfer taxes are much higher in places such as Delaware, Philadelphia, Washington, D.C., and New York City; raise both cost figures there." },
+    // note (edit list 10, 2026-10-08): shown under the field only while the
+    // fee is above 0; {sellAgent} = the buyer's agent's share inside the
+    // costs to sell (DEF.sellAgentRef, Clever survey 2.70%)
+    agent: { label: "Buyer's agent fee", help: "% of the price, paid at closing. Since the 2024 NAR settlement, a buyer may have to pay their own agent if the seller doesn't. Default: 0, the seller pays.",
+             note: "Costs to sell include about {sellAgent}% for the next buyer's agent. If you won't pay that when you sell, lower costs to sell." },
+    // (edit list 10, 2026-10-08: the Points field and the special
+    // assessment's "Paid in year" field were removed; any assessment is paid
+    // in the first year, so it always falls within the stay)
+    assess: { label: "Special assessment", help: "A one-time bill from the condo or homeowners association, paid in your first year of ownership. Florida's reserve rules after the Surfside collapse have brought large assessments in older condo buildings." },
+    // edit list 10: shown only when a condo is compared with a house
+    condoadd: { label: "Extra rate on the condo loan", help: "Percentage points added to the mortgage rate for the condo only; the house uses the rate above. Fannie Mae and Freddie Mac charge more on some condo loans, and condos that don't meet their rules (non-warrantable) need loans that usually cost more." },
+    // edit list 9: one sentence on high-transfer-tax places (no location
+    // tables); edit list 10: what the figure covers, plainly
+    selling: { label: "Costs to sell", help: "% of the sale price: both agents' commissions (yours and the buyer's) plus the seller's closing costs, such as transfer taxes, title and settlement fees. Transfer taxes are much higher in places such as Delaware, Philadelphia, Washington, D.C., and New York City; raise both cost figures there." },
     insg: { label: "Insurance growth",
       help: "A year for the first {switch} years; after that, the same as that home's value growth, but never less than inflation ({cpi}% a year)",
       helpOne: "A year for the first {switch} years; after that, {lr}% a year: home value growth, but never less than inflation ({cpi}%)" },
@@ -1614,7 +1699,7 @@ const COPY = {
   method: {
     what: "The calculator follows two options month by month and shows each one's net cost if you sell in a given year: total paid out of pocket, minus home equity after selling costs, minus growth on money one option frees up. Lower is better.",
     // edit list 4 (2026-10-08): either term; a rental's move-in costs and other fees
-    how: "A purchase uses a 30- or 15-year fixed loan and pays property tax, insurance, any HOA fee, maintenance and, below {pmiBelow}% down, mortgage insurance, plus {closing}% to buy and {selling}% to sell. A rental pays rent, renters insurance and any move-in costs and other fees you enter.",
+    how: "A purchase uses a 30- or 15-year fixed loan and pays property tax, insurance, any HOA fee, maintenance and, below {pmiBelow}% down, mortgage insurance, plus {closing}% to buy and {selling}% to sell. A rental pays rent, renters insurance and any move-in costs and other monthly fees you enter (pet rent, parking, amenity fees).",
     caveats: "Results depend on the assumptions, all of which can be changed. Prices and rents are Zillow's typical values, not a specific home; cost defaults are Census medians adjusted to {startYear}. Figures are in future dollars. No mortgage-interest or property-tax deduction is counted, and savings interest is treated as untaxed.",
     sourcesHead: "Sources",
     sources: [
@@ -1630,11 +1715,18 @@ const COPY = {
       // renters insurance and taxes on gains credited; never other calculators
       "Closing and selling costs: LodeStar, CFPB, Clever Real Estate (agent survey).",
       "PMI: Enact rate card, with Fannie Mae coverage rules; cancellation rules: CFPB.",
-      "Maintenance: FHFA, Angi, Census. Renters insurance: NAIC. Savings yield: FDIC.",
+      // edit list 10 (Houston, 2026-10-08): "Savings yield: FDIC." removed;
+      // the 0.5% default is an Inman assumption, not an FDIC figure
+      "Maintenance: FHFA, Angi, Census. Renters insurance: NAIC.",
       "Taxes on gains: Tax Foundation (capital-gains rate) and IRS (home-sale exclusion)."
     ],
     // replaces the growth source line if the three default growth rates differ
     growthMixed: "Home value growth: {app}% a year; rent growth: {rga}% a year for an apartment, {rgh}% for a house. Simple long-run assumptions you can change. Inflation: CBO.",
+    // edit list 10: the condo fee's default source, which sat under the HOA
+    // field in Adjust costs until the field moved to the main row (no help
+    // lines there); shown when buying a condo is in the pair. {help} = the
+    // metro's fee help (fields.hoa.help, with the Florida note for Florida)
+    fee: "Condo HOA fee. {help}",
     // shown when buying a condo is in the pair (explains the * in the metro list)
     thin: "* Thin condo market: too few condo sales to measure reliably."
   },
@@ -1688,16 +1780,19 @@ const COUNTERPART = { buy_condo: "rent_apartment", buy_house: "rent_house", rent
 // =====================================================================
 const METROS = [{"id":"us","n":"United States","rank":0,"o":0,"us":true,"hc":0,"fl":false,"th":false,"tb":false,"bc":{"v":346000,"t":0.0097,"i":74,"h":409},"bh":{"v":371000,"t":0.0092,"i":164},"ss":0.601,"cp":false,"ra":{"r":1750},"rh":{"r":2300}},{"id":"394913","n":"New York, NY","rank":1,"o":1,"us":false,"hc":0,"fl":false,"th":false,"tb":false,"bc":{"v":579000,"t":0.015,"i":68,"h":646},"bh":{"v":761000,"t":0.0193,"i":181},"ss":0.542,"cp":true,"ra":{"r":3600},"rh":{"r":3450}},{"id":"753899","n":"Los Angeles, CA","rank":2,"o":2,"us":false,"hc":2,"fl":false,"th":false,"tb":false,"bc":{"v":665000,"t":0.0081,"i":90,"h":463},"bh":{"v":1014000,"t":0.0068,"i":167},"ss":0.323,"cp":false,"ra":{"r":2700},"rh":{"r":4450}},{"id":"394463","n":"Chicago, IL","rank":3,"o":3,"us":false,"hc":0,"fl":false,"th":false,"tb":false,"bc":{"v":278000,"t":0.0182,"i":65,"h":380},"bh":{"v":378000,"t":0.0203,"i":162},"ss":0.692,"cp":false,"ra":{"r":2100},"rh":{"r":2550}},{"id":"394514","n":"Dallas, TX","rank":4,"o":4,"us":false,"hc":0,"fl":false,"th":false,"tb":false,"bc":{"v":213000,"t":0.0162,"i":118,"h":388},"bh":{"v":363000,"t":0.0153,"i":296},"ss":0.686,"cp":false,"ra":{"r":1500},"rh":{"r":2350}},{"id":"394692","n":"Houston, TX","rank":5,"o":5,"us":false,"hc":1,"fl":false,"th":false,"tb":false,"bc":{"v":143000,"t":0.0155,"i":102,"h":439},"bh":{"v":309000,"t":0.0154,"i":278},"ss":0.712,"cp":false,"ra":{"r":1400},"rh":{"r":2250}},{"id":"395209","n":"Washington, DC","rank":6,"o":7,"us":false,"hc":0,"fl":false,"th":false,"tb":false,"bc":{"v":351000,"t":0.0089,"i":60,"h":489},"bh":{"v":619000,"t":0.009,"i":170},"ss":0.567,"cp":false,"ra":{"r":2300},"rh":{"r":3300}},{"id":"394974","n":"Philadelphia, PA","rank":7,"o":6,"us":false,"hc":0,"fl":false,"th":false,"tb":false,"bc":{"v":287000,"t":0.014,"i":68,"h":341},"bh":{"v":399000,"t":0.015,"i":146},"ss":0.725,"cp":false,"ra":{"r":1800},"rh":{"r":2300}},{"id":"394856","n":"Miami, FL","rank":8,"o":8,"us":false,"hc":2,"fl":true,"th":false,"tb":false,"bc":{"v":268000,"t":0.0082,"i":140,"h":608},"bh":{"v":569000,"t":0.0079,"i":506},"ss":0.534,"cp":false,"ra":{"r":2450},"rh":{"r":3450}},{"id":"394347","n":"Atlanta, GA","rank":9,"o":9,"us":false,"hc":0,"fl":false,"th":false,"tb":false,"bc":{"v":269000,"t":0.0087,"i":88,"h":387},"bh":{"v":384000,"t":0.0081,"i":190},"ss":0.753,"cp":false,"ra":{"r":1650},"rh":{"r":2300}},{"id":"394404","n":"Boston, MA","rank":10,"o":10,"us":false,"hc":0,"fl":false,"th":false,"tb":false,"bc":{"v":582000,"t":0.0101,"i":74,"h":427},"bh":{"v":774000,"t":0.0116,"i":186},"ss":0.446,"cp":false,"ra":{"r":3050},"rh":{"r":3650}},{"id":"394976","n":"Phoenix, AZ","rank":11,"o":11,"us":false,"hc":0,"fl":false,"th":false,"tb":false,"bc":{"v":275000,"t":0.0043,"i":71,"h":297},"bh":{"v":452000,"t":0.0044,"i":134},"ss":0.681,"cp":false,"ra":{"r":1500},"rh":{"r":2300}},{"id":"395057","n":"San Francisco, CA","rank":12,"o":13,"us":false,"hc":2,"fl":false,"th":false,"tb":false,"bc":{"v":711000,"t":0.009,"i":92,"h":568},"bh":{"v":1214000,"t":0.0072,"i":198},"ss":0.407,"cp":false,"ra":{"r":3150},"rh":{"r":4200}},{"id":"395025","n":"Riverside, CA","rank":13,"o":16,"us":false,"hc":2,"fl":false,"th":false,"tb":false,"bc":{"v":472000,"t":0.0081,"i":89,"h":446},"bh":{"v":592000,"t":0.0075,"i":164},"ss":0.519,"cp":false,"ra":{"r":2300},"rh":{"r":3200}},{"id":"394532","n":"Detroit, MI","rank":14,"o":12,"us":false,"hc":0,"fl":false,"th":false,"tb":false,"bc":{"v":270000,"t":0.013,"i":53,"h":334},"bh":{"v":267000,"t":0.0131,"i":134},"ss":0.728,"cp":false,"ra":{"r":1400},"rh":{"r":1700}},{"id":"395078","n":"Seattle, WA","rank":15,"o":14,"us":false,"hc":0,"fl":false,"th":false,"tb":false,"bc":{"v":441000,"t":0.0081,"i":58,"h":512},"bh":{"v":760000,"t":0.0081,"i":147},"ss":0.483,"cp":false,"ra":{"r":2100},"rh":{"r":3500}},{"id":"394865","n":"Minneapolis, MN","rank":16,"o":15,"us":false,"hc":0,"fl":false,"th":false,"tb":false,"bc":{"v":213000,"t":0.0107,"i":51,"h":375},"bh":{"v":401000,"t":0.0106,"i":226},"ss":0.664,"cp":false,"ra":{"r":1650},"rh":{"r":2450}},{"id":"395056","n":"San Diego, CA","rank":17,"o":19,"us":false,"hc":2,"fl":false,"th":false,"tb":false,"bc":{"v":621000,"t":0.0082,"i":92,"h":446},"bh":{"v":1005000,"t":0.0068,"i":194},"ss":0.389,"cp":false,"ra":{"r":2750},"rh":{"r":4150}},{"id":"395148","n":"Tampa, FL","rank":18,"o":17,"us":false,"hc":2,"fl":true,"th":false,"tb":false,"bc":{"v":195000,"t":0.0073,"i":127,"h":586},"bh":{"v":375000,"t":0.0073,"i":279},"ss":0.578,"cp":false,"ra":{"r":1800},"rh":{"r":2400}},{"id":"394530","n":"Denver, CO","rank":19,"o":18,"us":false,"hc":0,"fl":false,"th":false,"tb":false,"bc":{"v":302000,"t":0.005,"i":78,"h":384},"bh":{"v":585000,"t":0.0051,"i":303},"ss":0.608,"cp":false,"ra":{"r":1750},"rh":{"r":3000}},{"id":"394358","n":"Baltimore, MD","rank":20,"o":21,"us":false,"hc":0,"fl":false,"th":false,"tb":false,"bc":{"v":281000,"t":0.0104,"i":66,"h":341},"bh":{"v":412000,"t":0.0096,"i":162},"ss":0.636,"cp":false,"ra":{"r":1800},"rh":{"r":2500}},{"id":"395121","n":"St. Louis, MO","rank":21,"o":20,"us":false,"hc":0,"fl":false,"th":false,"tb":false,"bc":{"v":199000,"t":0.0117,"i":73,"h":297},"bh":{"v":282000,"t":0.0117,"i":190},"ss":0.788,"cp":false,"ra":{"r":1350},"rh":{"r":1700}},{"id":"394943","n":"Orlando, FL","rank":22,"o":25,"us":false,"hc":2,"fl":true,"th":false,"tb":false,"bc":{"v":184000,"t":0.0073,"i":124,"h":454},"bh":{"v":400000,"t":0.0073,"i":273},"ss":0.717,"cp":false,"ra":{"r":1750},"rh":{"r":2450}},{"id":"394458","n":"Charlotte, NC","rank":23,"o":23,"us":false,"hc":0,"fl":false,"th":false,"tb":false,"bc":{"v":297000,"t":0.007,"i":80,"h":297},"bh":{"v":388000,"t":0.0065,"i":153},"ss":0.741,"cp":false,"ra":{"r":1550},"rh":{"r":2200}},{"id":"395055","n":"San Antonio, TX","rank":24,"o":26,"us":false,"hc":0,"fl":false,"th":true,"tb":false,"bc":{"v":186000,"t":0.0162,"i":105,"h":359},"bh":{"v":278000,"t":0.0152,"i":189},"ss":0.77,"cp":false,"ra":{"r":1250},"rh":{"r":1850}},{"id":"394998","n":"Portland, OR","rank":25,"o":24,"us":false,"hc":0,"fl":false,"th":false,"tb":false,"bc":{"v":297000,"t":0.01,"i":64,"h":439},"bh":{"v":556000,"t":0.0087,"i":128},"ss":0.545,"cp":false,"ra":{"r":1700},"rh":{"r":2700}},{"id":"395045","n":"Sacramento, CA","rank":26,"o":31,"us":false,"hc":2,"fl":false,"th":false,"tb":false,"bc":{"v":338000,"t":0.0075,"i":79,"h":375},"bh":{"v":584000,"t":0.0075,"i":153},"ss":0.654,"cp":false,"ra":{"r":2000},"rh":{"r":2850}},{"id":"394982","n":"Pittsburgh, PA","rank":27,"o":22,"us":false,"hc":0,"fl":false,"th":false,"tb":false,"bc":{"v":277000,"t":0.0137,"i":60,"h":310},"bh":{"v":230000,"t":0.0137,"i":113},"ss":0.783,"cp":false,"ra":{"r":1400},"rh":{"r":1650}},{"id":"394466","n":"Cincinnati, OH","rank":28,"o":29,"us":false,"hc":0,"fl":false,"th":false,"tb":false,"bc":{"v":216000,"t":0.0119,"i":52,"h":310},"bh":{"v":319000,"t":0.0122,"i":137},"ss":0.767,"cp":false,"ra":{"r":1400},"rh":{"r":2050}},{"id":"394355","n":"Austin, TX","rank":29,"o":27,"us":false,"hc":0,"fl":false,"th":false,"tb":false,"bc":{"v":343000,"t":0.0155,"i":96,"h":372},"bh":{"v":425000,"t":0.015,"i":213},"ss":0.586,"cp":false,"ra":{"r":1450},"rh":{"r":2300}},{"id":"394775","n":"Las Vegas, NV","rank":30,"o":33,"us":false,"hc":0,"fl":false,"th":false,"tb":false,"bc":{"v":231000,"t":0.0042,"i":62,"h":260},"bh":{"v":444000,"t":0.0047,"i":112},"ss":0.738,"cp":false,"ra":{"r":1500},"rh":{"r":2250}},{"id":"394735","n":"Kansas City, MO","rank":31,"o":30,"us":false,"hc":0,"fl":false,"th":true,"tb":false,"bc":{"v":212000,"t":0.0121,"i":81,"h":359},"bh":{"v":330000,"t":0.0108,"i":217},"ss":0.772,"cp":false,"ra":{"r":1400},"rh":{"r":1800}},{"id":"394492","n":"Columbus, OH","rank":32,"o":32,"us":false,"hc":0,"fl":false,"th":false,"tb":false,"bc":{"v":227000,"t":0.0153,"i":49,"h":307},"bh":{"v":354000,"t":0.0142,"i":134},"ss":0.755,"cp":false,"ra":{"r":1400},"rh":{"r":2100}},{"id":"394705","n":"Indianapolis, IN","rank":34,"o":34,"us":false,"hc":0,"fl":false,"th":false,"tb":false,"bc":{"v":225000,"t":0.0082,"i":68,"h":297},"bh":{"v":298000,"t":0.0078,"i":153},"ss":0.802,"cp":false,"ra":{"r":1400},"rh":{"r":1900}},{"id":"394475","n":"Cleveland, OH","rank":35,"o":28,"us":false,"hc":0,"fl":false,"th":false,"tb":false,"bc":{"v":191000,"t":0.0161,"i":58,"h":310},"bh":{"v":261000,"t":0.0156,"i":124},"ss":0.721,"cp":false,"ra":{"r":1250},"rh":{"r":1750}},{"id":"395059","n":"San Jose, CA","rank":36,"o":37,"us":false,"hc":2,"fl":false,"th":false,"tb":false,"bc":{"v":780000,"t":0.0088,"i":71,"h":510},"bh":{"v":1674000,"t":0.0067,"i":167},"ss":0.316,"cp":false,"ra":{"r":3600},"rh":{"r":4850}},{"id":"394902","n":"Nashville, TN","rank":37,"o":35,"us":false,"hc":0,"fl":false,"th":false,"tb":false,"bc":{"v":348000,"t":0.0057,"i":81,"h":259},"bh":{"v":460000,"t":0.0047,"i":168},"ss":0.698,"cp":false,"ra":{"r":1650},"rh":{"r":2400}},{"id":"395194","n":"Virginia Beach, VA","rank":38,"o":36,"us":false,"hc":0,"fl":false,"th":false,"tb":false,"bc":{"v":311000,"t":0.0081,"i":84,"h":330},"bh":{"v":379000,"t":0.0078,"i":168},"ss":0.658,"cp":false,"ra":{"r":1750},"rh":{"r":2300}},{"id":"395005","n":"Providence, RI","rank":39,"o":38,"us":false,"hc":0,"fl":false,"th":false,"tb":false,"bc":{"v":389000,"t":0.0121,"i":71,"h":375},"bh":{"v":539000,"t":0.0118,"i":189},"ss":0.565,"cp":false,"ra":{"r":2050},"rh":{"r":3000}},{"id":"394714","n":"Jacksonville, FL","rank":40,"o":40,"us":false,"hc":2,"fl":true,"th":false,"tb":false,"bc":{"v":235000,"t":0.0072,"i":114,"h":481},"bh":{"v":360000,"t":0.0073,"i":224},"ss":0.692,"cp":false,"ra":{"r":1500},"rh":{"r":2050}},{"id":"394862","n":"Milwaukee, WI","rank":41,"o":39,"us":false,"hc":0,"fl":false,"th":false,"tb":false,"bc":{"v":293000,"t":0.0152,"i":46,"h":336},"bh":{"v":404000,"t":0.0144,"i":129},"ss":0.736,"cp":false,"ra":{"r":1500},"rh":{"r":1850}},{"id":"394935","n":"Oklahoma City, OK","rank":42,"o":41,"us":false,"hc":0,"fl":false,"th":true,"tb":true,"bc":{"v":122000,"t":0.009,"i":91,"h":254},"bh":{"v":247000,"t":0.009,"i":285},"ss":0.766,"cp":false,"ra":{"r":1150},"rh":{"r":1550}},{"id":"395012","n":"Raleigh, NC","rank":43,"o":42,"us":false,"hc":0,"fl":false,"th":true,"tb":false,"bc":{"v":281000,"t":0.0068,"i":89,"h":259},"bh":{"v":436000,"t":0.0068,"i":161},"ss":0.745,"cp":false,"ra":{"r":1500},"rh":{"r":2150}},{"id":"394849","n":"Memphis, TN","rank":44,"o":45,"us":false,"hc":0,"fl":false,"th":false,"tb":false,"bc":{"v":259000,"t":0.0082,"i":104,"h":372},"bh":{"v":244000,"t":0.0066,"i":183},"ss":0.811,"cp":false,"ra":{"r":1250},"rh":{"r":1650}},{"id":"395022","n":"Richmond, VA","rank":45,"o":44,"us":false,"hc":0,"fl":false,"th":false,"tb":false,"bc":{"v":343000,"t":0.0075,"i":70,"h":320},"bh":{"v":398000,"t":0.0072,"i":136},"ss":0.779,"cp":false,"ra":{"r":1600},"rh":{"r":2300}},{"id":"394807","n":"Louisville, KY","rank":46,"o":43,"us":false,"hc":0,"fl":false,"th":false,"tb":false,"bc":{"v":219000,"t":0.0083,"i":63,"h":285},"bh":{"v":285000,"t":0.0082,"i":164},"ss":0.829,"cp":false,"ra":{"r":1250},"rh":{"r":1750}},{"id":"394910","n":"New Orleans, LA","rank":47,"o":54,"us":false,"hc":1,"fl":false,"th":false,"tb":false,"bc":{"v":190000,"t":0.0059,"i":159,"h":458},"bh":{"v":263000,"t":0.0049,"i":448},"ss":0.724,"cp":false,"ra":{"r":1450},"rh":{"r":1850}},{"id":"395053","n":"Salt Lake City, UT","rank":48,"o":50,"us":false,"hc":0,"fl":false,"th":false,"tb":false,"bc":{"v":441000,"t":0.0051,"i":50,"h":273},"bh":{"v":579000,"t":0.0051,"i":132},"ss":0.535,"cp":false,"ra":{"r":1500},"rh":{"r":2550}},{"id":"394669","n":"Hartford, CT","rank":49,"o":47,"us":false,"hc":0,"fl":false,"th":false,"tb":false,"bc":{"v":271000,"t":0.0195,"i":51,"h":388},"bh":{"v":426000,"t":0.019,"i":168},"ss":0.665,"cp":false,"ra":{"r":1950},"rh":{"r":2650}},{"id":"394425","n":"Buffalo, NY","rank":50,"o":46,"us":false,"hc":0,"fl":false,"th":true,"tb":false,"bc":{"v":242000,"t":0.0172,"i":51,"h":332},"bh":{"v":292000,"t":0.0192,"i":105},"ss":0.846,"cp":false,"ra":{"r":1400},"rh":{"r":1900}},{"id":"394388","n":"Birmingham, AL","rank":51,"o":48,"us":false,"hc":0,"fl":false,"th":false,"tb":false,"bc":{"v":216000,"t":0.0054,"i":86,"h":341},"bh":{"v":264000,"t":0.0038,"i":166},"ss":0.751,"cp":false,"ra":{"r":1300},"rh":{"r":1600}},{"id":"395031","n":"Rochester, NY","rank":52,"o":49,"us":false,"hc":0,"fl":false,"th":true,"tb":false,"bc":{"v":256000,"t":0.0203,"i":52,"h":318},"bh":{"v":287000,"t":0.0222,"i":98},"ss":0.829,"cp":false,"ra":{"r":1450},"rh":{"r":2150}},{"id":"394640","n":"Grand Rapids, MI","rank":53,"o":51,"us":false,"hc":0,"fl":false,"th":false,"tb":false,"bc":{"v":344000,"t":0.0115,"i":47,"h":310},"bh":{"v":359000,"t":0.0108,"i":111},"ss":0.787,"cp":false,"ra":{"r":1500},"rh":{"r":2200}},{"id":"395167","n":"Tucson, AZ","rank":54,"o":52,"us":false,"hc":0,"fl":false,"th":false,"tb":false,"bc":{"v":207000,"t":0.0055,"i":66,"h":235},"bh":{"v":349000,"t":0.0059,"i":124},"ss":0.729,"cp":false,"ra":{"r":1200},"rh":{"r":1900}},{"id":"753924","n":"Urban Honolulu, HI","rank":55,"o":63,"us":false,"hc":0,"fl":false,"th":false,"tb":false,"bc":{"v":511000,"t":0.0026,"i":49,"h":743},"bh":{"v":1058000,"t":0.0027,"i":218},"ss":0.304,"cp":false,"ra":{"r":2500},"rh":{"r":3550}},{"id":"395169","n":"Tulsa, OK","rank":56,"o":53,"us":false,"hc":0,"fl":false,"th":true,"tb":true,"bc":{"v":123000,"t":0.0087,"i":90,"h":254},"bh":{"v":256000,"t":0.0087,"i":226},"ss":0.765,"cp":false,"ra":{"r":1150},"rh":{"r":1650}},{"id":"394619","n":"Fresno, CA","rank":57,"o":61,"us":false,"hc":2,"fl":false,"th":true,"tb":false,"bc":{"v":244000,"t":0.0079,"i":79,"h":392},"bh":{"v":415000,"t":0.0074,"i":133},"ss":0.724,"cp":false,"ra":{"r":1600},"rh":{"r":2400}},{"id":"395238","n":"Worcester, MA","rank":58,"o":66,"us":false,"hc":0,"fl":false,"th":false,"tb":false,"bc":{"v":365000,"t":0.013,"i":61,"h":401},"bh":{"v":493000,"t":0.0125,"i":159},"ss":0.663,"cp":false,"ra":{"r":2100},"rh":{"r":2850}},{"id":"394938","n":"Omaha, NE","rank":59,"o":55,"us":false,"hc":0,"fl":false,"th":true,"tb":false,"bc":{"v":230000,"t":0.0156,"i":71,"h":336},"bh":{"v":310000,"t":0.0162,"i":226},"ss":0.788,"cp":false,"ra":{"r":1300},"rh":{"r":2050}},{"id":"394415","n":"Bridgeport, CT","rank":60,"o":62,"us":false,"hc":0,"fl":false,"th":false,"tb":false,"bc":{"v":419000,"t":0.017,"i":57,"h":500},"bh":{"v":791000,"t":0.0162,"i":228},"ss":0.465,"cp":false,"ra":{"r":2750},"rh":{"r":4800}},{"id":"394653","n":"Greenville, SC","rank":61,"o":57,"us":false,"hc":0,"fl":false,"th":true,"tb":false,"bc":{"v":297000,"t":0.005,"i":76,"h":246},"bh":{"v":314000,"t":0.0046,"i":137},"ss":0.832,"cp":false,"ra":{"r":1450},"rh":{"r":1850}},{"id":"394312","n":"Albuquerque, NM","rank":62,"o":59,"us":false,"hc":0,"fl":false,"th":true,"tb":true,"bc":{"v":239000,"t":0.0075,"i":72,"h":316},"bh":{"v":352000,"t":0.0075,"i":136},"ss":0.769,"cp":false,"ra":{"r":1350},"rh":{"r":2200}},{"id":"394357","n":"Bakersfield, CA","rank":63,"o":79,"us":false,"hc":2,"fl":false,"th":true,"tb":true,"bc":{"v":225000,"t":0.0083,"i":71,"h":308},"bh":{"v":365000,"t":0.0083,"i":129},"ss":0.76,"cp":false,"ra":{"r":1450},"rh":{"r":2250}},{"id":"394308","n":"Albany, NY","rank":64,"o":56,"us":false,"hc":0,"fl":false,"th":true,"tb":false,"bc":{"v":326000,"t":0.014,"i":62,"h":297},"bh":{"v":376000,"t":0.0182,"i":113},"ss":0.825,"cp":false,"ra":{"r":1650},"rh":{"r":2350}},{"id":"394753","n":"Knoxville, TN","rank":65,"o":60,"us":false,"hc":0,"fl":false,"th":false,"tb":false,"bc":{"v":330000,"t":0.0051,"i":87,"h":154},"bh":{"v":367000,"t":0.0046,"i":140},"ss":0.837,"cp":false,"ra":{"r":1550},"rh":{"r":2150}},{"id":"394367","n":"Baton Rouge, LA","rank":66,"o":68,"us":false,"hc":1,"fl":false,"th":true,"tb":true,"bc":{"v":138000,"t":0.0048,"i":85,"h":254},"bh":{"v":254000,"t":0.0048,"i":222},"ss":0.762,"cp":false,"ra":{"r":1250},"rh":{"r":1800}},{"id":"394843","n":"McAllen, TX","rank":67,"o":84,"us":false,"hc":0,"fl":false,"th":true,"tb":true,"bc":{"v":145000,"t":0.0156,"i":136,"h":256},"bh":{"v":194000,"t":0.0156,"i":167},"ss":0.726,"cp":false,"ra":{"r":1050},"rh":{"r":1800}},{"id":"394908","n":"New Haven, CT","rank":68,"o":93,"us":false,"hc":0,"fl":false,"th":false,"tb":false,"bc":{"v":275000,"t":0.0203,"i":54,"h":401},"bh":{"v":437000,"t":0.0187,"i":201},"ss":0.624,"cp":false,"ra":{"r":1950},"rh":{"r":2900}},{"id":"394561","n":"El Paso, TX","rank":69,"o":72,"us":false,"hc":0,"fl":false,"th":true,"tb":true,"bc":{"v":177000,"t":0.017,"i":96,"h":278},"bh":{"v":235000,"t":0.017,"i":139},"ss":0.772,"cp":false,"ra":{"r":1200},"rh":{"r":1800}},{"id":"394318","n":"Allentown, PA","rank":70,"o":64,"us":false,"hc":0,"fl":false,"th":true,"tb":false,"bc":{"v":311000,"t":0.0184,"i":53,"h":347},"bh":{"v":368000,"t":0.0155,"i":118},"ss":0.774,"cp":false,"ra":{"r":1700},"rh":{"r":2300}},{"id":"394952","n":"Oxnard, CA","rank":71,"o":80,"us":false,"hc":2,"fl":false,"th":false,"tb":false,"bc":{"v":571000,"t":0.0083,"i":82,"h":465},"bh":{"v":909000,"t":0.0069,"i":195},"ss":0.495,"cp":false,"ra":{"r":2700},"rh":{"r":4100}},{"id":"394486","n":"Columbia, SC","rank":72,"o":65,"us":false,"hc":0,"fl":false,"th":true,"tb":true,"bc":{"v":167000,"t":0.0051,"i":79,"h":271},"bh":{"v":258000,"t":0.0051,"i":138},"ss":0.814,"cp":false,"ra":{"r":1400},"rh":{"r":1800}},{"id":"753906","n":"North Port, FL","rank":73,"o":58,"us":false,"hc":2,"fl":true,"th":false,"tb":false,"bc":{"v":282000,"t":0.0073,"i":147,"h":623},"bh":{"v":421000,"t":0.0071,"i":282},"ss":0.595,"cp":false,"ra":{"r":1850},"rh":{"r":2550}},{"id":"394457","n":"Charleston, SC","rank":75,"o":67,"us":false,"hc":0,"fl":false,"th":false,"tb":false,"bc":{"v":409000,"t":0.0042,"i":109,"h":372},"bh":{"v":433000,"t":0.0045,"i":220},"ss":0.67,"cp":false,"ra":{"r":1900},"rh":{"r":2600}},{"id":"394648","n":"Greensboro, NC","rank":76,"o":70,"us":false,"hc":0,"fl":false,"th":false,"tb":false,"bc":{"v":166000,"t":0.0087,"i":74,"h":227},"bh":{"v":269000,"t":0.0075,"i":126},"ss":0.8,"cp":false,"ra":{"r":1250},"rh":{"r":1800}},{"id":"395134","n":"Stockton, CA","rank":77,"o":90,"us":false,"hc":2,"fl":false,"th":true,"tb":true,"bc":{"v":257000,"t":0.0074,"i":66,"h":326},"bh":{"v":530000,"t":0.0074,"i":137},"ss":0.637,"cp":false,"ra":{"r":2000},"rh":{"r":2850}},{"id":"394440","n":"Cape Coral, FL","rank":78,"o":69,"us":false,"hc":2,"fl":true,"th":false,"tb":false,"bc":{"v":265000,"t":0.0072,"i":146,"h":637},"bh":{"v":351000,"t":0.0075,"i":322},"ss":0.662,"cp":false,"ra":{"r":1650},"rh":{"r":2150}},{"id":"394399","n":"Boise City, ID","rank":79,"o":74,"us":false,"hc":0,"fl":false,"th":true,"tb":true,"bc":{"v":338000,"t":0.005,"i":71,"h":365},"bh":{"v":495000,"t":0.005,"i":113},"ss":0.614,"cp":false,"ra":{"r":1650},"rh":{"r":2300}},{"id":"394484","n":"Colorado Springs, CO","rank":80,"o":75,"us":false,"hc":0,"fl":false,"th":true,"tb":false,"bc":{"v":245000,"t":0.004,"i":96,"h":309},"bh":{"v":455000,"t":0.0044,"i":266},"ss":0.762,"cp":false,"ra":{"r":1550},"rh":{"r":2350}},{"id":"394798","n":"Little Rock, AR","rank":81,"o":71,"us":false,"hc":0,"fl":false,"th":true,"tb":true,"bc":{"v":169000,"t":0.0062,"i":84,"h":273},"bh":{"v":232000,"t":0.0062,"i":176},"ss":0.803,"cp":false,"ra":{"r":1100},"rh":{"r":1450}},{"id":"394766","n":"Lakeland, FL","rank":82,"o":81,"us":false,"hc":2,"fl":true,"th":true,"tb":false,"bc":{"v":143000,"t":0.0067,"i":128,"h":416},"bh":{"v":299000,"t":0.007,"i":213},"ss":0.791,"cp":false,"ra":{"r":1600},"rh":{"r":2100}},{"id":"394304","n":"Akron, OH","rank":83,"o":76,"us":false,"hc":0,"fl":false,"th":false,"tb":false,"bc":{"v":230000,"t":0.0147,"i":63,"h":320},"bh":{"v":244000,"t":0.0144,"i":123},"ss":0.786,"cp":false,"ra":{"r":1100},"rh":{"r":1500}},{"id":"394531","n":"Des Moines, IA","rank":84,"o":77,"us":false,"hc":0,"fl":false,"th":false,"tb":false,"bc":{"v":190000,"t":0.0158,"i":62,"h":233},"bh":{"v":303000,"t":0.0153,"i":165},"ss":0.759,"cp":false,"ra":{"r":1200},"rh":{"r":1750}},{"id":"395115","n":"Springfield, MA","rank":85,"o":97,"us":false,"hc":0,"fl":false,"th":false,"tb":false,"bc":{"v":279000,"t":0.0121,"i":53,"h":344},"bh":{"v":383000,"t":0.0139,"i":138},"ss":0.711,"cp":false,"ra":{"r":1800},"rh":{"r":2800}},{"id":"394931","n":"Ogden, UT","rank":87,"o":95,"us":false,"hc":0,"fl":false,"th":true,"tb":false,"bc":{"v":365000,"t":0.0053,"i":48,"h":220},"bh":{"v":520000,"t":0.0052,"i":119},"ss":0.683,"cp":false,"ra":{"r":1450},"rh":{"r":2300}},{"id":"394816","n":"Madison, WI","rank":88,"o":73,"us":false,"hc":0,"fl":false,"th":false,"tb":false,"bc":{"v":307000,"t":0.0163,"i":45,"h":297},"bh":{"v":469000,"t":0.0152,"i":135},"ss":0.501,"cp":false,"ra":{"r":1600},"rh":{"r":2550}},{"id":"395235","n":"Winston, NC","rank":89,"o":82,"us":false,"hc":0,"fl":false,"th":true,"tb":true,"bc":{"v":162000,"t":0.0069,"i":89,"h":268},"bh":{"v":284000,"t":0.0069,"i":132},"ss":0.818,"cp":false,"ra":{"r":1250},"rh":{"r":1850}},{"id":"394528","n":"Deltona, FL","rank":90,"o":78,"us":false,"hc":2,"fl":true,"th":false,"tb":false,"bc":{"v":292000,"t":0.0077,"i":117,"h":651},"bh":{"v":334000,"t":0.0072,"i":226},"ss":0.748,"cp":false,"ra":{"r":1600},"rh":{"r":2150}},{"id":"395143","n":"Syracuse, NY","rank":91,"o":83,"us":false,"hc":0,"fl":false,"th":true,"tb":true,"bc":{"v":270000,"t":0.0222,"i":63,"h":332},"bh":{"v":271000,"t":0.0222,"i":107},"ss":0.849,"cp":false,"ra":{"r":1450},"rh":{"r":2300}},{"id":"395006","n":"Provo, UT","rank":92,"o":96,"us":false,"hc":0,"fl":false,"th":false,"tb":false,"bc":{"v":319000,"t":0.0048,"i":40,"h":227},"bh":{"v":557000,"t":0.0046,"i":128},"ss":0.553,"cp":false,"ra":{"r":1550},"rh":{"r":2300}},{"id":"395160","n":"Toledo, OH","rank":93,"o":85,"us":false,"hc":0,"fl":false,"th":false,"tb":false,"bc":{"v":215000,"t":0.0137,"i":66,"h":235},"bh":{"v":204000,"t":0.0152,"i":122},"ss":0.734,"cp":false,"ra":{"r":1150},"rh":{"r":1350}},{"id":"395224","n":"Wichita, KS","rank":94,"o":86,"us":false,"hc":0,"fl":false,"th":true,"tb":true,"bc":{"v":154000,"t":0.0129,"i":59,"h":262},"bh":{"v":225000,"t":0.0129,"i":235},"ss":0.844,"cp":false,"ra":{"r":1000},"rh":{"r":1400}},{"id":"394549","n":"Durham, NC","rank":95,"o":88,"us":false,"hc":0,"fl":false,"th":true,"tb":false,"bc":{"v":278000,"t":0.0082,"i":79,"h":273},"bh":{"v":410000,"t":0.0074,"i":160},"ss":0.721,"cp":false,"ra":{"r":1500},"rh":{"r":2150}},{"id":"394352","n":"Augusta, GA","rank":96,"o":94,"us":false,"hc":0,"fl":false,"th":true,"tb":true,"bc":{"v":197000,"t":0.0067,"i":85,"h":291},"bh":{"v":254000,"t":0.0067,"i":150},"ss":0.831,"cp":false,"ra":{"r":1350},"rh":{"r":1650}},{"id":"394957","n":"Palm Bay, FL","rank":97,"o":87,"us":false,"hc":2,"fl":true,"th":false,"tb":false,"bc":{"v":240000,"t":0.0072,"i":142,"h":586},"bh":{"v":352000,"t":0.0068,"i":314},"ss":0.707,"cp":false,"ra":{"r":1650},"rh":{"r":2250}},{"id":"394711","n":"Jackson, MS","rank":98,"o":91,"us":false,"hc":0,"fl":false,"th":true,"tb":true,"bc":{"v":202000,"t":0.0057,"i":93,"h":294},"bh":{"v":214000,"t":0.0057,"i":197},"ss":0.814,"cp":false,"ra":{"r":1450},"rh":{"r":1650}},{"id":"394666","n":"Harrisburg, PA","rank":99,"o":89,"us":false,"hc":0,"fl":false,"th":true,"tb":true,"bc":{"v":232000,"t":0.0126,"i":61,"h":312},"bh":{"v":314000,"t":0.0126,"i":113},"ss":0.736,"cp":false,"ra":{"r":1350},"rh":{"r":1900}},{"id":"395113","n":"Spokane, WA","rank":100,"o":92,"us":false,"hc":0,"fl":false,"th":true,"tb":true,"bc":{"v":255000,"t":0.0082,"i":71,"h":324},"bh":{"v":422000,"t":0.0082,"i":131},"ss":0.714,"cp":false,"ra":{"r":1400},"rh":{"r":2200}}];
 const META = {"valuesMonth":"2026-08","built":"2026-10-08"};
-const DEF = {"optionA":"buy_condo","optionB":"rent_apartment","stay":11,"stayMin":1,"stayMax":30,"beHorizon":60,"down":10,"term":30,"app":3,"rgApartment":3,"rgHouse":3,"ret":7,"cgt":15,"downUse":"save","diffUse":"spend","accountRetirement":false,"cgtRetirement":0,"savYield":0.5,"savRegRef":0.37,"savHysaRef":4.2,"closing":2,"selling":6,"agent":0,"points":0,"assessUsd":0,"assessYear":1,"condoAdd":0,"costFloor":2.3,"maintCondo":0.9,"maintSfr":1.43,"maintCapSfr":6368,"maintUsTypicalUsd":3185,"ssUs":0.601,"insG":5,"hoaG":4,"costSwitch":5,"hoaIdx":4.37,"flX":4.5,"flFrom":2022,"pmiEdges":[85,90,95],"pmiRates":[0.2,0.38,0.53,0.7],"pmiRates15":[0.16,0.21,0.39,0.53],"pmiBelow":20,"pmiCancel":78,"pmiFinal":180,"pmiFinal15":90,"rentMoveIn":0,"rentFees":0,"rentersUsd":14.25,"rentersPct":0,"cpi":2.3,"wash":5000,"washPct":2,"round":5000,"startYear":2026,"exclSingle":250000,"exclJoint":500000,"exclMinYears":2};
-const FALLBACK_RATE = {"rate":7.28,"rate15":6.6,"week":"2026-10-01","source":"Freddie Mac PMMS via FRED"};
+const DEF = {"optionA":"buy_condo","optionB":"rent_apartment","stay":11,"stayMin":1,"stayMax":30,"beHorizon":60,"down":10,"term":30,"app":3,"rgApartment":3,"rgHouse":3,"ret":7,"cgt":15,"downUse":"save","diffUse":"spend","accountRetirement":false,"cgtRetirement":0,"savYield":0.5,"closing":2,"selling":6,"sellAgentRef":2.7,"agent":0,"points":0,"assessUsd":0,"assessYear":1,"condoAdd":0,"costFloor":2.3,"maintCondo":0.9,"maintSfr":1.43,"maintCapSfr":6368,"maintUsTypicalUsd":3185,"ssUs":0.601,"insG":5,"hoaG":4,"costSwitch":5,"hoaIdx":4.37,"flX":4.5,"flFrom":2022,"pmiEdges":[85,90,95],"pmiRates":[0.2,0.38,0.53,0.7],"pmiRates15":[0.16,0.21,0.39,0.53],"pmiBelow":20,"pmiCancel":78,"pmiFinal":180,"pmiFinal15":90,"rentMoveIn":0,"rentFees":0,"rentersUsd":14.25,"rentersPct":0,"cpi":2.3,"wash":5000,"washPct":2,"round":5000,"startYear":2026,"exclSingle":250000,"exclJoint":500000,"exclMinYears":2};
+const FALLBACK_RATE = {"rate":7.4,"rate15":6.73,"week":"2026-10-08","source":"Freddie Mac PMMS via FRED"};
 
-// Live-rate file. The weekly refresh is staged but NOT active, so the rate
-// and its label stay the build-week reading until LIVE_RATE_ACTIVE is set
-// to true (after the pmms workflow is switched on). The fetch still runs, so
-// the fallback path is exercised on every load.
+// Live-rate file. The weekly refresh is ACTIVE since 2026-10-08 (Houston):
+// the inman-tools workflow .github/workflows/pmms-refresh.yml rewrites
+// pmms/pmms.json after each Freddie Mac release, and the page uses it when
+// its week is at least the build week. The page's default rate therefore
+// drifts from the story's pinned 7.40% in later weeks, by design: the story
+// is a snapshot, the tool stays current. Set to false to freeze the page at
+// the build-week rates.
 const PMMS_URL = "../pmms/pmms.json";
 const PMMS_TIMEOUT_MS = 8000;
-const LIVE_RATE_ACTIVE = false;
+const LIVE_RATE_ACTIVE = true;
 
 // ==== MATH START =====================================================
 // Mirrors sim_option(), combine_pair() and crossover_years() in
@@ -1969,6 +2064,13 @@ function esc(s){ return String(s).replace(/[&<>"]/g, function(ch){ return { "&":
 function isBuy(o){ return OPTION_TYPE[o] === "buy"; }
 function validPair(a, b){ return !!OPTION_TYPE[a] && !!OPTION_TYPE[b] && a !== b && (isBuy(a) || isBuy(b)); }
 function optCopy(o){ return COPY.options[o]; }
+// A label's text without its aria-hidden parts (edit list 10: the rental-fee
+// label carries a visual short form, "Rental fees", that must not be read
+// into messages or the print list)
+function labText(lab){
+  return Array.prototype.map.call(lab.childNodes, function(n){
+    return n.nodeType === 1 && n.getAttribute("aria-hidden") === "true" ? "" : n.textContent; }).join("");
+}
 function swatch(o){ return '<span class="sw" style="background:' + OPTION_COLOR[o] + '"></span>'; }
 
 // Input fields: id, allowed range, and how a value is written back.
@@ -1994,7 +2096,8 @@ const SLOT_FIELDS = {
   // rate on the purchase price in readInputs()
   taxusd: { min: 0,  max: 1e7, zeroOk: true,  fmt: fmtMoney, for: "buy", unit: "usd" },
   assess: { min: 0,  max: 1e8, zeroOk: true,  fmt: fmtMoney, for: "buy" },
-  assessyr: { min: 1, max: 30, zeroOk: false, fmt: fmtPlain, for: "buy", int: true },
+  // (assessyr, the year the assessment is paid, was removed in edit list 10:
+  // readInputs() passes DEF.assessYear, year 1, so it always falls in the stay)
   // renter-side costs (edit list 4, 2026-10-08): move-in costs not recovered
   // ($, one-time) and other monthly rental fees ($/mo), rentals only
   movein: { min: 0,  max: 1e7, zeroOk: true,  fmt: fmtMoney, for: "rent" },
@@ -2017,8 +2120,10 @@ const FIELDS = {
   pmi:     { id: "in-pmi",     min: 0,   max: 10,  zeroOk: true,  fmt: fmtPlain },
   // 2026-10-07 (review batch 1)
   agent:   { id: "in-agent",   min: 0,   max: 20,  zeroOk: true,  fmt: fmtPlain },
-  points:  { id: "in-points",  min: 0,   max: 10,  zeroOk: true,  fmt: fmtPlain },
-  condoadd:{ id: "in-condoadd", min: 0,  max: 10,  zeroOk: true,  fmt: fmtPlain, pairFor: "condo" },
+  // (points was removed in edit list 10: readInputs() passes DEF.points, 0)
+  // the condo add-on: condo vs. house only since edit list 10 (in a
+  // buy-vs-rent pair readInputs() passes DEF.condoAdd, 0)
+  condoadd:{ id: "in-condoadd", min: 0,  max: 10,  zeroOk: true,  fmt: fmtPlain, pairFor: "condoHouse" },
   sav:     { id: "in-sav",     min: 0,   max: 30,  zeroOk: true,  fmt: fmtPlain }
   // (inttax, the tax on savings interest, was retired in edit list 1)
 };
@@ -2032,10 +2137,12 @@ function slotUses(slot, forWhat){
   return forWhat === "buy" ? isBuy(o) : (forWhat === "rent" ? !isBuy(o) : o === "buy_condo");
 }
 function pairHasCondo(){ return S.optA === "buy_condo" || S.optB === "buy_condo"; }
+// a condo compared with a house (edit list 10: the only pair with the condo add-on)
+function pairCondoHouse(){ return pairHasCondo() && isBuy(S.optA) && isBuy(S.optB); }
 function fieldApplies(k){
   const f = FIELDS[k];
   if (f.slot) return slotUses(f.slot, f.for) && (!f.unit || S.taxUnit[f.slot] === f.unit);
-  if (f.pairFor === "condo") return pairHasCondo();
+  if (f.pairFor === "condoHouse") return pairCondoHouse();
   if (f.dunit) return S.downUnit === f.dunit;
   return true;
 }
@@ -2081,8 +2188,8 @@ function metroDefaults(m, o){
 // Option-level defaults: maintenance follows the purchase type, rent growth
 // the rental type, home value growth (one flat rate, DEF.app) every purchase.
 function optionDefaults(o){
-  if (o === "buy_condo") return { maint: DEF.maintCondo, app: DEF.app, assess: DEF.assessUsd, assessyr: DEF.assessYear };
-  if (o === "buy_house") return { maint: DEF.maintSfr, app: DEF.app, assess: DEF.assessUsd, assessyr: DEF.assessYear };
+  if (o === "buy_condo") return { maint: DEF.maintCondo, app: DEF.app, assess: DEF.assessUsd };
+  if (o === "buy_house") return { maint: DEF.maintSfr, app: DEF.app, assess: DEF.assessUsd };
   return { rg: o === "rent_apartment" ? DEF.rgApartment : DEF.rgHouse, movein: DEF.rentMoveIn, fees: DEF.rentFees };
 }
 // One slot: scope "metro" = the metro's price/rent, tax, insurance and HOA;
@@ -2105,7 +2212,7 @@ function applyDefaults(scope){
     S.account = DEF.accountRetirement ? "retirement" : "brokerage";
     setField("cgt", DEF.cgt);
     setField("closing", DEF.closing); setField("selling", DEF.selling);
-    setField("agent", DEF.agent); setField("points", DEF.points); setField("condoadd", DEF.condoAdd);
+    setField("agent", DEF.agent); setField("condoadd", DEF.condoAdd);   // (no points field since edit list 10)
     setField("insg", DEF.insG); setField("hoag", DEF.hoaG);
     setField("pmi", defaultPmi(DEF.down)); S.pmiEdited = false;
     S.term = DEF.term;                                  // Reset returns to the 30-year term
@@ -2264,8 +2371,12 @@ function readInputs(){
              // the engine keeps one rate per year (years 1, 2, 3 on); the
              // page's single box fills all three (edit list 3, 2026-10-08)
              app: [g("app"), g("app"), g("app")], rg: [g("rg"), g("rg"), g("rg")],
-             rateAddPct: o === "buy_condo" ? v.condoadd : 0,          // the condo add-on, condo purchases only
-             assessUsd: g("assess"), assessYear: isBuy(o) ? v[sl + "_assessyr"] : 1,
+             // the condo add-on, condo purchases only, and only when a condo is
+             // compared with a house (edit list 10); otherwise its default (0)
+             rateAddPct: o === "buy_condo" ? (fieldApplies("condoadd") ? v.condoadd : DEF.condoAdd) : 0,
+             // the assessment is paid in year DEF.assessYear (1; edit list 10
+             // removed the year field), so it always falls within the stay
+             assessUsd: g("assess"), assessYear: DEF.assessYear,
              // renter-side costs (edit list 4): a rental's, else 0
              moveInUsd: g("movein"), feesUsd: g("fees"),
              // this option's down share and PMI rate (edit list 5): its own
@@ -2286,7 +2397,8 @@ function readInputs(){
     pmiCancelPct: DEF.pmiCancel, pmiFinalMonth: S.term === 15 ? DEF.pmiFinal15 : DEF.pmiFinal,
     // renters insurance (edit list 9): NAIC dollar premium growing at CPI; the share-of-rent term is 0
     rentersPct: DEF.rentersPct, rentersUsd: DEF.rentersUsd, rinsGPct: DEF.cpi,
-    agentPct: v.agent, pointsPct: v.points, costFloorPct: DEF.costFloor, maintCapGPct: DEF.cpi,
+    // points: the default (0) since edit list 10 removed the field
+    agentPct: v.agent, pointsPct: DEF.points, costFloorPct: DEF.costFloor, maintCapGPct: DEF.cpi,
     retPct: v.ret, savPct: v.sav,
     // up-front pot always brokerage; monthly pot at the retirement rate
     // under Retirement (2026-10-07)
@@ -2330,6 +2442,22 @@ function syncPairPicker(){
   $("sw-b").style.background = OPTION_COLOR[S.optB];
 }
 
+// The HOA fee box (edit list 10, 2026-10-08): one box per slot, #ctl-a-hoa /
+// #ctl-b-hoa, holding the one HOA field. For a condo purchase it sits in the
+// main row right after that slot's price (Houston: the fee is a first-order
+// input for a condo); for a house it sits in Adjust costs, where it always
+// was (default $0), at its marker #hoa-home-a / -b. Moving the box keeps its
+// value, its share-link parameter (af / bf) and every reference by id. Moved
+// only when it is in the wrong place (a pair change, a swap or load), so a
+// focused field is never moved by typing.
+function placeHoa(){
+  ["a", "b"].forEach(function(sl){
+    const ctl = $("ctl-" + sl + "-hoa"), o = sl === "a" ? S.optA : S.optB;
+    const inMain = o === "buy_condo", after = inMain ? $("ctl-" + sl + "-price") : $("hoa-home-" + sl);
+    if (after.nextElementSibling !== ctl) after.after(ctl);
+    ctl.classList.toggle("optsec", inMain);
+  });
+}
 function paintStatic(){
   const m = metroById(S.metroId), dv = defVars();
   [["down-seg", "use", S.downUse], ["diff-seg", "use", S.diffUse], ["acct-seg", "acct", S.account], ["term-seg", "term", String(S.term)]].forEach(function(g){
@@ -2342,7 +2470,11 @@ function paintStatic(){
   document.querySelectorAll("[data-slot]").forEach(function(el){
     el.hidden = !slotUses(el.dataset.slot, el.dataset.for);
   });
-  document.querySelectorAll("[data-for-pair]").forEach(function(el){ el.hidden = !pairHasCondo(); });
+  document.querySelectorAll("[data-for-pair]").forEach(function(el){ el.hidden = el.dataset.forPair === "condoHouse" ? !pairCondoHouse() : !pairHasCondo(); });
+  placeHoa();          // a condo's HOA fee in the main row, a house's in Adjust costs (edit list 10)
+  // the main row's column count: one per visible option field (3 or 4)
+  const nopt = Array.prototype.filter.call($("optrow").children, function(el){ return el.classList.contains("ctl") && !el.hidden; }).length;
+  $("optrow").style.setProperty("--nopt", nopt); $("optrow").dataset.n = nopt;
   document.querySelectorAll("[data-sw]").forEach(function(el){
     el.style.background = OPTION_COLOR[el.dataset.sw === "a" ? S.optA : S.optB];
   });
@@ -2394,11 +2526,13 @@ function paintStatic(){
           ? fill(F.tax.helpUsd, { pct: pctTxt(Math.round(dl / pr * 100 * 1e4) / 1e4) }) : F.tax.helpUsdNoPct, F.tax.newBuyer);
       } else $("help-" + sl + "-tax").textContent = sentences(F.tax.help[tk], F.tax.newBuyer);
       $("help-" + sl + "-assess").textContent = F.assess.help;
-      $("help-" + sl + "-assessyr").textContent = fill(F.assessyr.help, dv);
       $("help-" + sl + "-ins").textContent = fill(F.ins.help[tk], dv);
       // condo fee (pass 3): a Florida condo adds the Florida factor's note
       const hoaHelp = fill(F.hoa.help[tk], dv);
       $("help-" + sl + "-hoa").textContent = o === "buy_condo" && m.fl ? sentences(hoaHelp, fill(F.hoa.helpFL, dv)) : hoaHelp;
+      // in the main row (a condo) the help line is not shown: the main row
+      // has none; the same text is in the method notes (paintMethod())
+      $("help-" + sl + "-hoa").hidden = o === "buy_condo";
       $("help-" + sl + "-maint").textContent = fill(F.maint.help[o], { maint: pctTxt(optionDefaults(o).maint),
         ss: pctTxt(Math.round(m.ss * 1000) / 10), whose: m.us ? F.maint.help.whoseUS : F.maint.help.whoseMetro,
         usd: money(DEF.maintUsTypicalUsd), cap: money(DEF.maintCapSfr) });
@@ -2420,7 +2554,10 @@ function paintStatic(){
   $("help-cgt").textContent = S.account === "retirement" ? COPY.account.note : F.cgt.help;
   $("help-closing").textContent = F.closing.help;
   $("help-agent").textContent = F.agent.help;
-  $("help-points").textContent = F.points.help;
+  // edit list 10: a nonzero buyer's agent fee shows the note on the costs to sell
+  const ag = readField("agent"), an = $("agent-note");
+  an.hidden = !(ag > 0);
+  an.textContent = ag > 0 ? fill(F.agent.note, { sellAgent: pctTxt(DEF.sellAgentRef) }) : "";
   $("help-condoadd").textContent = F.condoadd.help;
   $("help-selling").textContent = F.selling.help;
   // long-run cost growth follows each purchase's own home value growth
@@ -2730,7 +2867,7 @@ function paintResults(inp){
   if (bad.length){
     paintMatch(false);
     const k = bad[0], f = FIELDS[k], lab = document.querySelector('label[for="' + f.id + '"]');
-    const lbl = lab ? lab.textContent : k;     // growth labels name their option (2026-10-08)
+    const lbl = lab ? labText(lab) : k;        // growth labels name their option (2026-10-08)
     $("invalid").textContent = fill(COPY.invalid, { field: lbl });
     return;
   }
@@ -4487,6 +4624,12 @@ function paintMethod(){
     const li = document.createElement("li");
     li.textContent = fill(!oneRate && t.indexOf("{growth}") >= 0 ? M.growthMixed : t, v); ul.appendChild(li); });
   el.appendChild(ul);
+  // edit list 10: the condo fee's default source (the HOA field moved to the
+  // main row, which has no help lines), from the help paintStatic() wrote
+  if (pairHasCondo()){
+    const csl = S.optA === "buy_condo" ? "a" : "b";
+    para(fill(M.fee, { help: sentences($("help-" + csl + "-hoa").textContent, "").trim() }));
+  }
   if (pairHasCondo()) para(M.thin);
 }
 
@@ -4644,10 +4787,14 @@ function initRate(){
 //   (itx, the tax on savings interest, was retired in edit list 1; an old
 //   link's itx= is ignored)
 //   cgt       tax on investment gains, %
-//   cl        closing costs, %       ag   buyer's agent fee, %   pt  points, % of loan
+//   cl        closing costs, %       ag   buyer's agent fee, %
+//   (pt, points, % of loan: field removed in edit list 10, 2026-10-08; an
+//   old link's pt= is IGNORED, so it opens at the default, 0 points)
 //   sell      costs to sell, %       ig   insurance growth, %    hg  HOA fee growth, %
 //   pmi       PMI, % of loan a year (only when typed; else it follows dp)
-//   ca        condo loan rate add-on, pct. pts
+//   ca        condo loan rate add-on, pct. pts; read and written only when a
+//             condo is compared with a house since edit list 10 (an old
+//             buy-vs-rent link's ca= is IGNORED: that pair uses the default, 0)
 //   step      chart step, 1-6 (written when the reader is past step 1);
 //             chart=diff still opens the last step
 //   autoplay  0: open with the chart's autoplay paused (2026-10-07). Written
@@ -4665,7 +4812,10 @@ function initRate(){
 //     rate, and the early years no longer differ from it.)
 //     tx property tax, $ a year (also switches that slot to dollars)
 //     i insurance $/mo   f HOA fee $/mo   m maintenance, %
-//     sa special assessment, $   sy year it is paid
+//     sa special assessment, $ (paid in year 1 since edit list 10)
+//     (sy, the year it was paid, was removed in edit list 10: an old link's
+//     asy= / bsy= is IGNORED, and its sa= amount is paid in year 1, inside
+//     the stay)
 //     mv a rental's move-in costs, $   fe its other monthly fees, $/mo
 //     (edit list 4: amv / bmv, afe / bfe; no clash with af, the HOA fee, or
 //     ag, the agent fee)
@@ -4673,9 +4823,9 @@ function initRate(){
 //   Legacy ?view=condo|sfr still works.
 const TOOL_URL = "https://dhouston890.github.io/inman-tools/buy-vs-rent-calculator/";
 const Q_SHARED = { down: "dp", downusd: "dpd", rate: "rt", years: "years", sav: "sav", ret: "ret", cgt: "cgt",
-                   closing: "cl", agent: "ag", points: "pt", selling: "sell", insg: "ig", hoag: "hg", pmi: "pmi", condoadd: "ca" };
+                   closing: "cl", agent: "ag", selling: "sell", insg: "ig", hoag: "hg", pmi: "pmi", condoadd: "ca" };   // (no pt since edit list 10)
 const Q_SLOT = { price: "p", rent: "r", app: "h", rg: "rg",
-                 tax: "t", taxusd: "tx", ins: "i", hoa: "f", maint: "m", assess: "sa", assessyr: "sy",
+                 tax: "t", taxusd: "tx", ins: "i", hoa: "f", maint: "m", assess: "sa",   // (no sy since edit list 10)
                  movein: "mv", fees: "fe" };
 // legacy per-year growth params (before 2026-10-08): year 3 on -> the flat rate
 const Q_SLOT_LEGACY = { app: "h3", rg: "r3" };
@@ -4694,7 +4844,7 @@ function fieldDefault(k){
     return Object.assign({}, metroDefaults(metroById(S.metroId), o), optionDefaults(o))[f.key];
   }
   return { down: DEF.down, rate: termRate(S.term), years: DEF.stay, sav: DEF.savYield, ret: DEF.ret,
-           cgt: DEF.cgt, closing: DEF.closing, agent: DEF.agent, points: DEF.points, selling: DEF.selling,
+           cgt: DEF.cgt, closing: DEF.closing, agent: DEF.agent, selling: DEF.selling,
            insg: DEF.insG, hoag: DEF.hoaG, pmi: defaultPmi(refDownPct()), condoadd: DEF.condoAdd }[k];
 }
 // The query for the current state. forCopy: a link to hand on (no motion).
@@ -4766,7 +4916,9 @@ function applyQueryFields(q){
     return true;
   };
   Object.keys(Q_SHARED).forEach(function(k){
-    if (k === "years" || (k === "condoadd" && !pairHasCondo())) return;   // years: readQuery()
+    // years: readQuery(); ca= only where the field exists (condo vs. house,
+    // edit list 10), so an old buy-vs-rent link's add-on is ignored
+    if (k === "years" || (k === "condoadd" && !fieldApplies("condoadd"))) return;
     // dpd: the dollar down payment, which switches to $ mode (edit list 5)
     if (take(k, Q_SHARED[k]) && k === "downusd"){ S.downUnit = "usd"; S.downConv = null; downSet = true; }
   });
@@ -4837,11 +4989,16 @@ function buildPrintInputs(){
     return (pre ? pre.textContent : "") + inp.value + (s ? (/^[A-Za-z]/.test(s) ? " " : "") + s : "");
   };
   const slotKeys = function(sl, keys){ return keys.map(function(k){ return sl + "_" + k; }); };
-  const order = slotKeys("a", ["price", "rent"]).concat(slotKeys("b", ["price", "rent"]), ["@lock", "down", "rate", "years", "@bud", "@use", "sav", "ret", "@acct", "cgt"],
+  // edit list 10: a condo's HOA fee and a rental's other fees follow its
+  // price or rent (as in the main row); no points or assessment year
+  const mainKeys = function(sl){ const o = sl === "a" ? S.optA : S.optB;
+    return slotKeys(sl, o === "buy_condo" ? ["price", "hoa"] : ["price", "rent", "fees"]); };
+  const costKeys = function(sl){ const o = sl === "a" ? S.optA : S.optB;
+    return slotKeys(sl, ["tax", "taxusd", "ins"].concat(o === "buy_condo" ? [] : ["hoa"], ["maint", "assess", "movein"])); };
+  const order = mainKeys("a").concat(mainKeys("b"), ["@lock", "down", "rate", "years", "@bud", "@use", "sav", "ret", "@acct", "cgt"],
     slotKeys("a", ["app", "rg"]), slotKeys("b", ["app", "rg"]),
-    slotKeys("a", ["tax", "taxusd", "ins", "hoa", "maint", "assess", "assessyr", "movein", "fees"]),
-    slotKeys("b", ["tax", "taxusd", "ins", "hoa", "maint", "assess", "assessyr", "movein", "fees"]),
-    ["closing", "agent", "points", "selling", "insg", "hoag", "pmi", "condoadd"]);
+    costKeys("a"), costKeys("b"),
+    ["closing", "agent", "selling", "insg", "hoag", "pmi", "condoadd"]);
   order.forEach(function(k){
     if (k === "@use"){ items.push([P.upUse, useWord(P.use, S.downUse)], [P.diffUse, useWord(P.use, S.diffUse)]); return; }
     if (k === "@acct"){ items.push([P.account, COPY.account[S.account]]); return; }
@@ -4858,22 +5015,21 @@ function buildPrintInputs(){
     if (k === "down" && S.downUnit === "usd"){
       const lab = $("lab-down"), dsv = downShareVars(), u = readField("downusd");
       const F2 = COPY.fields.down;
-      items.push([lab ? lab.textContent : k, dsv && isFinite(u) ? fill(F2.print, { amt: money(u), shares: fill(dsv.two ? F2.printTwo : F2.noteOne, dsv) }) : $("in-downusd").value]);
+      items.push([lab ? labText(lab) : k, dsv && isFinite(u) ? fill(F2.print, { amt: money(u), shares: fill(dsv.two ? F2.printTwo : F2.noteOne, dsv) }) : $("in-downusd").value]);
       return;
     }
     if (!fieldApplies(k)) return;
     if (k === "pmi" && refDownPct() >= DEF.pmiBelow) return;               // not charged (the reference purchase)
-    if (FIELDS[k].key === "assessyr" && !(readField(k.replace("yr", "")) > 0)) return;   // no assessment
     // a rental's move-in costs and other fees: listed only when nonzero (edit list 4)
     if ((FIELDS[k].key === "movein" || FIELDS[k].key === "fees") && !(readField(k) > 0)) return;
     // the rate names its term: "15-year fixed at 6.60%" (edit list 4)
     if (k === "rate"){
       const lab = document.querySelector('label[for="' + FIELDS.rate.id + '"]'), rv = readField("rate");
-      items.push([lab ? lab.textContent : k, isFinite(rv) ? fill(COPY.term.rate, { term: S.term, v: fmt2(rv) }) : $(FIELDS.rate.id).value + "%"]);
+      items.push([lab ? labText(lab) : k, isFinite(rv) ? fill(COPY.term.rate, { term: S.term, v: fmt2(rv) }) : $(FIELDS.rate.id).value + "%"]);
       return;
     }
     const f = FIELDS[k], lab = document.querySelector('label[for="' + f.id + '"]');
-    let label = lab ? lab.textContent : k;
+    let label = lab ? labText(lab) : k;
     // growth labels already name their option ("Condo value growth")
     if (f.slot && (f.key === "app" || f.key === "rg")) { /* label as is */ }
     else if (f.slot && f.key !== "price" && f.key !== "rent") label = fill(P.slot, { Col: optCopy(f.slot === "a" ? S.optA : S.optB).col, label: label });
@@ -4964,13 +5120,13 @@ function init(){
       DEF.savYield == null || DEF.costFloor == null || DEF.washPct == null ||
       !DEF.pmiEdges || !DEF.pmiRates || !DEF.pmiRates15 || DEF.maintCapSfr == null || DEF.cpi == null ||
       TERMS.indexOf(DEF.term) < 0 || DEF.pmiFinal == null || DEF.pmiFinal15 == null || FALLBACK_RATE.rate15 == null ||
-      DEF.rentMoveIn == null || DEF.rentFees == null || DEF.rentersUsd == null || DEF.rentersPct == null){
+      DEF.rentMoveIn == null || DEF.rentFees == null || DEF.rentersUsd == null || DEF.rentersPct == null ||
+      DEF.points == null || DEF.condoAdd == null || DEF.assessYear !== 1 || DEF.sellAgentRef == null){
     $("loading").textContent = COPY.noData;
     if (window.__inmanEmbedSend) window.__inmanEmbedSend();
     return;
   }
   FIELDS.years.min = DEF.stayMin; FIELDS.years.max = DEF.stayMax;
-  FIELDS.a_assessyr.max = DEF.stayMax; FIELDS.b_assessyr.max = DEF.stayMax;
   const yr = $("in-years-range"); yr.min = DEF.stayMin; yr.max = DEF.stayMax;
   // Default pair from the defaults file; default metro: the first in the
   // dropdown (the United States (typical) pseudo-metro, o = 0, since
