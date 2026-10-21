@@ -1,39 +1,38 @@
 # Weekly refresh of pmms/pmms.json, the default mortgage rates (30-year and
 # 15-year fixed, same week) for the Inman buying-vs-renting calculator
-# (buy-vs-rent-condo/).
+# (buy-vs-rent-calculator/).
 #
 # Active since 2026-10-08 as .github/workflows/pmms-refresh.yml in the
-# inman-tools repo, with a FRED_API_KEY repository secret. Source copy:
-# active_workspace/viz/pmms/.github-workflow/. See pmms/README.md.
+# inman-tools repo. Source copy: active_workspace/viz/pmms/.github-workflow/.
+# See pmms/README.md.
 #
-# Schedule (checked 2026-10-08). Freddie Mac releases the PMMS on Thursdays
+# Sources (2026-10-21): Freddie Mac's own PMMS_history.csv first (no key),
+# then FRED (FRED_API_KEY repository secret) as a fallback, each retried.
+# Added after FRED's 2026-10-21 maintenance outage failed a run.
+#
+# Schedule (revised 2026-10-21). Freddie Mac releases the PMMS on Thursdays
 # at 12 p.m. ET; "When a U.S. holiday falls on a Thursday, the PMMS will
 # publish on the Wednesday of that week" (freddiemac.com/pmms/about-pmms).
-# FRED posted the Oct. 8, 2026 reading at 11:02 a.m. CDT, two minutes after
-# release. Cron times are UTC and don't follow daylight saving, so each
-# release day has two runs an hour apart; one of them always lands at
-# 1:17 p.m. ET:
-#   - Thu 17:17 and 18:17 UTC: 1:17 and 2:17 p.m. EDT (summer), or 12:17 and
-#     1:17 p.m. EST (winter). The main runs.
-#   - Wed 17:17 and 18:17 UTC: the same, for holiday weeks when Freddie Mac
-#     publishes on Wednesday; no-ops in normal weeks.
-#   - Fri 14:17 and Mon 14:17 UTC (10:17 a.m. EDT / 9:17 a.m. EST):
-#     backstops for a late Freddie Mac release, a slow FRED update, or a
-#     GitHub run that was delayed or dropped (scheduled runs are best-effort
-#     and can slip, most often at the top of the hour, hence minute 17).
-# Extra runs are harmless: fetch_pmms.py commits only when the week changes,
-# never rolls back to an older week, and uses the latest week both series
-# report if one lags. Run it by hand from the Actions tab (workflow_dispatch)
-# any time.
+# GitHub starts scheduled runs late (by hours in Oct. 2026) and sometimes
+# drops one, so there are many runs; every extra run is a harmless no-op.
+# Cron times are UTC and don't follow daylight saving:
+#   - Thu hourly 17:17-23:17 UTC: from 1:17 p.m. EDT / 12:17 p.m. EST on.
+#   - Wed 17:17 and 18:17 UTC: holiday weeks.
+#   - Daily 14:17 UTC (10:17 a.m. EDT / 9:17 a.m. EST): backstop.
+#   Minute 17 avoids the top-of-the-hour crush when runs slip most.
+# Failure emails only when it matters: fetch_pmms.py exits 0 (with a warning)
+# if every source is down but pmms.json is at most 8 days old, and exits 1
+# if the file is stale or no new week has appeared for 15 days.
+# runs-on stays ubuntu-latest: the job needs only python3 and git, so the
+# Ubuntu 26 image migration (from 2026-10-19) doesn't affect it.
 
 name: Refresh PMMS rate
 
 on:
   schedule:
+    - cron: "17 17-23 * * 4"
     - cron: "17 17,18 * * 3"
-    - cron: "17 17,18 * * 4"
-    - cron: "17 14 * * 5"
-    - cron: "17 14 * * 1"
+    - cron: "17 14 * * *"
   workflow_dispatch:
 
 permissions:
@@ -46,15 +45,16 @@ concurrency:
 jobs:
   refresh:
     runs-on: ubuntu-latest
-    timeout-minutes: 5
+    timeout-minutes: 10
     steps:
       - name: Check out the repo
-        uses: actions/checkout@v4
+        uses: actions/checkout@v5
 
-      - name: Fetch the latest MORTGAGE30US and MORTGAGE15US readings
+      - name: Fetch the latest PMMS 30- and 15-year rates
         env:
           FRED_API_KEY: ${{ secrets.FRED_API_KEY }}
-        # Exits nonzero (failing the run) on any error, leaving pmms.json as is.
+        # Exits nonzero only for a stale file or a write error (see above);
+        # pmms.json is never damaged or rolled back.
         run: python3 pmms/fetch_pmms.py pmms/pmms.json
 
       - name: Commit pmms/pmms.json if it changed
@@ -68,4 +68,10 @@ jobs:
           git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
           git add pmms/pmms.json
           git commit -m "Update PMMS rates to the week of ${week}"
-          git push
+          # Another push (e.g. a calculator update) may have landed meanwhile.
+          for i in 1 2 3; do
+            git pull --rebase --quiet origin "${GITHUB_REF_NAME}" && git push && exit 0
+            sleep 10
+          done
+          echo "Could not push after 3 attempts." >&2
+          exit 1

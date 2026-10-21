@@ -1,12 +1,16 @@
 # pmms: live mortgage rates for Inman calculators
 
 `pmms.json` holds the latest Freddie Mac 30-year and 15-year fixed rates
-(Primary Mortgage Market Survey, FRED series `MORTGAGE30US` and
-`MORTGAGE15US`), both for the same week:
+(Primary Mortgage Market Survey), both for the same week:
 
 ```json
-{"rate30":7.28,"rate15":6.6,"week":"2026-10-01","source":"Freddie Mac PMMS via FRED"}
+{"rate30":7.4,"rate15":6.71,"week":"2026-10-15","source":"Freddie Mac PMMS"}
 ```
+
+Since 2026-10-21 the rates come from Freddie Mac's own history file
+(`https://www.freddiemac.com/pmms/docs/PMMS_history.csv`, no key needed),
+with FRED (`MORTGAGE30US`, `MORTGAGE15US`) as a fallback. FRED's maintenance
+outage on 2026-10-21 failed the only-FRED version of the job.
 
 The buying-vs-renting calculator (`buy-vs-rent-condo/`) fetches
 `../pmms/pmms.json` on load and uses it for its default rates: `rate30` for
@@ -35,8 +39,8 @@ kept for reference, e.g. to set this up again in another repo.
 | File | Goes to (inman-tools repo) | What it does |
 |---|---|---|
 | `pmms.json` | `pmms/pmms.json` | The rate file. Initial copy written by `scripts/condo_study/60_build_pitch2_data.R` from `clean_data/condo_study/pmms_latest.csv` (which `65_rate_snapshot.R` writes with both rates for one week). |
-| `fetch_pmms.py` | `pmms/fetch_pmms.py` | Fetches the recent `MORTGAGE30US` and `MORTGAGE15US` observations from the FRED API and rewrites `pmms.json` with both rates for the latest week both series report (if one series lags, the older common week is used and the run says so). Python standard library only. Reads the key from `FRED_API_KEY`; exits nonzero on any failure without touching the existing file; never moves the file back to an older week. |
-| `.github-workflow/pmms-refresh.yml` | `.github/workflows/pmms-refresh.yml` | GitHub Actions workflow: Thursdays at 17:17 and 18:17 UTC (one run always at 1:17 p.m. ET, whatever the season), the same on Wednesdays for holiday-week releases, and Friday and Monday 14:17 UTC backstops (see the comments in the file), and a manual "Run workflow" button. Runs the script with the `FRED_API_KEY` secret and commits `pmms/pmms.json` only if it changed, using the built-in `GITHUB_TOKEN` (`contents: write`). |
+| `fetch_pmms.py` | `pmms/fetch_pmms.py` | Gets the latest week with both rates from Freddie Mac's `PMMS_history.csv`, falling back to the FRED API (`MORTGAGE30US`/`MORTGAGE15US`, key from `FRED_API_KEY`), each tried 3 times. Rejects web pages (e.g. maintenance notices), implausible rates and future dates; never moves the file back to an older week; compares rates and week only, so a change of source alone doesn't rewrite the file. Exits 0 with a warning if every source is down but the file is at most 8 days old; exits 1 if the file is stale or no new week has appeared for 15 days. Python standard library only. |
+| `.github-workflow/pmms-refresh.yml` | `.github/workflows/pmms-refresh.yml` | GitHub Actions workflow: Thursdays hourly 17:17–23:17 UTC, Wednesdays 17:17 and 18:17 UTC (holiday weeks), a daily 14:17 UTC backstop (see the comments in the file), and a manual "Run workflow" button. GitHub starts scheduled runs late and sometimes drops one, hence the many runs; each extra run is a no-op. Commits `pmms/pmms.json` only if it changed, using the built-in `GITHUB_TOKEN` (`contents: write`), rebasing first if another push landed. |
 | `README.md` | optional | This file. |
 
 Do not copy the `.github-workflow/` folder itself into `pmms/`. The workflow
