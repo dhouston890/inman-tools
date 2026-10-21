@@ -405,8 +405,9 @@ function renderText() {
   document.getElementById("headline").textContent = DATA.text.headline;
   // One paragraph (Houston, 2026-10-21). Percentages come from the embedded counts.
   document.getElementById("callout").innerHTML =
-    `<p><strong>${fmtPct(pm[1])}</strong> of AI power users surveyed now work mainly in an agentic or integrated environment ` +
-    `instead of a basic chat interface, up from <strong>${fmtPct(pm[0])}</strong> in ${mp.wave_names[0]}.</p>`;
+    `<p><strong>${fmtPct(pm[1])}</strong> of real estate agents who report &ldquo;significant&rdquo; productivity gains from AI ` +
+    `now work mainly in an agentic or integrated environment instead of a basic chat interface. ` +
+    `That's up from <strong>${fmtPct(pm[0])}</strong> in ${mp.wave_names[0].split(" ")[0]}.</p>`;   // "April" (Houston's copy, 2026-10-21)
   // Method note collapsed by default; the credit line always shows.
   document.getElementById("footer").innerHTML =
     `<details class="method"><summary>${DATA.text.footer.summary}</summary>` +
