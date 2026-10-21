@@ -1,0 +1,766 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1" />
+<title>AI power users vs. other AI users | Inman</title>
+<script>
+  /* Embed context: inside the WordPress iframe (or with ?embed) the page must
+     size itself to its content and report its height to the parent. */
+  (function () {
+    if (window.self !== window.top || /[?&]embed\b/.test(location.search)) {
+      document.documentElement.classList.add("embed");
+    }
+  })();
+</script>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Libre+Franklin:wght@400;500;600;700&display=swap" rel="stylesheet">
+<style>
+  :root {
+    /* Inman brand: Dark Blue #161a48, Bright Blue #0a84ff (.claude/inman_branding.md) */
+    --inman-dark:        #161a48;
+    --inman-dark-2:      #1e2356;
+    --inman-blue:        #0a84ff;
+    --inman-blue-soft:   rgba(10, 132, 255, 0.55);
+    --inman-blue-faint:  rgba(10, 132, 255, 0.20);
+    --inman-white:       #ffffff;
+    --inman-white-soft:  rgba(255, 255, 255, 0.55);
+    --inman-white-faint: rgba(255, 255, 255, 0.20);
+    --inman-grid:        #2a2f6a;
+    --inman-muted-text:  #c9cdea;
+    --font-ui:   "Libre Franklin", "HEX Franklin", "Helvetica Neue", Arial, sans-serif;
+    --font-head: Georgia, serif;
+  }
+
+  * { box-sizing: border-box; }
+  html, body { margin: 0; padding: 0; }
+  html.embed, html.embed body { height: auto; }
+  body {
+    background: var(--inman-dark);
+    color: var(--inman-white);
+    font-family: var(--font-ui);
+    font-size: 15px;
+    line-height: 1.45;
+    -webkit-font-smoothing: antialiased;
+  }
+
+  #tool {
+    max-width: 760px;
+    margin: 0 auto;
+    padding: 28px 22px 24px;
+    position: relative;
+  }
+
+  /* ---------------- Header ---------------- */
+  .tool-header { margin-bottom: 22px; }
+  .kicker {
+    font-size: 11.5px;
+    font-weight: 700;
+    letter-spacing: 0.14em;
+    text-transform: uppercase;
+    color: var(--inman-blue);
+    margin: 0 0 8px;
+  }
+  .headline {
+    font-family: var(--font-head);
+    font-weight: 700;
+    font-size: clamp(22px, 3.4vw, 28px);
+    line-height: 1.18;
+    margin: 0 0 10px;
+    color: var(--inman-white);
+  }
+  .cohort-callout {
+    display: block;
+    padding: 12px 16px;
+    background: rgba(10, 132, 255, 0.08);
+    border-left: 4px solid var(--inman-blue);
+    border-radius: 0 6px 6px 0;
+    font-size: 14px;
+    line-height: 1.5;
+    color: var(--inman-white);
+  }
+  .cohort-callout p { margin: 0; }
+  .cohort-callout p + p { margin-top: 6px; }
+  .cohort-callout strong { font-weight: 700; }
+
+  /* ---------------- The shift: Apr '26 -> Sep '26, drawn into view ----------------
+     Share of each group working mainly in agentic or integrated AI. The label column
+     is only as wide as its longest label (on phones, a fixed narrow column that
+     wraps). Hollow dot = April, solid dot = September; trails run faint-to-solid in
+     the direction of time. */
+  .shift {
+    display: grid; grid-template-columns: max-content minmax(0, 1fr); gap: 18px;
+    padding: 0 14px; margin: 2px 0 14px;
+  }
+  .shift-labels, .shift-track { position: relative; height: 132px; }
+  /* Labels sit in grid rows centred on each lane (rows set in JS from the lane
+     positions), so they stay in flow and size the column. */
+  .shift-labels { display: grid; align-items: center; }
+  .shift-rowlabel { font-size: 13.5px; font-weight: 600; line-height: 1.2; white-space: nowrap; }
+  .shift-rowlabel.power { color: var(--inman-blue); }
+  .shift-rowlabel.other { color: var(--inman-white); }
+  .shift-axis { position: absolute; left: 6%; right: 6%; top: 112px; border-top: 1px solid var(--inman-grid); }
+  .shift-tick { position: absolute; top: 108px; width: 1px; height: 8px; background: var(--inman-grid); transform: translateX(-50%); }
+  .shift-ticklabel { position: absolute; top: 118px; font-size: 10px; color: var(--inman-muted-text); transform: translateX(-50%); }
+  .shift-trail {
+    position: absolute; height: 3px; width: 0; border-radius: 2px; transform: translateY(-50%);
+    transition: width 1400ms cubic-bezier(0.4, 0, 0.2, 1), left 1400ms cubic-bezier(0.4, 0, 0.2, 1);
+  }
+  .shift-trail.power { background: linear-gradient(90deg, rgba(10, 132, 255, 0.12), rgba(10, 132, 255, 0.9)); }
+  .shift-trail.other { background: linear-gradient(90deg, rgba(255, 255, 255, 0.10), rgba(255, 255, 255, 0.75)); }
+  .shift-trail.power.is-left { background: linear-gradient(270deg, rgba(10, 132, 255, 0.12), rgba(10, 132, 255, 0.9)); }
+  .shift-trail.other.is-left { background: linear-gradient(270deg, rgba(255, 255, 255, 0.10), rgba(255, 255, 255, 0.75)); }
+  .shift-ghost {
+    position: absolute; width: 14px; height: 14px; border-radius: 50%; transform: translate(-50%, -50%);
+    opacity: 0; transition: opacity 300ms ease;
+  }
+  .shift-ghost.power { border: 2px solid var(--inman-blue-soft); }
+  .shift-ghost.other { border: 2px solid var(--inman-white-soft); }
+  .shift-dot {
+    position: absolute; width: 18px; height: 18px; border-radius: 50%; transform: translate(-50%, -50%);
+    transition: left 1400ms cubic-bezier(0.4, 0, 0.2, 1);
+  }
+  .shift-dot.power { background: var(--inman-blue); box-shadow: 0 0 14px rgba(10, 132, 255, 0.6); }
+  .shift-dot.other { width: 15px; height: 15px; background: var(--inman-white); box-shadow: 0 0 10px rgba(255, 255, 255, 0.3); }
+  /* Power-user lane: survey + value stacked above each dot. */
+  .shift-label {
+    position: absolute; transform: translate(-50%, -100%); margin-top: -14px; text-align: center;
+    line-height: 1.1; white-space: nowrap; transition: opacity 400ms ease;
+  }
+  .shift-label .w { display: block; font-size: 10px; font-weight: 700; letter-spacing: 0.1em; text-transform: uppercase; color: var(--inman-muted-text); }
+  .shift-label .v { display: block; font-size: 17px; font-weight: 700; color: var(--inman-white); transition: color 400ms ease; }
+  .shift-label.to .v { font-size: 20px; color: var(--inman-blue); }
+  /* Other-AI-user lane: values beside the dots, on the outer side of the move. */
+  .shift-side {
+    position: absolute; transform: translateY(-50%); font-size: 13px; font-weight: 700; white-space: nowrap;
+    color: var(--inman-white); transition: opacity 400ms ease, color 400ms ease;
+  }
+  .shift-side.after { margin-left: 14px; }
+  .shift-side.before { transform: translate(calc(-100% - 14px), -50%); }
+  .shift-label.to, .shift-side.to { opacity: 0; }
+  .shift.is-moving .shift-ghost { opacity: 1; }
+  .shift.is-done .shift-label.to, .shift.is-done .shift-side.to { opacity: 1; }
+  .shift.is-done .shift-label.from .v, .shift.is-done .shift-side.from { color: var(--inman-muted-text); }
+  .shift-replay {
+    position: absolute; right: 0; top: 0; width: 26px; height: 26px; padding: 0; border-radius: 50%; cursor: pointer;
+    background: transparent; border: 1px solid var(--inman-grid); color: var(--inman-muted-text);
+    font-family: var(--font-ui); font-size: 14px; line-height: 1;
+  }
+  .shift-replay:hover, .shift-replay:focus-visible { border-color: var(--inman-blue); color: var(--inman-blue); outline: none; }
+  .shift.no-anim, .shift.no-anim * { transition: none !important; }
+  @media (max-width: 519px) {
+    .shift { grid-template-columns: 68px minmax(0, 1fr); gap: 6px; padding: 0; }
+    .shift-rowlabel { font-size: 12px; white-space: normal; }
+    .shift-label .w { font-size: 9px; letter-spacing: 0.06em; }
+    .shift-label .v { font-size: 15px; }
+    .shift-label.to .v { font-size: 17px; }
+  }
+
+  /* ---------------- Controls ---------------- */
+  .controls { display: grid; grid-template-columns: 1fr; gap: 14px; margin-bottom: 18px; }
+  @media (min-width: 640px) { .controls { grid-template-columns: 1.15fr 1.5fr; } }
+  fieldset.control { border: none; padding: 0; margin: 0; min-width: 0; }
+  .control legend {
+    display: block; font-size: 11.5px; text-transform: uppercase; letter-spacing: 0.08em;
+    color: var(--inman-muted-text); margin-bottom: 6px; padding: 0;
+  }
+  .control-options { display: flex; flex-wrap: wrap; gap: 6px; }
+  .control-options label {
+    display: inline-flex; align-items: center;
+    background: rgba(255, 255, 255, 0.02); color: var(--inman-muted-text);
+    border: 1px solid var(--inman-grid); padding: 6px 12px; border-radius: 4px;
+    cursor: pointer; font-size: 12.5px; line-height: 1.2; user-select: none;
+    transition: all 0.2s cubic-bezier(0.4, 0, 0.2, 1);
+  }
+  .control-options label:hover { border-color: var(--inman-blue-soft); background: rgba(10, 132, 255, 0.08); color: var(--inman-white); }
+  .control-options input { position: absolute; opacity: 0; pointer-events: none; }
+  .control-options label:has(input:checked) {
+    border-color: var(--inman-blue); background: var(--inman-blue-faint); color: var(--inman-white);
+  }
+  .control-options label:has(input:focus-visible) { outline: 2px solid var(--inman-blue); outline-offset: 2px; }
+
+  /* ---------------- Axis guideline ---------------- */
+  .metric-list-axis {
+    display: grid; grid-template-columns: minmax(0, 1fr); align-items: end; gap: 6px;
+    padding: 0 12px 6px; margin-bottom: 4px; border-bottom: 1px solid var(--inman-grid);
+  }
+  @media (min-width: 520px) {
+    .metric-list-axis { grid-template-columns: minmax(140px, 1.2fr) minmax(160px, 2fr); gap: 12px; }
+  }
+  .axis-label-spacer { font-size: 10.5px; text-transform: uppercase; letter-spacing: 0.08em; color: var(--inman-muted-text); }
+  .axis-track { position: relative; height: 18px; }
+  .axis-track svg { width: 100%; height: 6px; display: block; overflow: visible; position: absolute; bottom: 0; }
+  .axis-track line { stroke: var(--inman-grid); stroke-width: 1; }
+  .axis-track .axis-label {
+    position: absolute; bottom: 6px; font-size: 10px; color: var(--inman-muted-text);
+    transform: translateX(-50%); white-space: nowrap;
+  }
+  .axis-track .axis-label.first { transform: translateX(0); }
+  .axis-track .axis-label.last  { transform: translateX(-100%); }
+
+  /* ---------------- Metric rows ---------------- */
+  .metric-list { display: flex; flex-direction: column; gap: 8px; }
+  .metric-row {
+    display: grid; grid-template-columns: minmax(0, 1fr); align-items: center; gap: 6px;
+    padding: 12px 14px; background: rgba(255, 255, 255, 0.02);
+    border: 1px solid transparent; border-radius: 6px; position: relative;
+    transition: all 0.2s cubic-bezier(0.4, 0, 0.2, 1);
+  }
+  @media (min-width: 520px) {
+    .metric-row { grid-template-columns: minmax(140px, 1.2fr) minmax(160px, 2fr); gap: 12px; }
+  }
+  .metric-row:hover { background: rgba(255, 255, 255, 0.04); border-color: rgba(10, 132, 255, 0.2); }
+  .metric-row .label { font-size: 13.5px; line-height: 1.3; color: var(--inman-white); }
+  .metric-row .new-tag {
+    display: inline-block; margin-left: 6px; padding: 1px 6px; font-size: 10.5px;
+    letter-spacing: 0.04em; text-transform: uppercase; background: var(--inman-blue);
+    color: var(--inman-dark); border-radius: 2px; vertical-align: 1px; font-weight: 700;
+  }
+
+  /* ---------------- Mini-chart ---------------- */
+  .chart-wrap { position: relative; }
+  .chart-inner { position: relative; width: 100%; height: 44px; }
+  .mini-chart { position: absolute; inset: 0; width: 100%; height: 100%; overflow: visible; display: block; }
+  .chart-axis { stroke: var(--inman-grid); stroke-width: 1; }
+  .traj-line { fill: none; stroke-width: 1.25; opacity: 0.55; }
+  .traj-line.power { stroke: var(--inman-blue); }
+  .traj-line.other { stroke: var(--inman-white); }
+
+  .markers { position: absolute; inset: 0; pointer-events: none; }
+  .marker {
+    position: absolute; border-radius: 50%; transform: translate(-50%, -50%);
+    box-shadow: 0 2px 5px rgba(0, 0, 0, 0.4);
+    transition: left 1100ms cubic-bezier(0.4, 0, 0.2, 1), width 250ms ease, height 250ms ease, opacity 250ms ease;
+  }
+  .marker.power { background: var(--inman-blue); }
+  .marker.other { background: var(--inman-white); }
+  .marker.wave-prev   { width: 7px;  height: 7px;  opacity: 0.6; }
+  .marker.wave-latest { width: 13px; height: 13px; opacity: 1; }
+
+
+  /* ---------------- Gap-only view ---------------- */
+  .gap-bar-row { display: flex; flex-direction: column; gap: 3px; padding: 4px 0; }
+  .gap-bar-line {
+    display: grid; grid-template-columns: 56px 1fr 52px; align-items: center; gap: 8px;
+    font-size: 11.5px; color: var(--inman-muted-text);
+  }
+  .gap-bar-line .wave-label { color: var(--inman-white-soft); }
+  .gap-bar-line .gap-value  { text-align: right; color: var(--inman-white); }
+  .gap-bar-line .bar-track  { position: relative; height: 6px; background: var(--inman-grid); border-radius: 3px; }
+  .gap-bar-line .bar-fill   { position: absolute; left: 0; top: 0; bottom: 0; background: var(--inman-blue); border-radius: 3px; transition: width 400ms ease; }
+  .gap-bar-line.is-negative .bar-fill { background: var(--inman-white-soft); }
+
+  /* ---------------- Tooltip ---------------- */
+  .row-tooltip {
+    position: absolute; z-index: 20; pointer-events: none;
+    background: rgba(22, 26, 72, 0.97); border: 1px solid rgba(10, 132, 255, 0.35);
+    padding: 12px 14px; border-radius: 6px; font-size: 12px; line-height: 1.4;
+    color: var(--inman-white); box-shadow: 0 10px 30px rgba(0, 0, 0, 0.5);
+    width: 280px; opacity: 0; transition: opacity 140ms ease;
+  }
+  .row-tooltip.is-visible { opacity: 1; }
+  .row-tooltip table { width: 100%; border-collapse: collapse; margin-top: 6px; }
+  .row-tooltip th, .row-tooltip td {
+    padding: 2px 4px; text-align: right; font-weight: 400; border-bottom: 1px solid var(--inman-grid);
+  }
+  .row-tooltip th:first-child, .row-tooltip td:first-child { text-align: left; color: var(--inman-muted-text); white-space: nowrap; }
+  .row-tooltip .pu  { color: var(--inman-blue); font-weight: 700; }
+  .row-tooltip .oa  { color: var(--inman-white); font-weight: 700; }
+  .row-tooltip .gap { color: var(--inman-muted-text); }
+  .row-tooltip .n   { color: var(--inman-muted-text); font-size: 10.5px; }
+  .row-tooltip h4 { font-family: var(--font-head); font-size: 13.5px; font-weight: 700; margin: 0 0 2px; }
+  .row-tooltip .src-note { margin-top: 6px; font-size: 11px; color: var(--inman-muted-text); line-height: 1.35; }
+
+  /* ---------------- Legend ---------------- */
+  .legend { display: flex; flex-wrap: wrap; gap: 14px; margin: 4px 0 16px; font-size: 12px; color: var(--inman-muted-text); }
+  .legend .swatch { display: inline-block; width: 10px; height: 10px; border-radius: 50%; margin-right: 5px; vertical-align: middle; }
+  .legend .swatch.power { background: var(--inman-blue); }
+  .legend .swatch.other { background: var(--inman-white); }
+  .legend .wave-sizes { display: inline-flex; align-items: center; gap: 6px; }
+  .legend .wave-sizes .swatch.prev { width: 7px; height: 7px; opacity: 0.6; background: var(--inman-white); }
+  .legend .wave-sizes .swatch.latest { width: 13px; height: 13px; background: var(--inman-white); }
+
+  /* ---------------- Footer ---------------- */
+  .tool-footer {
+    margin-top: 26px; padding-top: 14px; border-top: 1px solid var(--inman-grid);
+    font-size: 12px; color: var(--inman-muted-text); line-height: 1.55;
+  }
+  .tool-footer p { margin: 0 0 7px; }
+  .tool-footer .credit { color: var(--inman-white); margin-top: 10px; }
+  .tool-footer details.method summary {
+    cursor: pointer; color: var(--inman-white); font-weight: 700; margin-bottom: 6px;
+    list-style: none; display: inline-flex; align-items: center; gap: 6px;
+  }
+  .tool-footer details.method summary::-webkit-details-marker { display: none; }
+  .tool-footer details.method summary::before {
+    content: "\25B8"; color: var(--inman-blue); transition: transform 150ms ease;
+  }
+  .tool-footer details.method[open] summary::before { transform: rotate(90deg); }
+  .tool-footer details.method summary:focus-visible { outline: 2px solid var(--inman-blue); outline-offset: 2px; }
+
+  @media (prefers-reduced-motion: reduce) {
+    .marker, .shift-dot, .shift-trail, .shift-ghost, .shift-label, .shift-side { transition: none !important; }
+  }
+  @media (max-width: 480px) {
+    #tool { padding: 16px 12px; }
+    .tool-header { margin-bottom: 16px; }
+    .cohort-callout { padding: 8px 10px; font-size: 13px; }
+    .control-options label { padding: 5px 8px; font-size: 11.5px; }
+    .metric-row { padding: 8px 10px; }
+  }
+</style>
+</head>
+<body>
+<main id="tool" aria-label="Interactive: AI power users compared with other agents who use AI">
+
+  <div class="tool-body" id="tool-body">
+    <header class="tool-header">
+      <p class="kicker">Inman Intel Index</p>
+      <h1 class="headline" id="headline"></h1>
+      <section class="shift" id="shift" role="img">
+        <div class="shift-labels" id="shift-labels" aria-hidden="true"></div>
+        <div class="shift-track" id="shift-track"></div>
+      </section>
+      <div class="cohort-callout" id="callout"></div>
+    </header>
+
+    <section class="controls" aria-label="Tool controls">
+      <fieldset class="control">
+        <legend>Compare September 2026 with</legend>
+        <div class="control-options" role="radiogroup" id="compare-options"></div>
+      </fieldset>
+      <fieldset class="control">
+        <legend>Sort by</legend>
+        <div class="control-options" role="radiogroup" id="sort-options"></div>
+      </fieldset>
+    </section>
+
+    <div class="legend" id="legend"></div>
+
+    <div class="metric-list-axis" aria-hidden="true">
+      <div class="axis-label-spacer">% of group using AI for this task</div>
+      <div class="axis-track" id="axis-track"></div>
+    </div>
+
+    <section class="metric-list" id="metric-list"></section>
+
+    <footer class="tool-footer" id="footer"></footer>
+  </div>
+
+  <div class="row-tooltip" id="tooltip" role="tooltip"></div>
+</main>
+
+<script>
+/* ============================================================================
+   Embedded data — WRITTEN BY active_workspace/scripts/ai_adoption_september2026_interactive.R
+   from the canonical analysis (ai_adoption_september2026.R). Do not hand-edit
+   between the markers; re-run the script instead. Counts, not rates: every
+   share on the page is computed here from k / n.
+============================================================================ */
+/* DATA:BEGIN */
+const DATA = {"meta":{"waves":["Dec '24","Aug '25","Apr '26","Sep '26"],"wave_names":["December 2024","August 2025","April 2026","September 2026"],"generated_by":"active_workspace/scripts/ai_adoption_september2026_interactive.R"},"share":{"k":[29,40,67,66],"n":[274,270,242,264]},"mode":{"waves":["Apr '26","Sep '26"],"wave_names":["April 2026","September 2026"],"power":{"k":[6,20],"n":[67,66]},"other":{"k":[15,13],"n":[155,177]}},"metrics":[{"label":"Generate text for social/marketing","source":"Generating text for social media or marketing materials","first_wave":0,"power":{"k":[26,37,60,61],"n":[29,40,67,65]},"other":{"k":[106,114,87,117],"n":[199,201,154,180]}},{"label":"Generate images for social/marketing","source":"Generating images for social media or marketing materials","first_wave":0,"power":{"k":[7,19,36,34],"n":[29,40,67,65]},"other":{"k":[25,28,39,39],"n":[199,201,154,180]}},{"label":"Edit images for social/marketing","source":"Editing images for social media or marketing materials","first_wave":0,"power":{"k":[6,19,36,39],"n":[29,40,67,65]},"other":{"k":[21,22,45,50],"n":[199,201,154,180]}},{"label":"Generate video for social/marketing","source":"Generating video for social media or marketing materials","first_wave":0,"power":{"k":[8,13,17,11],"n":[29,40,67,65]},"other":{"k":[12,18,14,17],"n":[199,201,154,180]}},{"label":"Generate text for property descriptions","source":"Generating text for property descriptions","first_wave":0,"power":{"k":[24,37,55,59],"n":[29,40,67,65]},"other":{"k":[137,144,114,131],"n":[199,201,154,180]}},{"label":"Edit listing photos (digital staging)","source":"Editing listing photos with a digital-staging software","first_wave":0,"power":{"k":[5,15,31,25],"n":[29,40,67,65]},"other":{"k":[25,33,33,51],"n":[199,201,154,180]}},{"label":"Automate client communication","source":"Automating direct communication with clients, such as with a chatbot or other automated communication tool","first_wave":0,"power":{"k":[7,14,17,20],"n":[29,40,67,65]},"other":{"k":[19,26,20,17],"n":[199,201,154,180]}},{"label":"Manage leads/tasks in client database","source":"Managing leads or tasks in your database","first_wave":0,"power":{"k":[6,14,23,29],"n":[29,40,67,65]},"other":{"k":[20,20,24,26],"n":[199,201,154,180]}},{"label":"Pull data from property photos","source":"Pulling data from property photos using image-analysis software","first_wave":0,"power":{"k":[1,10,9,11],"n":[29,40,67,65]},"other":{"k":[6,17,15,15],"n":[199,201,154,180]}},{"label":"Generate contracts/business documents","source":"Generating contracts or other business documents","first_wave":0,"power":{"k":[7,14,20,14],"n":[29,40,67,65]},"other":{"k":[9,13,13,15],"n":[199,201,154,180]}},{"label":"Summarize contracts/business documents","source":"Summarizing contracts or other business documents","first_wave":0,"power":{"k":[10,20,32,36],"n":[29,40,67,65]},"other":{"k":[11,30,28,45],"n":[199,201,154,180]}},{"label":"Analyze or summarize market data","source":"Producing analysis or summaries of market data","first_wave":0,"power":{"k":[13,28,43,46],"n":[29,40,67,65]},"other":{"k":[38,49,51,72],"n":[199,201,154,180]}},{"label":"Write code for custom apps/tools","source":"Writing code for custom apps or tools for specific use cases","first_wave":2,"power":{"k":[null,null,9,8],"n":[null,null,67,65]},"other":{"k":[null,null,8,10],"n":[null,null,154,180]}}],"text":{"headline":"At real estate brokerages, power users are increasingly turning to AI agents","footer":{"summary":"Who is compared","body":["Power users: agents who say AI tools have made them &ldquo;significantly more productive&rdquo; over the past year. Other AI users: agents who use AI tools but report a smaller gain, no difference or a loss. Agents who say they don't use AI tools for business are in neither group.","&ldquo;Agentic or integrated&rdquo; means the agent's main AI tool can act directly in their files or software. That question was asked only in April and September 2026, and the comparison was identified after the September survey closed. Each survey is a separate sample of Inman readers, so the change describes the groups, not individual agents, and differences of several points between surveys can arise by chance."]},"credit":"Source: Inman Intel Index agent responses | Visualized by Inman with AI assistance"}};
+/* DATA:END */
+
+const WAVES  = DATA.meta.waves;          // short labels, oldest first
+const NAMES  = DATA.meta.wave_names;     // long labels
+const LATEST = WAVES.length - 1;
+
+/* ============================================================================
+   Helpers
+============================================================================ */
+const rate   = (k, n) => (k == null || n == null || n === 0) ? null : k / n;
+const fmtPct = (x, d = 0) => x == null ? "—" : (x * 100).toFixed(d) + "%";
+const fmtPp  = (x) => {
+  if (x == null) return "—";
+  const v = x * 100, sign = v > 0.05 ? "+" : (v < -0.05 ? "−" : "");
+  return sign + Math.abs(v).toFixed(1) + " pp";
+};
+
+function derive(m, c) {
+  const p = m.power.k.map((k, i) => rate(k, m.power.n[i]));
+  const o = m.other.k.map((k, i) => rate(k, m.other.n[i]));
+  const gap = p.map((v, i) => (v == null || o[i] == null) ? null : v - o[i]);
+  const has = (i) => p[i] != null && o[i] != null;
+  return {
+    ...m, p, o, gap,
+    is_new: m.first_wave > 0,
+    other_growth: has(c) ? o[LATEST] - o[c] : null,
+    power_growth: has(c) ? p[LATEST] - p[c] : null,
+    gap_change:   has(c) ? gap[LATEST] - gap[c] : null,
+    gap_latest:   gap[LATEST]
+  };
+}
+
+/* Defaults: compare the latest survey with the one before it (April 2026), sorted
+   by the change for power users. The compare toggles stay in date order. */
+const state = { compare: LATEST - 1, sort: "power_growth", view: "cohorts", cohorts: { power: true, other: true } };
+
+/* ============================================================================
+   Static text, all computed from DATA
+============================================================================ */
+function renderText() {
+  const mp = DATA.mode;
+  const pm = mp.power.k.map((k, i) => rate(k, mp.power.n[i]));
+  document.getElementById("headline").textContent = DATA.text.headline;
+  // One paragraph (Houston, 2026-10-21). Percentages come from the embedded counts.
+  document.getElementById("callout").innerHTML =
+    `<p><strong>${fmtPct(pm[1])}</strong> of AI power users surveyed now work mainly in an agentic or integrated environment ` +
+    `instead of a basic chat interface, up from <strong>${fmtPct(pm[0])}</strong> in ${mp.wave_names[0]}.</p>`;
+  // Method note collapsed by default; the credit line always shows.
+  document.getElementById("footer").innerHTML =
+    `<details class="method"><summary>${DATA.text.footer.summary}</summary>` +
+    DATA.text.footer.body.map(t => `<p>${t}</p>`).join("") + `</details>` +
+    `<p class="credit">${DATA.text.credit}</p>`;
+  document.getElementById("metric-list").setAttribute("aria-label", `All ${DATA.metrics.length} AI tasks`);
+}
+
+function renderControls() {
+  const cmp = document.getElementById("compare-options");
+  cmp.innerHTML = WAVES.slice(0, LATEST).map((w, i) =>
+    `<label><input type="radio" name="compare" value="${i}" ${i === state.compare ? "checked" : ""}/><span>${w}</span></label>`).join("");
+  const srt = document.getElementById("sort-options");
+  const opts = [["power_growth", "Change for AI power users"], ["other_growth", "Change for other AI users"],
+                ["gap_change", "Change in the gap"], ["gap_latest", `Gap in ${WAVES[LATEST]}`]];
+  srt.innerHTML = opts.map(([v, l]) =>
+    `<label><input type="radio" name="sort" value="${v}" ${v === state.sort ? "checked" : ""}/><span>${l}</span></label>`).join("");
+}
+
+function renderLegend() {
+  document.getElementById("legend").innerHTML =
+    `<span><span class="swatch power"></span>Power users</span>` +
+    `<span><span class="swatch other"></span>Other AI users</span>` +
+    `<span class="wave-sizes">Survey: <span class="swatch prev"></span>${WAVES[state.compare]}` +
+    `<span class="swatch latest"></span>${WAVES[LATEST]}</span>`;
+}
+
+/* ============================================================================
+   Mini-chart. Two lanes: power users (upper, blue), other AI users (lower,
+   white). Static rows show the comparison wave (small) and the latest (large).
+============================================================================ */
+const CHART = { pad: 6, laneY: { power: 14, other: 30 }, vbWidth: 100, vbHeight: 44 };
+const scaleX  = (v, max = 1) => CHART.pad + (v / max) * (CHART.vbWidth - 2 * CHART.pad);
+const pctLeft = (v, max = 1) => scaleX(v, max) + "%";
+const laneTop = (lane) => ((CHART.laneY[lane] / CHART.vbHeight) * 100) + "%";
+
+function svgBase(max, ticks) {
+  const NS = "http://www.w3.org/2000/svg";
+  const svg = document.createElementNS(NS, "svg");
+  svg.setAttribute("class", "mini-chart");
+  svg.setAttribute("viewBox", `0 0 ${CHART.vbWidth} ${CHART.vbHeight}`);
+  svg.setAttribute("preserveAspectRatio", "none");
+  svg.setAttribute("aria-hidden", "true");
+  const line = (x1, x2, y1, y2) => {
+    const l = document.createElementNS(NS, "line");
+    l.setAttribute("x1", x1); l.setAttribute("x2", x2); l.setAttribute("y1", y1); l.setAttribute("y2", y2);
+    l.setAttribute("class", "chart-axis"); svg.appendChild(l); return l;
+  };
+  line(CHART.pad, CHART.vbWidth - CHART.pad, 42, 42);
+  ticks.forEach(t => { const x = scaleX(t, max); line(x, x, 40, 43); });
+  return svg;
+}
+
+function buildChart(m) {
+  const c = state.compare;
+  const inner = document.createElement("div");
+  inner.className = "chart-inner";
+  const svg = svgBase(1, [0, .25, .5, .75, 1]);
+  const NS = "http://www.w3.org/2000/svg";
+  [["power", m.p], ["other", m.o]].forEach(([lane, v]) => {
+    if (v[c] == null || v[LATEST] == null) return;
+    const path = document.createElementNS(NS, "path");
+    path.setAttribute("d", `M ${scaleX(v[c]).toFixed(2)} ${CHART.laneY[lane]} L ${scaleX(v[LATEST]).toFixed(2)} ${CHART.laneY[lane]}`);
+    path.setAttribute("class", "traj-line " + lane);
+    svg.appendChild(path);
+  });
+  inner.appendChild(svg);
+  const layer = document.createElement("div");
+  layer.className = "markers";
+  [[c, "wave-prev"], [LATEST, "wave-latest"]].forEach(([i, cls]) => {
+    [["power", m.p[i]], ["other", m.o[i]]].forEach(([lane, v]) => {
+      if (v == null) return;
+      const dot = document.createElement("div");
+      dot.className = `marker ${lane} ${cls}`;
+      dot.style.left = pctLeft(v);
+      dot.style.top = laneTop(lane);
+      layer.appendChild(dot);
+    });
+  });
+  inner.appendChild(layer);
+  return inner;
+}
+
+function labelEl(m) {
+  const el = document.createElement("div");
+  el.className = "label";
+  el.textContent = m.label;
+  if (m.is_new && m.p[state.compare] == null) {
+    const tag = document.createElement("span");
+    tag.className = "new-tag";
+    tag.textContent = "Asked from " + WAVES[m.first_wave];
+    el.appendChild(tag);
+  }
+  return el;
+}
+
+function makeRow(m) {
+  const row = document.createElement("div");
+  row.className = "metric-row";
+  row.appendChild(labelEl(m));
+  const wrap = document.createElement("div");
+  wrap.className = "chart-wrap";
+  wrap.appendChild(buildChart(m));
+  row.appendChild(wrap);
+  attachTooltip(row, m);
+  return row;
+}
+
+function makeGapBarRow(m) {
+  const row = document.createElement("div");
+  row.className = "metric-row";
+  row.appendChild(labelEl(m));
+  const wrap = document.createElement("div");
+  wrap.className = "gap-bar-row";
+  const maxGap = 0.5;
+  [state.compare, LATEST].forEach(i => {
+    const g = m.gap[i];
+    const line = document.createElement("div");
+    line.className = "gap-bar-line" + (g != null && g < 0 ? " is-negative" : "");
+    line.innerHTML = `<span class="wave-label">${WAVES[i]}</span>` +
+      `<div class="bar-track"><div class="bar-fill" style="width:${g == null ? 0 : Math.min(100, Math.abs(g) / maxGap * 100).toFixed(1)}%"></div></div>` +
+      `<span class="gap-value">${g == null ? "—" : fmtPp(g)}</span>`;
+    wrap.appendChild(line);
+  });
+  row.appendChild(wrap);
+  attachTooltip(row, m);
+  return row;
+}
+
+/* ============================================================================
+   Tooltip — every wave, with each group's base
+============================================================================ */
+const tooltip = document.getElementById("tooltip");
+function attachTooltip(row, m) {
+  const show = (ev) => { tooltip.innerHTML = buildTooltipHTML(m); tooltip.classList.add("is-visible"); positionTooltip(ev); };
+  const hide = () => tooltip.classList.remove("is-visible");
+  row.addEventListener("mouseenter", show);
+  row.addEventListener("mousemove", positionTooltip);
+  row.addEventListener("mouseleave", hide);
+  row.addEventListener("touchstart", (ev) => show(ev.touches[0]), { passive: true });
+  row.addEventListener("touchend", hide);
+}
+function positionTooltip(ev) {
+  const x = ev.clientX, y = ev.clientY;
+  if (x == null) return;
+  const pad = 14, tw = tooltip.offsetWidth, th = tooltip.offsetHeight;
+  const host = document.getElementById("tool").getBoundingClientRect();
+  let left = x + pad; if (left + tw > window.innerWidth - 8) left = x - tw - pad; if (left < 8) left = 8;
+  let top = y + pad;  if (top + th > window.innerHeight - 8) top = y - th - pad;  if (top < 8) top = 8;
+  tooltip.style.left = (left - host.left) + "px";
+  tooltip.style.top  = (top - host.top) + "px";
+}
+function buildTooltipHTML(m) {
+  const rows = WAVES.map((w, i) => {
+    const p = m.p[i], o = m.o[i];
+    if (p == null && o == null) return `<tr><td>${w}</td><td colspan="3">not asked</td></tr>`;
+    return `<tr><td>${w}</td>
+      <td class="pu">${fmtPct(p, 1)} <span class="n">n=${m.power.n[i]}</span></td>
+      <td class="oa">${fmtPct(o, 1)} <span class="n">n=${m.other.n[i]}</span></td>
+      <td class="gap">${fmtPp(m.gap[i])}</td></tr>`;
+  }).join("");
+  return `<h4>${m.label}</h4>
+    <table><thead><tr><th></th><th class="pu">Power</th><th class="oa">Other</th><th class="gap">Gap</th></tr></thead>
+    <tbody>${rows}</tbody></table>
+    <div class="src-note">Power: agents who say AI made them significantly more productive. Other: agents who use AI but report less. n = group size in that survey.</div>`;
+}
+
+/* ============================================================================
+   Render orchestration — every state change goes through refresh(), which
+   redraws and only then reports height to the parent frame.
+============================================================================ */
+const listEl = document.getElementById("metric-list");
+function sortMetrics(arr) {
+  const key = state.sort;
+  return arr.slice().sort((a, b) => {
+    const va = a[key], vb = b[key];
+    if (va == null && vb == null) return 0;
+    if (va == null) return 1;
+    if (vb == null) return -1;
+    return vb - va;
+  });
+}
+function applyCohortVisibility() {
+  document.querySelectorAll("#metric-list .traj-line.power, #metric-list .marker.power").forEach(el => el.style.display = state.cohorts.power ? "" : "none");
+  document.querySelectorAll("#metric-list .traj-line.other, #metric-list .marker.other").forEach(el => el.style.display = state.cohorts.other ? "" : "none");
+}
+function refresh() {
+  const derived = DATA.metrics.map(m => derive(m, state.compare));
+  listEl.innerHTML = "";
+  sortMetrics(derived).forEach(m => listEl.appendChild(state.view === "gap" ? makeGapBarRow(m) : makeRow(m)));
+  applyCohortVisibility();
+  renderLegend();
+  reportHeight();
+}
+
+/* ============================================================================
+   The shift. Share of power users and of other AI users working mainly in an
+   agentic or integrated AI environment, April 2026 -> September 2026, from the
+   DATA.mode counts. Draws once when scrolled into view; the replay button
+   reruns it. Reduced motion (or no IntersectionObserver) shows the end state.
+============================================================================ */
+const shiftEl = document.getElementById("shift");
+const shiftTrack = document.getElementById("shift-track");
+const shiftLabels = document.getElementById("shift-labels");
+const SHIFT_MS = 1400;   // matches the CSS transitions on .shift-dot and .shift-trail
+const SHIFT_WAVES = { from: DATA.mode.waves[0], to: DATA.mode.waves[1], fromName: DATA.mode.wave_names[0], toName: DATA.mode.wave_names[1] };
+const SHIFT_LANES = [
+  { cls: "power", name: "Power users", y: 50, from: rate(DATA.mode.power.k[0], DATA.mode.power.n[0]), to: rate(DATA.mode.power.k[1], DATA.mode.power.n[1]) },
+  { cls: "other", name: "Other AI users", y: 88, from: rate(DATA.mode.other.k[0], DATA.mode.other.n[0]), to: rate(DATA.mode.other.k[1], DATA.mode.other.n[1]) }
+];
+let shiftTimer = 0, shiftIO = null;
+const laneSpan = (d) => (Math.abs(d) * (CHART.vbWidth - 2 * CHART.pad)) + "%";
+
+function buildShift() {
+  const ticks = [0, 0.25, 0.5, 0.75, 1];
+  let html = `<div class="shift-axis"></div>` +
+    ticks.map(t => `<div class="shift-tick" style="left:${pctLeft(t)}"></div>` +
+                   `<div class="shift-ticklabel" style="left:${pctLeft(t)}">${Math.round(t * 100)}%</div>`).join("");
+  SHIFT_LANES.forEach(L => {
+    const at = (v) => `left:${pctLeft(v)};top:${L.y}px`;
+    const left = L.to < L.from;   // direction of the move along the axis
+    html += `<div class="shift-trail ${L.cls}${left ? " is-left" : ""}" data-lane="${L.cls}" style="${at(L.from)}"></div>` +
+            `<div class="shift-ghost ${L.cls}" style="${at(L.from)}"></div>`;
+    if (L.cls === "power") {
+      html += `<div class="shift-label from" style="${at(L.from)}"><span class="w">${SHIFT_WAVES.from}</span><span class="v">${fmtPct(L.from)}</span></div>` +
+              `<div class="shift-label to" style="${at(L.to)}"><span class="w">${SHIFT_WAVES.to}</span><span class="v">${fmtPct(L.to)}</span></div>`;
+    } else {
+      // Values on the outer side of the move, so close-together points never collide.
+      html += `<div class="shift-side from ${left ? "after" : "before"}" style="${at(L.from)}">${fmtPct(L.from)}</div>` +
+              `<div class="shift-side to ${left ? "before" : "after"}" style="${at(L.to)}">${fmtPct(L.to)}</div>`;
+    }
+    html += `<div class="shift-dot ${L.cls}" data-lane="${L.cls}" style="${at(L.from)}"></div>`;
+  });
+  shiftTrack.innerHTML = html;
+  // One grid row per lane, centred on the lane's y; a leading spacer row takes the rest.
+  const half = (SHIFT_LANES[1].y - SHIFT_LANES[0].y) / 2;
+  shiftLabels.style.gridTemplateRows = `${SHIFT_LANES[0].y - half}px ` + SHIFT_LANES.map(() => `${2 * half}px`).join(" ");
+  shiftLabels.innerHTML = SHIFT_LANES.map((L, i) => `<div class="shift-rowlabel ${L.cls}" style="grid-row:${i + 2}">${L.name}</div>`).join("");
+  shiftEl.setAttribute("aria-label", "Share working mainly in an agentic or integrated AI environment. " +
+    SHIFT_LANES.map(L => `${L.name}: ${fmtPct(L.from)} in ${SHIFT_WAVES.fromName}, ${fmtPct(L.to)} in ${SHIFT_WAVES.toName}`).join(". ") + ".");
+}
+
+// Place every lane at its start or end position.
+function placeShift(atEnd) {
+  SHIFT_LANES.forEach(L => {
+    const dot = shiftTrack.querySelector(`.shift-dot[data-lane="${L.cls}"]`);
+    const trail = shiftTrack.querySelector(`.shift-trail[data-lane="${L.cls}"]`);
+    dot.style.left = pctLeft(atEnd ? L.to : L.from);
+    trail.style.left = pctLeft(atEnd ? Math.min(L.from, L.to) : L.from);
+    trail.style.width = atEnd ? laneSpan(L.to - L.from) : "0%";
+  });
+}
+
+// Jump to a state without animating (start of a replay, or reduced motion).
+function setShift(atEnd) {
+  clearTimeout(shiftTimer);
+  shiftEl.classList.add("no-anim");
+  shiftEl.classList.toggle("is-moving", atEnd);
+  shiftEl.classList.toggle("is-done", atEnd);
+  placeShift(atEnd);
+  void shiftEl.offsetWidth;
+  shiftEl.classList.remove("no-anim");
+}
+
+function playShift() {
+  setShift(false);
+  shiftTimer = setTimeout(() => {
+    shiftEl.classList.add("is-moving");
+    placeShift(true);
+    shiftTimer = setTimeout(() => shiftEl.classList.add("is-done"), SHIFT_MS);
+  }, 450);
+}
+
+function initShift() {
+  buildShift();
+  const reduced = window.matchMedia("(prefers-reduced-motion: reduce)").matches;
+  const replay = document.createElement("button");
+  replay.type = "button"; replay.className = "shift-replay"; replay.innerHTML = "&#8635;";
+  replay.setAttribute("aria-label", `Replay the change from ${SHIFT_WAVES.fromName} to ${SHIFT_WAVES.toName}`);
+  replay.title = "Replay";
+  // A manual replay also cancels a pending autoplay, so it never runs twice.
+  replay.addEventListener("click", () => { if (shiftIO) shiftIO.disconnect(); reduced ? setShift(true) : playShift(); });
+  shiftTrack.appendChild(replay);
+  if (reduced || !("IntersectionObserver" in window)) { setShift(true); return; }
+  setShift(false);
+  shiftIO = new IntersectionObserver((entries) => {
+    if (entries.some(e => e.isIntersecting)) { shiftIO.disconnect(); playShift(); }
+  }, { threshold: 0.6 });
+  shiftIO.observe(shiftEl);
+}
+
+/* ============================================================================
+   Embed height (house pattern: initEmbedHeight in holiday-effect). Timed
+   retries call send() directly — rAF is throttled in an unpainted iframe.
+============================================================================ */
+let reportHeight = () => {};
+function initEmbedHeight() {
+  if (!document.documentElement.classList.contains("embed")) return;
+  let last = 0, raf = 0;
+  const send = () => {
+    const h = Math.ceil(document.documentElement.getBoundingClientRect().height);
+    if (h && Math.abs(h - last) > 1) {
+      last = h;
+      try { window.parent.postMessage({ type: "inman-embed-height", height: h }, "*"); } catch (e) {}
+    }
+  };
+  const schedule = () => { cancelAnimationFrame(raf); raf = requestAnimationFrame(send); };
+  window.addEventListener("resize", schedule);
+  if (window.ResizeObserver) new ResizeObserver(schedule).observe(document.body);
+  if (document.fonts && document.fonts.ready) document.fonts.ready.then(send);
+  [0, 300, 800, 1800, 3000].forEach(ms => setTimeout(send, ms));
+  reportHeight = send;
+  window.__inmanEmbedSend = send;
+  send();
+}
+
+/* ============================================================================
+   Wire-up
+============================================================================ */
+function renderAxis() {
+  const track = document.getElementById("axis-track");
+  const NS = "http://www.w3.org/2000/svg";
+  const svg = document.createElementNS(NS, "svg");
+  svg.setAttribute("viewBox", `0 0 ${CHART.vbWidth} 6`);
+  svg.setAttribute("preserveAspectRatio", "none");
+  const add = (x1, x2, y1, y2) => { const l = document.createElementNS(NS, "line");
+    l.setAttribute("x1", x1); l.setAttribute("x2", x2); l.setAttribute("y1", y1); l.setAttribute("y2", y2); svg.appendChild(l); };
+  add(CHART.pad, CHART.vbWidth - CHART.pad, 5, 5);
+  [0, 25, 50, 75, 100].forEach(p => { const x = scaleX(p / 100); add(x, x, 0, 5); });
+  track.appendChild(svg);
+  [0, 25, 50, 75, 100].forEach(p => {
+    const lbl = document.createElement("div");
+    lbl.className = "axis-label" + (p === 0 ? " first" : (p === 100 ? " last" : ""));
+    lbl.style.left = pctLeft(p / 100);
+    lbl.textContent = p + "%";
+    track.appendChild(lbl);
+  });
+}
+
+function initControls() {
+  document.getElementById("compare-options").addEventListener("change", (e) => { state.compare = +e.target.value; refresh(); });
+  document.getElementById("sort-options").addEventListener("change", (e) => { state.sort = e.target.value; refresh(); });
+  // Opening or closing the method note changes the page height.
+  document.getElementById("footer").addEventListener("toggle", () => reportHeight(), true);
+}
+
+
+initEmbedHeight();
+renderText();
+renderControls();
+renderAxis();
+initControls();
+refresh();
+initShift();
+</script>
+</body>
+</html>
