@@ -705,7 +705,7 @@ function initShift() {
 let reportHeight = () => {};
 function initEmbedHeight() {
   if (!document.documentElement.classList.contains("embed")) return;
-  let last = 0, raf = 0;
+  let last = 0, raf = 0, timer = 0;
   const send = () => {
     const h = Math.ceil(document.documentElement.getBoundingClientRect().height);
     if (h && Math.abs(h - last) > 1) {
@@ -713,7 +713,13 @@ function initEmbedHeight() {
       try { window.parent.postMessage({ type: "inman-embed-height", height: h }, "*"); } catch (e) {}
     }
   };
-  const schedule = () => { cancelAnimationFrame(raf); raf = requestAnimationFrame(send); };
+  // rAF coalesces bursts of resize/observer events, but browsers can throttle it in
+  // a cross-site iframe that isn't painting (the WordPress embed is cross-site), so a
+  // plain timer backs it up: a new height always reaches the parent within 250ms.
+  const schedule = () => {
+    cancelAnimationFrame(raf); raf = requestAnimationFrame(send);
+    clearTimeout(timer); timer = setTimeout(send, 250);
+  };
   window.addEventListener("resize", schedule);
   if (window.ResizeObserver) new ResizeObserver(schedule).observe(document.body);
   if (document.fonts && document.fonts.ready) document.fonts.ready.then(send);
