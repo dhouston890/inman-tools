@@ -92,3 +92,21 @@ workflow's own commits count as activity, so don't rely on them.
 Disable the workflow from the Actions tab (or `gh workflow disable`), or delete
 `.github/workflows/pmms-refresh.yml`. The calculator keeps working on whatever
 `pmms.json` holds, or on its baked-in rate if the file is removed.
+
+## The calculator's other data (2026-10-21)
+
+The same workflow now has two small jobs for the buying-vs-renting
+calculator's **Zillow** data, which refreshes monthly on Houston's Mac (not
+here; Zillow data never goes into this repo except inside the page):
+
+- **`calc-watchdog`** (daily 14:17 UTC run): opens the issue "Calculator data
+  refresh needs attention" if the deployed page's Zillow month ended more than
+  13 weeks ago, which means the Mac job has stopped (comments on Mondays while
+  it stays open). Test it with `gh workflow run pmms-refresh.yml -f watchdog_month=2026-01`.
+- **`calc-alert`** (dispatch only): the Mac job opens, comments on or closes
+  that issue through it, so GitHub emails Houston.
+
+Both skip the PMMS job, which runs as before. Everything about the monthly
+Zillow refresh, and the **annual checklist** for the calculator's other
+sources (ACS PUMS, NAR, Enact, FHFA, Angi, LodeStar, NAIC, ICE, BLS PPI), is in
+`active_workspace/documentation/condo_study/calculator_maintenance.md`.

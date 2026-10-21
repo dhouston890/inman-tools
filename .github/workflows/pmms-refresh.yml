@@ -25,6 +25,22 @@
 # if the file is stale or no new week has appeared for 15 days.
 # runs-on stays ubuntu-latest: the job needs only python3 and git, so the
 # Ubuntu 26 image migration (from 2026-10-19) doesn't affect it.
+#
+# Two more jobs (2026-10-21, calculator refresh plan Part B), neither of
+# which fetches or commits any data:
+#   - calc-watchdog: on the daily 14:17 UTC run, reads META.valuesMonth (the
+#     Zillow data month) from the DEPLOYED buy-vs-rent-calculator page. If
+#     the month is more than 13 weeks past its own end (about ten weeks after
+#     that month's data normally goes live, six weeks past the next expected
+#     update), it opens the issue "Calculator data refresh needs attention",
+#     or comments on it on Mondays if it is already open. This catches a Mac
+#     that is off or a local job that died silently.
+#   - calc-alert: run only by workflow_dispatch with calc_alert=open|close.
+#     The local refresh job (scripts/condo_study/refresh_calculator.sh)
+#     dispatches it so the issue is opened or closed by github-actions[bot]
+#     and GitHub emails Houston (no email goes out for an issue Houston's
+#     own account opens).
+# The PMMS job is skipped on those dispatches; everything else is unchanged.
 
 name: Refresh PMMS rate
 
@@ -34,16 +50,31 @@ on:
     - cron: "17 17,18 * * 3"
     - cron: "17 14 * * *"
   workflow_dispatch:
+    inputs:
+      calc_alert:
+        description: "Calculator refresh notice: open or close (leave blank for the PMMS refresh)"
+        required: false
+        default: ""
+      calc_alert_body:
+        description: "Issue text for calc_alert"
+        required: false
+        default: ""
+      watchdog_month:
+        description: "Test the calculator watchdog as if the page showed this YYYY-MM"
+        required: false
+        default: ""
 
 permissions:
   contents: write
 
-concurrency:
-  group: pmms-refresh
-  cancel-in-progress: false
-
 jobs:
   refresh:
+    if: ${{ !inputs.calc_alert && !inputs.watchdog_month }}
+    # Job-level since 2026-10-21 (was workflow-level), so a queued calculator
+    # notice can never be cancelled by a PMMS run; PMMS runs still queue.
+    concurrency:
+      group: pmms-refresh
+      cancel-in-progress: false
     runs-on: ubuntu-latest
     timeout-minutes: 10
     steps:
@@ -75,3 +106,81 @@ jobs:
           done
           echo "Could not push after 3 attempts." >&2
           exit 1
+
+  calc-watchdog:
+    if: ${{ (github.event_name == 'schedule' && github.event.schedule == '17 14 * * *') || inputs.watchdog_month }}
+    runs-on: ubuntu-latest
+    timeout-minutes: 5
+    permissions:
+      contents: read
+      issues: write
+    steps:
+      - name: Check out the repo
+        uses: actions/checkout@v5
+
+      - name: Is the calculator's Zillow month stale?
+        env:
+          GH_TOKEN: ${{ github.token }}
+          REPO: ${{ github.repository }}
+          TEST_MONTH: ${{ inputs.watchdog_month }}
+          TITLE: "Calculator data refresh needs attention"
+          PAGE_URL: "https://dhouston890.github.io/inman-tools/buy-vs-rent-calculator/"
+        run: |
+          python3 - <<'PY' > watchdog.env
+          import calendar, datetime, os, re, urllib.request
+          pat = re.compile(r'const META = \{"valuesMonth":"(\d{4})-(\d{2})"')
+          src, m = "test input", None
+          if os.environ.get("TEST_MONTH"):
+              m = re.match(r"(\d{4})-(\d{2})$", os.environ["TEST_MONTH"])
+          else:
+              try:
+                  html = urllib.request.urlopen(os.environ["PAGE_URL"] + "?watchdog=1", timeout=60).read().decode("utf-8", "replace")
+                  m, src = pat.search(html), "deployed page"
+              except Exception as e:
+                  print(f"# deployed page unreachable: {e}")
+              if not m:
+                  m, src = pat.search(open("buy-vs-rent-calculator/index.html", encoding="utf-8").read()), "checked-out page"
+          y, mo = int(m.group(1)), int(m.group(2))
+          month_end = datetime.date(y, mo, calendar.monthrange(y, mo)[1])
+          age = (datetime.date.today() - month_end).days
+          print(f"MONTH={y}-{mo:02d}"); print(f"SOURCE='{src}'"); print(f"AGE_DAYS={age}")
+          print(f"STALE={'1' if age > 91 else '0'}")
+          PY
+          cat watchdog.env
+          . ./watchdog.env
+          if [ "$STALE" != "1" ]; then echo "Calculator data month $MONTH is current enough ($AGE_DAYS days past month end)."; exit 0; fi
+          body="**Watchdog:** the calculator at ${PAGE_URL} shows Zillow data through ${MONTH} (${SOURCE}), ${AGE_DAYS} days past that month's end; a refresh was expected by now. The local refresh job (com.inman.calculator-refresh on Houston's Mac) may not be running: the Mac may be off, or the job may have stopped. See active_workspace/documentation/condo_study/calculator_maintenance.md. Run: ${GITHUB_SERVER_URL}/${REPO}/actions/runs/${GITHUB_RUN_ID}"
+          num=$(gh issue list -R "$REPO" --state open --search "\"$TITLE\" in:title" --json number,title --jq "map(select(.title == env.TITLE))[0].number // empty")
+          if [ -z "$num" ]; then
+            gh issue create -R "$REPO" --title "$TITLE" --body "$body"
+          elif [ "$(date -u +%u)" = "1" ] || [ -n "$TEST_MONTH" ]; then
+            gh issue comment "$num" -R "$REPO" --body "$body"
+          else
+            echo "Issue #$num already open; it gets a weekly comment on Mondays."
+          fi
+
+  calc-alert:
+    if: ${{ github.event_name == 'workflow_dispatch' && inputs.calc_alert }}
+    runs-on: ubuntu-latest
+    timeout-minutes: 5
+    permissions:
+      issues: write
+    steps:
+      - name: Open, comment on or close the calculator refresh issue
+        env:
+          GH_TOKEN: ${{ github.token }}
+          REPO: ${{ github.repository }}
+          ACTION: ${{ inputs.calc_alert }}
+          BODY: ${{ inputs.calc_alert_body }}
+          TITLE: "Calculator data refresh needs attention"
+        run: |
+          num=$(gh issue list -R "$REPO" --state open --search "\"$TITLE\" in:title" --json number,title --jq "map(select(.title == env.TITLE))[0].number // empty")
+          case "$ACTION" in
+            open)
+              if [ -n "$num" ]; then gh issue comment "$num" -R "$REPO" --body "$BODY"
+              else gh issue create -R "$REPO" --title "$TITLE" --body "$BODY"; fi ;;
+            close)
+              if [ -n "$num" ]; then gh issue close "$num" -R "$REPO" --comment "${BODY:-Resolved by a successful calculator refresh.}"
+              else echo "No open issue to close."; fi ;;
+            *) echo "calc_alert must be open or close" >&2; exit 1 ;;
+          esac
