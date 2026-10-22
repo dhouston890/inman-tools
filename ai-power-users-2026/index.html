@@ -267,8 +267,6 @@
   .row-tooltip th:first-child, .row-tooltip td:first-child { text-align: left; color: var(--inman-muted-text); white-space: nowrap; }
   .row-tooltip .pu  { color: var(--inman-blue); font-weight: 700; }
   .row-tooltip .oa  { color: var(--inman-white); font-weight: 700; }
-  .row-tooltip .gap { color: var(--inman-muted-text); }
-  .row-tooltip .n   { color: var(--inman-muted-text); font-size: 10.5px; }
   .row-tooltip h4 { font-family: var(--font-head); font-size: 13.5px; font-weight: 700; margin: 0 0 2px; }
   .row-tooltip .src-note { margin-top: 6px; font-size: 11px; color: var(--inman-muted-text); line-height: 1.35; }
 
@@ -538,7 +536,7 @@ function makeGapBarRow(m) {
 }
 
 /* ============================================================================
-   Tooltip — every wave, with each group's base
+   Tooltip — each group's share in every wave
 ============================================================================ */
 const tooltip = document.getElementById("tooltip");
 function attachTooltip(row, m) {
@@ -563,16 +561,13 @@ function positionTooltip(ev) {
 function buildTooltipHTML(m) {
   const rows = WAVES.map((w, i) => {
     const p = m.p[i], o = m.o[i];
-    if (p == null && o == null) return `<tr><td>${w}</td><td colspan="3">not asked</td></tr>`;
-    return `<tr><td>${w}</td>
-      <td class="pu">${fmtPct(p, 1)} <span class="n">n=${m.power.n[i]}</span></td>
-      <td class="oa">${fmtPct(o, 1)} <span class="n">n=${m.other.n[i]}</span></td>
-      <td class="gap">${fmtPp(m.gap[i])}</td></tr>`;
+    if (p == null && o == null) return `<tr><td>${w}</td><td colspan="2">not asked</td></tr>`;
+    return `<tr><td>${w}</td><td class="pu">${fmtPct(p, 1)}</td><td class="oa">${fmtPct(o, 1)}</td></tr>`;
   }).join("");
   return `<h4>${m.label}</h4>
-    <table><thead><tr><th></th><th class="pu">Power</th><th class="oa">Other</th><th class="gap">Gap</th></tr></thead>
+    <table><thead><tr><th></th><th class="pu">Power</th><th class="oa">Other</th></tr></thead>
     <tbody>${rows}</tbody></table>
-    <div class="src-note">Power: agents who say AI made them significantly more productive. Other: agents who use AI but report less. n = group size in that survey.</div>`;
+    <div class="src-note">Power users: agents who say AI made them significantly more productive. Other: agents who use AI but report lower productivity gains.</div>`;
 }
 
 /* ============================================================================
