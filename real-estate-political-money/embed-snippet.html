@@ -1,0 +1,27 @@
+<!-- =====================================================================
+     Inman — "Follow the money: Real estate’s role in the 2026 midterms"
+     WordPress paste-in snippet (use a "Custom HTML" block, not the visual editor).
+     Live tool: https://dhouston890.github.io/inman-tools/real-estate-political-money/
+     The ?embed flag makes the tool report its rendered height via postMessage;
+     the listener below resizes the iframe so there is never an inner scrollbar.
+     ===================================================================== -->
+<div style="max-width:960px;margin:0 auto;">
+  <iframe
+    id="inman-re-political-money"
+    src="https://dhouston890.github.io/inman-tools/real-estate-political-money/?embed"
+    title="Follow the money: Real estate’s role in the 2026 midterms — Inman"
+    style="width:100%;border:0;height:3600px;display:block;"
+    loading="lazy"
+    scrolling="no"></iframe>
+</div>
+<script>
+(function(){
+  var frame = document.getElementById('inman-re-political-money');
+  window.addEventListener('message', function(e){
+    var d = e.data;
+    if (d && d.type === 'inman-embed-height' && d.height && frame && e.source === frame.contentWindow){
+      frame.style.height = d.height + 'px';
+    }
+  });
+})();
+</script>
