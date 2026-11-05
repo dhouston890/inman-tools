@@ -1,0 +1,28 @@
+<!-- =====================================================================
+     Inman — "4 camps in the fight over agents' sales data"
+     WordPress paste-in snippet (use a "Custom HTML" block, not the visual editor).
+     Live tool: https://dhouston890.github.io/inman-tools/compass-agent-data-camps/
+     The ?embed flag makes the tool report its rendered height via postMessage;
+     the listener below resizes the iframe so there is never an inner scrollbar.
+     Add &camp=2 (or 3, 4) to the src to open on a different camp.
+     ===================================================================== -->
+<div style="max-width:760px;margin:0 auto;">
+  <iframe
+    id="inman-compass-agent-data-camps"
+    src="https://dhouston890.github.io/inman-tools/compass-agent-data-camps/?embed"
+    title="4 camps in the fight over agents' sales data — Inman"
+    style="width:100%;border:0;height:760px;display:block;"
+    loading="lazy"
+    scrolling="no"></iframe>
+</div>
+<script>
+(function(){
+  var frame = document.getElementById("inman-compass-agent-data-camps");
+  window.addEventListener("message", function(e){
+    var d = e.data;
+    if (frame && e.source === frame.contentWindow && d && d.type === "inman-embed-height" && d.height){
+      frame.style.height = d.height + "px";
+    }
+  });
+})();
+</script>

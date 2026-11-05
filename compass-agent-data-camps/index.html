@@ -1,0 +1,419 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<title>4 camps on agents' sales data — Inman</title>
+<!-- Detect iframe/embed context early so the page flows to its true height -->
+<script>
+  if (window.self !== window.top || /[?&]embed\b/.test(location.search)) {
+    document.documentElement.classList.add("embed");
+  }
+</script>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Libre+Franklin:wght@400;500;600;700&display=swap" rel="stylesheet">
+<style>
+  :root{
+    /* Inman brand: Dark Blue #161a48, Bright Blue #0a84ff (.claude/inman_branding.md) */
+    --inman-blue:#0a84ff; --inman-dark:#161a48;
+    --ink:#1b1f3b; --muted:#5b6180; --line:#e5e8f0; --wash:#f6f8fc; --track:#e8ecf4;
+    --blue-wash:rgba(10,132,255,.07); --blue-line:rgba(10,132,255,.45);
+    --font-ui:"Libre Franklin","HEX Franklin","Helvetica Neue",Arial,sans-serif;
+    --font-head:Georgia,serif;
+  }
+  *{box-sizing:border-box}
+  html,body{margin:0;padding:0}
+  html.embed,html.embed body{height:auto}
+  body{font-family:var(--font-ui);color:var(--ink);background:#fff;-webkit-font-smoothing:antialiased;font-size:14px;line-height:1.45}
+  .wrap{max-width:960px;margin:0 auto}
+  button{font-family:var(--font-ui)}
+
+  /* ---------- Masthead, with the camp picker inside it ---------- */
+  .masthead{background:var(--inman-dark);border-bottom:2px solid var(--inman-blue);padding:14px 18px 16px}
+  .masthead .kicker{color:#8ea2c8;font-size:11px;letter-spacing:.09em;text-transform:uppercase;font-weight:600;margin:0 0 4px}
+  .masthead h1{font-family:var(--font-head);color:#fff;font-size:24px;line-height:1.18;margin:0;font-weight:700}
+
+  .picker{display:grid;grid-template-columns:repeat(4,minmax(0,1fr));gap:8px;margin-top:14px}
+  .pick{--mini-rgb:10,132,255;display:flex;flex-direction:column;justify-content:space-between;gap:10px;text-align:left;padding:10px 11px 11px;
+        background:rgba(255,255,255,.05);border:1px solid rgba(255,255,255,.2);border-radius:4px;color:#fff;cursor:pointer;
+        transition:background .15s ease,border-color .15s ease}
+  .pick:focus-visible{outline:2px solid #fff;outline-offset:2px}
+  .pick[aria-pressed="true"]{--mini-rgb:255,255,255;background:var(--inman-blue);border-color:var(--inman-blue)}
+  .pk-head{display:flex;align-items:flex-start;gap:8px}
+  .pk-num{flex:none;width:20px;height:20px;border-radius:50%;border:1.5px solid rgba(255,255,255,.55);font-size:11px;font-weight:700;
+          display:inline-flex;align-items:center;justify-content:center;margin-top:-1px}
+  .pick[aria-pressed="true"] .pk-num{background:#fff;color:var(--inman-blue);border-color:#fff}
+  .pk-name{display:block;font-size:13.5px;font-weight:700;line-height:1.2}
+  .pk-tag{display:block;font-size:12px;color:#aab2da;line-height:1.25;margin-top:2px}
+  .pick[aria-pressed="true"] .pk-tag{color:#e8f2ff}
+  .mini{display:grid;grid-template-columns:repeat(3,1fr);grid-template-rows:11px 11px;gap:2px;width:100%;max-width:110px}
+  .mini i{display:block;border-radius:1px;background:rgba(var(--mini-rgb),var(--a))}
+  .mini .m-today{grid-column:1;grid-row:1} .mini .m-optout{grid-column:2;grid-row:1}
+  .mini .m-stop{grid-column:1;grid-row:2}  .mini .m-optin{grid-column:2;grid-row:2}
+  .mini .m-brokerage{grid-column:3;grid-row:1 / span 2}
+
+  /* ---------- Stage ---------- */
+  /* With no headline, the legend leads the stage: it names the groups behind every
+     blue and navy figure below. The camp's name stays in a screen-reader heading. */
+  .stage{padding:18px 18px 18px}
+  .sr-only{position:absolute;width:1px;height:1px;padding:0;margin:-1px;overflow:hidden;clip:rect(0 0 0 0);white-space:nowrap;border:0}
+  .key{display:flex;flex-wrap:wrap;gap:6px 22px;font-size:13px;color:var(--ink);margin:0 0 12px}
+  .key > span{display:inline-flex;align-items:center;gap:8px}
+  .key b{font-weight:600}
+  .key .n{color:var(--muted);font-variant-numeric:tabular-nums;margin-left:-3px}
+  .sw-a{display:inline-block;width:12px;height:12px;border-radius:2px;background:var(--inman-blue)}
+  .sw-b{display:inline-block;width:3px;height:15px;border-radius:1px;background:var(--inman-dark)}
+
+  /* ---------- Takeaway tiles ---------- */
+  .tiles{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:8px;margin:0 0 22px}
+  .tile{background:var(--wash);border-radius:4px;padding:12px 14px 13px;border-top:3px solid var(--inman-blue);
+        transition:box-shadow .15s ease,border-color .15s ease}
+  .tile:focus{outline:none}
+  /* Active = hovered with a mouse, or focused from the keyboard. The tile and the
+     board cells it describes take the same dark outline together. */
+  .tile.is-active{border-top-color:var(--inman-dark);box-shadow:inset 0 0 0 2px var(--inman-dark)}
+  .t-num{font-size:30px;font-weight:700;line-height:1.05;font-variant-numeric:tabular-nums;white-space:nowrap}
+  .t-num .a{color:var(--inman-blue)} .t-num .b{color:var(--inman-dark)} .t-num .c{color:var(--muted)}
+  .t-num .vs{font-size:14px;font-weight:600;color:var(--muted);margin:0 6px;vertical-align:5px}
+  .t-label{font-size:13.5px;line-height:1.35;margin-top:5px;color:var(--ink)}
+  .tile.letter{background:var(--inman-dark);border-top-color:var(--inman-dark);color:#fff}
+  .t-tag{font-size:10.5px;letter-spacing:.08em;text-transform:uppercase;font-weight:700;color:#8ea2c8}
+  .tile.letter .t-label{color:#fff;font-size:14.5px;font-weight:600;margin-top:6px}
+  .tile.letter.is-active{border-top-color:var(--inman-blue);box-shadow:inset 0 0 0 2px var(--inman-blue)}
+
+  /* ---------- The board: who holds the switch (columns) x the default (rows) ---------- */
+  .board{display:grid;grid-template-columns:30px repeat(3,minmax(0,1fr));grid-template-rows:auto auto auto;gap:8px}
+  .colhead{padding:0 2px 4px;border-bottom:2px solid var(--inman-dark);display:flex;align-items:flex-end;
+           font-size:11px;letter-spacing:.06em;text-transform:uppercase;font-weight:700;color:var(--inman-dark);line-height:1.25}
+  .colhead[data-col="rule"]{grid-column:2;grid-row:1}
+  .colhead[data-col="agent"]{grid-column:3;grid-row:1}
+  .colhead[data-col="brokerage"]{grid-column:4;grid-row:1}
+  .rowhead{display:flex;align-items:center;justify-content:center}
+  .rowhead span{writing-mode:vertical-rl;transform:rotate(180deg);font-size:10.5px;letter-spacing:.06em;text-transform:uppercase;line-height:1.25;text-align:center;
+                color:var(--muted);font-weight:600;white-space:nowrap}
+  .rowhead.r1{grid-column:1;grid-row:2} .rowhead.r2{grid-column:1;grid-row:3}
+  .cell{position:relative;border:1px solid var(--line);border-radius:4px;padding:10px 11px 11px;background:#fff;
+        display:flex;flex-direction:column;gap:6px;min-height:86px;transition:border-color .15s ease,background .15s ease,box-shadow .15s ease}
+  .cell[data-opt="today"]{grid-column:2;grid-row:2} .cell[data-opt="optout"]{grid-column:3;grid-row:2}
+  .cell[data-opt="stop"]{grid-column:2;grid-row:3}  .cell[data-opt="optin"]{grid-column:3;grid-row:3}
+  .cell[data-opt="brokerage"]{grid-column:4;grid-row:2 / span 2;justify-content:center}
+  .cell.hl{border-color:var(--inman-blue);background:var(--blue-wash);box-shadow:inset 0 0 0 1px var(--inman-blue)}
+  .cell.hot{box-shadow:inset 0 0 0 2px var(--inman-dark);border-color:var(--inman-dark)}
+  .c-label{font-size:13px;line-height:1.3;color:var(--ink);font-weight:500}
+  .c-fig{display:flex;align-items:baseline;justify-content:space-between;gap:8px;margin-top:auto}
+  .cell[data-opt="brokerage"] .c-fig{margin-top:4px}
+  .c-v{font-size:22px;font-weight:700;color:var(--inman-blue);font-variant-numeric:tabular-nums;line-height:1.05}
+  .c-cmp{font-size:13px;font-weight:700;color:var(--inman-dark);font-variant-numeric:tabular-nums;display:inline-flex;align-items:center;gap:5px}
+  .c-cmp::before{content:"";display:inline-block;width:3px;height:12px;border-radius:1px;background:var(--inman-dark)}
+  .c-cmp:empty{display:none}
+  .c-bar{position:relative;height:9px;border-radius:2px;background:var(--track)}
+  .c-fill{position:absolute;left:0;top:0;bottom:0;width:0;border-radius:2px;background:var(--inman-blue);
+          transition:width .6s cubic-bezier(.4,0,.2,1)}
+  .c-tick{position:absolute;top:-4px;width:3px;height:17px;margin-left:-1.5px;border-radius:1px;background:var(--inman-dark);
+          transition:left .6s cubic-bezier(.4,0,.2,1),opacity .2s ease}
+  .pin{align-self:flex-start;font-size:10px;letter-spacing:.07em;text-transform:uppercase;font-weight:700;color:#fff;
+       background:var(--inman-dark);padding:3px 7px;border-radius:2px;display:none}
+  .cell.has-pin .pin{display:inline-block}
+
+  .nav{display:flex;justify-content:space-between;gap:10px;margin-top:16px}
+  .nav button{font-size:13px;padding:8px 13px;border:1px solid #ccd2e2;border-radius:3px;background:#fff;color:var(--muted);cursor:pointer}
+  .nav button.primary{background:var(--inman-blue);border-color:var(--inman-blue);color:#fff;font-weight:600;margin-left:auto}
+  .nav button:focus-visible{outline:2px solid var(--inman-blue);outline-offset:2px}
+  .nav button[hidden]{display:none}
+
+  /* ---------- Footer ---------- */
+  .foot{background:var(--inman-dark);color:#aab2da;padding:11px 18px 14px;font-size:11px;line-height:1.55}
+  .foot .credit{color:#c7cef0;margin:6px 0 0}
+  .foot details.method summary{cursor:pointer;color:#c7cef0;font-weight:600}
+  .foot details.method[open] summary{margin-bottom:5px}
+  .foot details.method summary:focus-visible{outline:2px solid #8ea2c8;outline-offset:2px}
+  .foot .method .m-item{margin:0 0 7px}
+  /* The question as asked, set apart, with its answers listed like survey bubbles. */
+  .foot .method .q{display:block;margin:3px 0 5px;color:#e6e9fb;font-weight:600;font-size:12px;line-height:1.45}
+  .foot .method ul.opts{list-style:none;margin:0;padding:0}
+  .foot .method ul.opts li{position:relative;padding-left:17px;margin:2px 0;color:#c7cef0}
+  .foot .method ul.opts li::before{content:"";position:absolute;left:1px;top:.3em;width:7px;height:7px;
+                                   border:1.5px solid #8ea2c8;border-radius:50%}
+
+  /* ---------- Hover: one rule everywhere — the box under the pointer hardens its
+     border. Only on devices that can hover, so a tap on a phone never leaves a box
+     stuck in its hover state. The selected camp card responds too (white border). */
+  @media (hover:hover){
+    .pick:hover{background:rgba(255,255,255,.1);border-color:rgba(255,255,255,.6)}
+    .pick[aria-pressed="true"]:hover{background:#2391ff;border-color:#fff}
+    .cell:hover{box-shadow:inset 0 0 0 2px var(--inman-dark);border-color:var(--inman-dark)}
+    .nav button:hover{border-color:var(--inman-dark);color:var(--ink)}
+    .nav button.primary:hover{background:#0773e0;border-color:#0773e0;color:#fff}
+  }
+
+  @media (prefers-reduced-motion: reduce){ .c-fill,.c-tick{transition:none} }
+  @media (max-width:640px){
+    .picker{grid-template-columns:repeat(2,minmax(0,1fr));gap:6px}
+    .tiles{grid-template-columns:1fr;gap:6px}
+    .tile{display:grid;grid-template-columns:auto minmax(0,1fr);gap:4px 12px;align-items:center;padding:10px 12px}
+    .t-num{font-size:24px}
+    .t-label{margin-top:0}
+    .tile.letter{display:block}
+  }
+  @media (max-width:600px){
+    .masthead{padding:12px 12px 14px}
+    .masthead h1{font-size:20px}
+    .pick{padding:8px 9px 9px;gap:7px}
+    .pk-name{font-size:12.5px}
+    .pk-tag{font-size:11.5px}
+    .stage{padding:14px 12px 16px}
+    .key{font-size:12.5px;gap:4px 16px}
+    .foot{padding-left:12px;padding-right:12px}
+    .board{grid-template-columns:26px repeat(2,minmax(0,1fr));grid-template-rows:auto auto auto auto auto;gap:6px}
+    .colhead[data-col="brokerage"]{grid-column:2 / span 2;grid-row:4;margin-top:6px}
+    .cell[data-opt="brokerage"]{grid-column:2 / span 2;grid-row:5;min-height:0}
+    .cell{padding:8px 9px 9px;min-height:80px}
+    .c-v{font-size:20px}
+    .c-label{font-size:12.5px}
+  }
+</style>
+</head>
+<body>
+<div class="wrap" id="tool">
+  <header class="masthead">
+    <p class="kicker" id="kicker"></p>
+    <h1 id="headline"></h1>
+    <nav class="picker" id="picker" aria-label="Choose a camp"></nav>
+  </header>
+
+  <section class="stage" id="stage" aria-live="polite">
+    <h2 class="sr-only" id="v-title"></h2>
+    <div class="key" id="key"></div>
+    <div class="tiles" id="tiles"></div>
+
+    <div class="board" id="board" role="group" aria-label="Every answer, arranged by who decides and whether data is shared by default">
+      <div class="colhead" data-col="rule"></div>
+      <div class="colhead" data-col="agent"></div>
+      <div class="colhead" data-col="brokerage"></div>
+      <div class="rowhead r1"><span id="row1"></span></div>
+      <div class="rowhead r2"><span id="row2"></span></div>
+      <div class="cell" data-opt="today"></div>
+      <div class="cell" data-opt="optout"></div>
+      <div class="cell" data-opt="brokerage"></div>
+      <div class="cell" data-opt="stop"></div>
+      <div class="cell" data-opt="optin"></div>
+    </div>
+
+    <div class="nav">
+      <button type="button" id="prev"></button>
+      <button type="button" id="next" class="primary"></button>
+    </div>
+  </section>
+
+  <footer class="foot" id="foot"></footer>
+</div>
+
+<script>
+/* ============================================================================
+   Embedded data — WRITTEN BY active_workspace/scripts/compass_mls_october2026_interactive.R
+   from the canonical analysis (compass_mls_october2026.R). Do not hand-edit
+   between the markers; re-run the script instead. Counts, not rates: every
+   share on the page is computed here from k / n.
+============================================================================ */
+/* DATA:BEGIN */
+const DATA = {"meta":{"generated_by":"active_workspace/scripts/compass_mls_october2026_interactive.R","analysis":"active_workspace/scripts/compass_mls_october2026.R","scale_max":0.6,"decimals":0},"opts":{"today":{"short":"Keep sharing, as today","col":"rule","row":"flows","verbatim":"Keep agents' sales data available to recruiting tools, as today"},"optout":{"short":"Share, but agents can opt out","col":"agent","row":"flows","verbatim":"Keep it available, but let each agent opt out"},"optin":{"short":"Share only if agents opt in","col":"agent","row":"held","verbatim":"Share it only if the agent opts in"},"brokerage":{"short":"The brokerage decides","col":"brokerage","row":"either","verbatim":"Let each brokerage decide for all of its agents"},"stop":{"short":"Stop sharing","col":"rule","row":"held","verbatim":"Stop sharing it with recruiting tools"},"unsure":{"short":"Not sure","col":null,"row":null,"verbatim":"Not sure"}},"groups":{"all_agents":{"name":"All agents","n":300,"k":{"today":91,"optout":88,"optin":53,"brokerage":8,"stop":30,"unsure":30}},"all_leaders":{"name":"All brokerage leaders","n":132,"k":{"today":61,"optout":21,"optin":11,"brokerage":9,"stop":24,"unsure":6}},"cf_agents":{"name":"Compass-family agents","n":105,"k":{"today":20,"optout":31,"optin":23,"brokerage":4,"stop":17,"unsure":10}},"other_named":{"name":"Other agents","n":188,"k":{"today":67,"optout":56,"optin":29,"brokerage":4,"stop":13,"unsure":19}},"fr_agents":{"name":"Agents at franchise brokerages","n":125,"k":{"today":38,"optout":39,"optin":22,"brokerage":3,"stop":7,"unsure":16}},"fr_leaders":{"name":"Franchise brokerage leaders","n":49,"k":{"today":24,"optout":9,"optin":3,"brokerage":5,"stop":5,"unsure":3}},"ind_leaders":{"name":"Leaders at independent brokerages","n":82,"k":{"brokerage":4,"optin":8,"optout":11,"stop":19,"today":37,"unsure":3}}},"views":[{"id":"letter","num":1,"tab":"Compass's letter","tagline":"Brokerage decides","focus":"all_agents","compare":null,"highlight":["brokerage"],"pin":"brokerage","mini":"pin","tiles":[{"kind":"letter","tag":"The letter asks","text":"Keep Compass brands' data out of recruiting tools. Franchise owners can opt back in."},{"kind":"stat","a":{"group":"all_agents","opts":["brokerage"]},"label":"of agents want the brokerage to decide"},{"kind":"stat","a":{"group":"all_leaders","opts":["brokerage"]},"label":"of brokerage leaders want the brokerage to decide"}]},{"id":"compass_agents","num":2,"tab":"Compass-family agents","tagline":"Less tied to the status quo","focus":"cf_agents","compare":"other_named","highlight":["today"],"pin":null,"mini":"heat","tiles":[{"kind":"pair","a":{"group":"cf_agents","opts":["today"]},"b":{"group":"other_named","opts":["today"]},"joiner":"vs","label":"want to keep sharing as today"},{"kind":"pair","a":{"group":"cf_agents","opts":["optout","optin"]},"b":{"group":"other_named","opts":["optout","optin"]},"joiner":"and","label":"want each agent to choose"},{"kind":"stat","a":{"group":"cf_agents","opts":["brokerage"]},"label":"want the brokerage to decide"}]},{"id":"other_agents","num":3,"tab":"Other agents","tagline":"Give each agent control","focus":"other_named","compare":"cf_agents","highlight":["optout","optin"],"pin":null,"mini":"heat","tiles":[{"kind":"stat","a":{"group":"other_named","opts":["optout","optin"]},"label":"want each agent to choose"},{"kind":"pair","a":{"group":"other_named","opts":["today"]},"b":{"group":"cf_agents","opts":["today"]},"joiner":"vs","label":"want to keep sharing as today"},{"kind":"stat","a":{"group":"other_named","opts":["brokerage"]},"label":"want the brokerage to decide"}]},{"id":"franchise_leaders","num":4,"tab":"Franchise leaders","tagline":"Keep the data flowing","focus":"fr_leaders","compare":"fr_agents","highlight":["today","optout","optin"],"pin":null,"mini":"heat","tiles":[{"kind":"pair","a":{"group":"fr_leaders","opts":["today"]},"b":{"group":"fr_agents","opts":["today"]},"joiner":"vs","label":"want to keep sharing as today"},{"kind":"pair","a":{"group":"fr_leaders","opts":["optout","optin"]},"b":{"group":"fr_agents","opts":["optout","optin"]},"joiner":"vs","label":"want each agent to choose"},{"kind":"stat","a":{"group":"ind_leaders","opts":["today"]},"label":"of leaders at independent brokerages want the same"}]}],"text":{"kicker":"Inman Intel Index · October 2026","headline":"4 camps in the fight over agents' sales data","cols":{"rule":"One rule for everyone","agent":"Each agent chooses","brokerage":"Each brokerage chooses"},"rows":{"flows":["Shared","by default"],"held":["Withheld","by default"]},"pin":"Compass's letter","method_summary":"About the data","method":["<b>Survey.<\/b> Inman Intel Index, Oct. 20&ndash;29, 2026: 300 agents and 132 brokerage leaders (executives, broker-owners and association leaders). Not a representative sample.","<b>Question.<\/b><span class=\"q\">Compass has asked MLSs to stop sending its agents' sales data to companies that build recruiting tools, saying rivals use the tools to poach its agents. Others say MLS data should be available to every brokerage on equal terms. Which comes closest to your view?<\/span><ul class=\"opts\"><li>Keep agents' sales data available to recruiting tools, as today<\/li><li>Keep it available, but let each agent opt out<\/li><li>Share it only if the agent opts in<\/li><li>Let each brokerage decide for all of its agents<\/li><li>Stop sharing it with recruiting tools<\/li><li>Not sure<\/li><\/ul>","<b>Groups.<\/b> Compass family: agents at Compass or a brand it owns, such as Coldwell Banker or Century 21. Other agents: those who named any other brokerage (7 who answered &ldquo;Other / not sure&rdquo; are in neither group). Franchise: as respondents described their brokerage."],"credit":"Source: Inman Intel Index, October 2026; Compass International Holdings letter to MLSs | Visualized by Inman"}};
+/* DATA:END */
+
+(function () {
+  "use strict";
+  const OPTS = DATA.opts;                       // key -> {verbatim, short, col, row}
+  const G = DATA.groups;                        // id -> {name, n, k: {opt: count}}
+  const VIEWS = DATA.views;
+  const T = DATA.text;
+  const SCALE_MAX = DATA.meta.scale_max;        // bar length = share / SCALE_MAX, same in every cell
+  const DEC = DATA.meta.decimals;               // decimals shown on the page; exact figures go in labels
+
+  /* ---------- helpers ---------- */
+  const $ = (s, r = document) => r.querySelector(s);
+  const esc = (s) => String(s).replace(/[&<>"]/g, c => ({ "&": "&amp;", "<": "&lt;", ">": "&gt;", '"': "&quot;" }[c]));
+  const kOf = (g, opts) => opts.reduce((s, o) => s + G[g].k[o], 0);
+  const share = (g, opts) => kOf(g, opts) / G[g].n;
+  const pct = (x) => (100 * x).toFixed(DEC) + "%";
+  const exact = (g, opts) => `${(100 * share(g, opts)).toFixed(1)}% (${kOf(g, opts)} of ${G[g].n})`;
+  const barW = (x) => Math.min(100, (x / SCALE_MAX) * 100).toFixed(2) + "%";
+  const BOARD = ["today", "optout", "brokerage", "stop", "optin"];
+
+  let current = 0;
+
+  /* ---------- static text ---------- */
+  function renderStatic() {
+    $("#kicker").textContent = T.kicker;
+    $("#headline").textContent = T.headline;
+    $("#row1").innerHTML = T.rows.flows.map(esc).join("<br>");
+    $("#row2").innerHTML = T.rows.held.map(esc).join("<br>");
+    ["rule", "agent", "brokerage"].forEach(c => { $(`.colhead[data-col="${c}"]`).textContent = T.cols[c]; });
+    $("#foot").innerHTML =
+      `<details class="method"><summary>${esc(T.method_summary)}</summary>` +
+      T.method.map(p => `<div class="m-item">${p}</div>`).join("") + `</details>` +
+      `<p class="credit">${esc(T.credit)}</p>`;
+    // Opening or closing the method note changes the page height.
+    $("#foot").addEventListener("toggle", () => reportHeight(), true);
+    document.querySelectorAll(".cell").forEach(cell => {
+      const o = cell.dataset.opt;
+      cell.innerHTML =
+        `<span class="pin">${esc(T.pin)}</span>` +
+        `<div class="c-label">${esc(OPTS[o].short)}</div>` +
+        `<div class="c-fig"><span class="c-v"></span><span class="c-cmp"></span></div>` +
+        `<div class="c-bar" aria-hidden="true"><i class="c-fill"></i><i class="c-tick"></i></div>`;
+    });
+  }
+
+  /* ---------- picker: one card per camp, with a thumbnail of its board ---------- */
+  function miniHTML(v) {
+    return BOARD.map(o => {
+      const a = v.mini === "pin" ? (o === v.pin ? 1 : 0.14)
+                                 : 0.14 + 0.86 * Math.min(1, share(v.focus, [o]) / SCALE_MAX);
+      return `<i class="m-${o}" style="--a:${a.toFixed(3)}"></i>`;
+    }).join("");
+  }
+  function renderPicker() {
+    $("#picker").innerHTML = VIEWS.map((v, i) =>
+      `<button type="button" class="pick" data-i="${i}" aria-pressed="false" aria-label="${esc(v.num + ". " + v.tab + ": " + v.tagline)}">` +
+      `<span class="pk-head"><span class="pk-num" aria-hidden="true">${v.num}</span>` +
+      `<span><span class="pk-name">${esc(v.tab)}</span><span class="pk-tag">${esc(v.tagline)}</span></span></span>` +
+      `<span class="mini" aria-hidden="true">${miniHTML(v)}</span></button>`).join("");
+    $("#picker").addEventListener("click", e => { const b = e.target.closest(".pick"); if (b) show(+b.dataset.i); });
+    $("#picker").addEventListener("keydown", e => {
+      if (e.key !== "ArrowRight" && e.key !== "ArrowLeft") return;
+      const i = (current + (e.key === "ArrowRight" ? 1 : VIEWS.length - 1)) % VIEWS.length;
+      show(i); $(`.pick[data-i="${i}"]`).focus(); e.preventDefault();
+    });
+  }
+
+  /* ---------- takeaway tiles ---------- */
+  function tileHTML(t, v) {
+    if (t.kind === "letter") {
+      // Linked to the cell the letter is pinned to, so it behaves like every other tile.
+      return `<div class="tile letter" data-cells="${esc(v.pin || "")}" tabindex="0">` +
+        `<div class="t-tag">${esc(t.tag)}</div><div class="t-label">${esc(t.text)}</div></div>`;
+    }
+    const cells = [...new Set([...t.a.opts, ...(t.b ? t.b.opts : [])])].join(" ");
+    // Blue = the camp's group, navy = its comparison group (both in the legend);
+    // any other group a tile names is shown in neutral gray.
+    const role = (r) => r.group === v.focus ? "a" : (r.group === v.compare ? "b" : "c");
+    let num = `<span class="${role(t.a)}">${pct(share(t.a.group, t.a.opts))}</span>`;
+    let tip = `${G[t.a.group].name}: ${exact(t.a.group, t.a.opts)}`;
+    if (t.b) {
+      num += `<span class="vs">${esc(t.joiner)}</span><span class="${role(t.b)}">${pct(share(t.b.group, t.b.opts))}</span>`;
+      tip += `. ${G[t.b.group].name}: ${exact(t.b.group, t.b.opts)}`;
+    }
+    return `<div class="tile" data-cells="${cells}" tabindex="0" title="${esc(tip)}" aria-label="${esc(t.label + ". " + tip)}">` +
+      `<div class="t-num" aria-hidden="true">${num}</div><div class="t-label" aria-hidden="true">${esc(t.label)}</div></div>`;
+  }
+  /* ---------- tile hover / keyboard focus: one state, one painter ----------
+     A tile is active while a mouse is over it, or while it holds keyboard focus.
+     The outline is recomputed from that state on every change, rather than toggled
+     cell by cell, so two tiles that point at the same cell (camp 4's first and
+     third) can never clear each other, and nothing is left stuck. pointerenter and
+     pointerleave fire once per tile, not again for every child the pointer crosses.
+     Touch is ignored: a tap would flash the outline on and straight off again. */
+  let hoverTile = null, focusTile = null;
+  function paintActive() {
+    const active = [hoverTile, focusTile].filter(Boolean);
+    document.querySelectorAll("#tiles .tile").forEach(t => t.classList.toggle("is-active", active.includes(t)));
+    const on = new Set(active.flatMap(t => (t.dataset.cells || "").split(" ").filter(Boolean)));
+    document.querySelectorAll(".cell").forEach(c => c.classList.toggle("hot", on.has(c.dataset.opt)));
+  }
+  const keyboardFocus = (el) => { try { return el.matches(":focus-visible"); } catch (e) { return true; } };
+  function wireTiles() {
+    document.querySelectorAll("#tiles .tile").forEach(t => {
+      t.addEventListener("pointerenter", e => { if (e.pointerType !== "touch") { hoverTile = t; paintActive(); } });
+      t.addEventListener("pointerleave", () => { if (hoverTile === t) { hoverTile = null; paintActive(); } });
+      // A mouse click also focuses the tile; only keyboard focus keeps it active.
+      t.addEventListener("focus", () => { if (keyboardFocus(t)) { focusTile = t; paintActive(); } });
+      t.addEventListener("blur", () => { if (focusTile === t) { focusTile = null; paintActive(); } });
+    });
+  }
+
+  /* ---------- board ---------- */
+  function renderBoard(v) {
+    const f = v.focus, c = v.compare;
+    document.querySelectorAll(".cell").forEach(cell => {
+      const o = cell.dataset.opt, s = share(f, [o]);
+      $(".c-v", cell).textContent = pct(s);
+      $(".c-fill", cell).style.width = barW(s);
+      const tick = $(".c-tick", cell);
+      if (c) {
+        tick.style.opacity = 1; tick.style.left = barW(share(c, [o]));
+        $(".c-cmp", cell).textContent = pct(share(c, [o]));
+      } else {
+        tick.style.opacity = 0; $(".c-cmp", cell).textContent = "";
+      }
+      cell.classList.toggle("hl", v.highlight.includes(o));
+      cell.classList.toggle("has-pin", v.pin === o);
+      const tip = `${OPTS[o].verbatim}. ${G[f].name}: ${exact(f, [o])}` + (c ? `. ${G[c].name}: ${exact(c, [o])}` : "");
+      cell.title = tip;
+      cell.setAttribute("aria-label", tip + (v.pin === o ? `. ${T.pin}.` : ""));
+    });
+  }
+
+  /* ---------- one refresh path: redraw everything, then report height ---------- */
+  function show(i, opts = {}) {
+    current = i;
+    const v = VIEWS[i];
+    document.querySelectorAll(".pick").forEach(b => b.setAttribute("aria-pressed", String(+b.dataset.i === i)));
+    // No visible headline (Houston, Nov. 5): the selected card names the camp. A
+    // screen-reader heading keeps the page's structure.
+    $("#v-title").textContent = `Camp ${v.num} of ${VIEWS.length}: ${v.tab}. ${v.tagline}.`;
+    const keyItem = (cls, g) => `<span><i class="${cls}"></i><b>${esc(G[g].name)}</b><span class="n">(${G[g].n})</span></span>`;
+    $("#key").innerHTML = keyItem("sw-a", v.focus) + (v.compare ? keyItem("sw-b", v.compare) : "");
+    $("#tiles").innerHTML = v.tiles.map(t => tileHTML(t, v)).join("");
+    hoverTile = focusTile = null;
+    wireTiles();
+    renderBoard(v);
+    paintActive();
+    const prev = $("#prev"), next = $("#next");
+    prev.hidden = i === 0;
+    prev.textContent = i > 0 ? `← ${VIEWS[i - 1].tab}` : "";
+    next.textContent = i < VIEWS.length - 1 ? `Next: ${VIEWS[i + 1].tab} →` : `Back to ${VIEWS[0].tab}`;
+    if (opts.scroll) { try { $("#stage").scrollIntoView({ block: "start", behavior: "smooth" }); } catch (e) {} }
+    reportHeight();
+  }
+
+  /* ---------- embed height (house pattern: initEmbedHeight in holiday-effect).
+     Timed retries call send() directly; rAF is throttled in an unpainted iframe. ---------- */
+  let reportHeight = () => {};
+  function initEmbedHeight() {
+    if (!document.documentElement.classList.contains("embed")) return;
+    let last = 0, raf = 0, timer = 0;
+    const send = () => {
+      const h = Math.ceil(document.documentElement.getBoundingClientRect().height);
+      if (h && Math.abs(h - last) > 1) {
+        last = h;
+        try { window.parent.postMessage({ type: "inman-embed-height", height: h }, "*"); } catch (e) {}
+      }
+    };
+    // rAF coalesces bursts of resize/observer events; a plain timer backs it up so a
+    // new height always reaches the parent within 250ms, even when rAF is throttled.
+    const schedule = () => {
+      cancelAnimationFrame(raf); raf = requestAnimationFrame(send);
+      clearTimeout(timer); timer = setTimeout(send, 250);
+    };
+    window.addEventListener("resize", schedule);
+    if (window.ResizeObserver) new ResizeObserver(schedule).observe(document.body);
+    if (document.fonts && document.fonts.ready) document.fonts.ready.then(send);
+    [0, 300, 800, 1800, 3000].forEach(ms => setTimeout(send, ms));
+    reportHeight = send;
+    window.__inmanEmbedSend = send;
+    send();
+  }
+
+  /* ---------- wire-up ---------- */
+  initEmbedHeight();
+  renderStatic();
+  renderPicker();
+  $("#prev").addEventListener("click", () => show(Math.max(0, current - 1), { scroll: true }));
+  $("#next").addEventListener("click", () => show((current + 1) % VIEWS.length, { scroll: true }));
+  // ?camp=2 opens on a given camp, so one story can embed the tool at more than one point.
+  const m = /[?&]camp=(\d)/.exec(location.search);
+  show(m ? Math.min(VIEWS.length, Math.max(1, +m[1])) - 1 : 0);
+})();
+</script>
+</body>
+</html>
